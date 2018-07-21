@@ -1,0 +1,168 @@
+const mongoose = require('mongoose');
+global.Promise = mongoose.Promise;
+const paginate = require('mongoose-paginate');
+const Schema = mongoose.Schema;
+const userSchema=require("./user")
+let competitionSchema = new Schema({ 
+   
+    competitionName: {
+        type: String,
+        trim: true
+    },
+    venue: {
+        type: String,
+        trim:true
+    },
+    division: {
+        type: String,
+        trim:true
+    },
+    period: {
+        type: String,
+        trim:true
+    },
+    sports: {
+        type: String,
+        trim:true
+    },
+    club: {
+        type: String,
+        trim: true,
+    },
+    privacy: {
+        type: String,
+        enum:["public","private"]
+    },
+    status:{
+        type:String,
+        trim:true
+    },
+    organizer:{
+      type: Schema.Types.ObjectId, ref:'user'
+    },
+    prize:[{
+        
+        name:{
+            type:String,
+            trim:true
+        },
+        value:{
+            type:Number,
+            trim:true
+        },
+        description:{
+            type:String,
+        }
+            
+        }],
+    allowComment:{
+            type:Boolean,
+            default:false,
+        },
+    allowFollow:{
+            type:String,
+            enum:["public,private"]
+        },
+    clubRegistration:{
+            type:Boolean,
+            default:false
+        },
+    startDate:{
+        type:Date,
+        //min:Date.now(),
+    },
+    endDate:{
+        type:Date,
+        //min:Date.now(),
+    },
+    allowPublicToFollow:{
+        type:Boolean,
+        default:false
+    },
+    imageURL:{
+        type:String,
+        trim:true
+    },
+    file:[{
+        
+        fileName:{
+        type:String,
+        trim:true
+                },
+        file:{
+           type:String,
+           trim:true
+       },
+        name:{
+           type:String,
+           trim:true
+       },
+        public_id:{
+           type:String
+       },
+           
+       }],
+    deviceType: {
+        type: String,
+        enum: ['iOS', 'android']
+    },
+    deviceToken: {
+        type: String
+    },
+}, {
+    timestamps: true
+});
+
+competitionSchema.plugin(paginate);
+var competition = mongoose.model('competition', competitionSchema);
+
+let registrationSchema = new Schema({
+    competitionId:{
+        type: Schema.Types.ObjectId, ref:'competition'
+    },
+    organizer:{
+        type: Schema.Types.ObjectId, ref:'user'
+      },
+    imageURL:{
+        type:String
+    },
+    freeOrPaid:{
+        type:String,
+        trim:true,
+        enum:["free","paid"]
+    },
+    resistrationFee:{
+        type:Number,
+    },
+    accountNumber:{
+        type:String,
+    },
+    paymentInHandDetails:{
+        type:String
+    },
+    description:{
+        type:String,
+    },
+    startDate:{
+        type:Date,
+        
+    },
+    endDate:{
+        type:Date,
+        
+    },
+    configTeamField:{
+        type:Array
+    },
+    configPlayerField:{
+        type:Array
+    },
+},{
+    timestamps:true
+})
+
+var competitionReg=mongoose.model("competitionreg",registrationSchema)
+module.exports={
+    competition:competition,
+    competitionReg:competitionReg
+}

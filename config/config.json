@@ -1,0 +1,33 @@
+{
+	"project_name" : "YALA",
+	"version" : "v1",
+	"base_url" : "",	
+	"secret_key":"",
+	"token_expiry_time":"",
+	"db":{
+		"host":"",
+		"name":"yala"		
+	},
+    "twilio": {
+        "sid": "ACfb9c8be2a8f6f6ec054ad2eccb215911",
+        "auth_token": "cf7330eeba3f29b89b52295d73442189",
+        "number":"(+1720) 513-6474"
+    },
+    "nexmo":{
+        "apiKey":"",
+        "apiSecret":"",
+        "number":""
+    },
+    "speakeasy":{
+        "secret_key":""
+    },
+    "nodemailer":{
+        "pass": "9336503275",
+        "user": "anuragcoolm@gmail.com"
+    },
+    "cloudinary":{
+        "cloud_name": "singhanurag400", 
+        "api_key": "646765743427282", 
+        "api_secret": "HwwLwgp1zjKjZKv8_FCNMB3Vi54" 
+    }
+}
