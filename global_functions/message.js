@@ -11,22 +11,38 @@ cloudinary.config({
     api_secret:config.cloudinary.api_secret 
   })
 module.exports = {
-        sendSMS: (message, number, callback) => {
+    //     sendSMS: (message, number, callback) => {
 
-            let client = new twilio(config.twilio.sid, config.twilio.auth_token);
-            client.messages.create({
-                    body: message,
-                    to: "+91"+number, // Text this number
-                    from: config.twilio.number // From a valid Twilio number
-                })
-                .then((message) => {
-                    console.log("@@@@@@@@@@@@@@@@@@",message);
-                    callback(null, message.sid);
-                })
-                .catch((response) => {
-                    callback(response);
-                })
-    },
+    //         let client = new twilio(config.twilio.sid, config.twilio.auth_token);
+    //         client.messages.create({
+    //                 body: message,
+    //                 to: "+91"+number, // Text this number
+    //                 from: config.twilio.number // From a valid Twilio number
+    //             })
+    //             .then((message) => {
+    //                 console.log("@@@@@@@@@@@@@@@@@@",message);
+    //                 callback(null, message.sid);
+    //             })
+    //             .catch((response) => {
+    //                 callback(response);
+    //             })
+    // },
+    sendSMS: (message,code,number, callback) => {
+        var a=52;
+                    let client = new twilio(config.twilio.sid, config.twilio.auth_token);
+                    client.messages.create({
+                            body: message,
+                            to: code+number, // Text this number
+                            from: config.twilio.number // From a valid Twilio number
+                        })
+                        .then((message) => {
+                            console.log("@@@@@@@@@@@@@@@@@@",message);
+                            callback(null, message.sid);
+                        })
+                        .catch((response) => {
+                            callback(response);
+                        })
+            },
     getOTP: () => {
     var val = Math.floor(100000 + Math.random() * 9000);
     console.log(val);

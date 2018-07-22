@@ -2,7 +2,7 @@
 	"project_name" : "YALA",
 	"version" : "v1",
 	"base_url" : "",	
-	"secret_key":"",
+	"secret_key":"secr@tk@y",
 	"token_expiry_time":"",
 	"db":{
 		"host":"",

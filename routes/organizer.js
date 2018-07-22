@@ -7,6 +7,7 @@ const configOrganizerController = require('../webservices/controllers/configurat
 
 
 router.post('/competition/addNewCompetition',competitionController.addNewCompetition);
+router.post('/competition/getAllCompetitions',competitionController.getAllCompetition);
 router.post('/competition/configureCompetition',competitionController.configureCompetition);
 
 router.post('/competition/addPrize',competitionController.addPrize);
@@ -28,8 +29,8 @@ router.post('/config/standing/deleteStanding',configOrganizerController.deleteSt
 
 
 router.post('/competition/competitionRegistration',competitionController.competitionRegistration);
-router.post('/competition/configTeamField',competitionController.configTeamField);
-router.post('/competition/getTeamfield',competitionController.getTeamfield);
+router.post('/competition/configTeamFields',competitionController.configTeamFields);
+router.post('/competition/getTeamfields',competitionController.getTeamfields);
 router.post('/competition/configPlayerFields',competitionController.configPlayerFields);
-router.post('/competition/configPlayerFields',competitionController.getPlayerFields);
+router.post('/competition/getPlayerFields',competitionController.getPlayerFields);
 module.exports=router;

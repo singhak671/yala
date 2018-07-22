@@ -9,14 +9,17 @@ let userSchema = new Schema({
         type: String,
         trim: true
     },
-    fullName: {
+    firstName: {
         type: String,
         sparse: true
+    },
+    lastName:{
+        type:String
     },
     password: {
         type: String,
     },
-    phoneNumber: {
+    mobileNumber: {
         type: String,
         sparse: true
     },
@@ -28,6 +31,9 @@ let userSchema = new Schema({
         type: String,
         trim: true,
         lowercase: true
+    },
+    countryCode:{
+        type:String
     },
     dob: {
         type: String,
@@ -42,8 +48,9 @@ let userSchema = new Schema({
     nationality:{
         type:String
     },
-    organiser:{
-      type:String
+    organizerType:{
+        type:String,
+        uppercase:true
     },
     cardDetails:[{
         cardNumber:{type:Number,
@@ -57,8 +64,16 @@ let userSchema = new Schema({
             min:1
        }
     }],
+    image:{
+        type:String,
+    },
+    jwt:{
+        type:String
+    },
+
     subscription:{
-      type:String
+      type:String,
+      uppercase:true
     },
     organizerCompetition:[{ type: Schema.Types.ObjectId, ref: 'competition' }]
     ,

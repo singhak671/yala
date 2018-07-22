@@ -160,9 +160,56 @@ let registrationSchema = new Schema({
 },{
     timestamps:true
 })
-
+registrationSchema.plugin(paginate);
 var competitionReg=mongoose.model("competitionreg",registrationSchema)
+
+
+
+let createTeamInComp = new Schema({
+    competitionId:{
+        type: Schema.Types.ObjectId, ref:'competition'
+    },
+    organizer:{
+        type: Schema.Types.ObjectId, ref:'user'
+      },
+    imageURL:{
+        type:String
+    },
+    teamName:{
+        type:String
+    },
+    phone:{
+        type:String
+    },
+    email:{
+        type:String
+    },
+    venue:{
+        type:String
+    },
+    category:{
+        type:String
+    },
+    status:{
+        type:String
+    }
+
+},{
+    timestamps:true
+})
+createTeamInComp.plugin(paginate);
+var createTeamInCompetition=mongoose.model("createTeamInCompetition",createTeamInComp)
+
+
+
+
+
+
+
+
 module.exports={
     competition:competition,
-    competitionReg:competitionReg
+    competitionReg:competitionReg,
+    createTeamInCompetition:createTeamInCompetition
+
 }

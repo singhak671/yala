@@ -32,6 +32,46 @@ const addNewCompetition=(req,res)=>{
     });
 }
 
+
+const getAllCompetition=(req,res)=>{
+    let flag =Validator(req.body,['userId'],[])
+	if(flag)
+        return Response.sendResponse(res,flag[0],flag[1]);
+        User.findById(req.body.userId,(err,succ)=>{
+            if(err)
+                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+            if(!succ)
+                return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
+
+        
+    Competition.competition.paginate({organizer:req.body.userId},{page:req.body.page,limit:req.body.limit},(err,success)=>{
+        if (err)
+            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+        if(!success)
+            return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
+        return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success)       
+    });
+})
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const configureCompetition=(req,res)=>{
     // console.lo
     let flag =Validator(req.body,[],[],["competitionId","competitionName","venue","division","period","sports","startDate","endDate","status","club","imageURL"])
@@ -39,13 +79,13 @@ const configureCompetition=(req,res)=>{
         return Response.sendResponse(res,flag[0],flag[1]);
      Competition.competition.findById(req.body.competitionId,(err,success)=>{
         if (err)
-            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
+            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
         if(!success)
             return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
         message.uploadImg(req.body.imageURL,(err,success1)=>{
             if (err || !success1)
-                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
-            req.body.imageURL=success1;           
+                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+            req.body.imageURL=success1.secure_url;           
              Competition.competition.findByIdAndUpdate({_id:req.body.competitionId},req.body,(err,success)=>{
                 if (err || !success)
                     return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
@@ -305,7 +345,7 @@ else{
   })
 }
 
-const configTeamField=(req,res)=>{
+const configTeamFields=(req,res)=>{
     let flag =Validator(req.body,["teamFields"],["field","importance"],["competitionId","userId",]);
     if(flag)
         return Response.sendResponse(res,flag[0],flag[1]);
@@ -365,7 +405,7 @@ const configTeamField=(req,res)=>{
 })
 }
 
-const getTeamfield=(req,res)=>{
+const getTeamfields=(req,res)=>{
     let flag =Validator(req.body,[],[],["competitionId","userId"]);
     if(flag)
         return Response.sendResponse(res,flag[0],flag[1]);
@@ -438,8 +478,6 @@ const configPlayerFields=(req,res)=>{
 })
 }
 
-
-
 const getPlayerFields=(req,res)=>{
     let flag =Validator(req.body,[],[],["competitionId","userId"]);
     if(flag)
@@ -453,8 +491,39 @@ const getPlayerFields=(req,res)=>{
     })
 }
 
+
+const createTeamInCompetition=(req,res)=>{
+    let flag =Validator(req.body,["teamDetails"],["teamName","venue","phone","email","category","status","image"],["competitionId","userId"]);
+    if(flag)
+        return Response.sendResponse(res,flag[0],flag[1]);
+    Competition.competition.findById({_id:req.body.competitionId,organizer:req.body.userId},(err,success)=>{
+        if(err)
+            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
+        if(!success)
+            return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
+        Competition.createTeamInCompetition.findOne({competitionId:req.body.competitionId,organizer:req.body.userId,teamName:req.body.teamDetails.teamName},(err,success1)=>{
+            if(err)
+                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
+            if(success1)
+                return Response.sendResponse(res,responseCode.BAD_REQUEST,"Team name already exists");
+            message.uploadImg(req.body.image,(err,result)=>{
+                if(result.secure_url)
+                req.body.teamDetails.imageURL=result.secure_url;
+                req.body.teamDetails.save((err,success2)=>{
+                    if(err || !success2)
+                        return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+
+                })
+            })
+        })
+        
+    })
+}
+
+
 module.exports={
     addNewCompetition,
+    getAllCompetition,
     configureCompetition,
     addPrize,
     editPrize,
@@ -464,8 +533,9 @@ module.exports={
     editFile,
     deleteFile,
     competitionRegistration,
-    configTeamField,
-    getTeamfield,
+    configTeamFields,
+    getTeamfields,
     configPlayerFields,
-    getPlayerFields
+    getPlayerFields,
+    createTeamInCompetition
 }
