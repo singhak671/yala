@@ -32,7 +32,6 @@ const addNewCompetition=(req,res)=>{
     });
 }
 
-
 const getAllCompetition=(req,res)=>{
     let flag =Validator(req.body,['userId'],[])
 	if(flag)
@@ -54,22 +53,30 @@ const getAllCompetition=(req,res)=>{
 })
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+const filterCompetition=(req,res)=>{
+    let flag =Validator(req.body,['userId'],[],["filterFields"])
+	if(flag)
+        return Response.sendResponse(res,flag[0],flag[1]);       
+    else
+    {   let obj={};
+        let array=["sports","division","period","status"];
+        for (let key of array){
+                for(let data in req.body.filterFields){
+                    if(key==data)
+                    obj[key]=req.body.filterFields[key];
+                }
+        }
+        obj.organizer=req.body.userId;
+        Competition.competition.find(obj,(err,result)=>{
+        if (err)
+            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+        else if(!result)
+            return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
+        else
+        return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,result);
+        })   
+    }
+}
 
 
 const configureCompetition=(req,res)=>{
@@ -537,5 +544,6 @@ module.exports={
     getTeamfields,
     configPlayerFields,
     getPlayerFields,
-    createTeamInCompetition
+    createTeamInCompetition,
+    filterCompetition
 }

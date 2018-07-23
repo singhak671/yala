@@ -161,7 +161,7 @@ let registrationSchema = new Schema({
     timestamps:true
 })
 registrationSchema.plugin(paginate);
-var competitionReg=mongoose.model("competitionreg",registrationSchema)
+var competitionReg=mongoose.model("competitionreg",registrationSchema);
 
 
 

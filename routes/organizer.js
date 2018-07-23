@@ -8,6 +8,7 @@ const configOrganizerController = require('../webservices/controllers/configurat
 
 router.post('/competition/addNewCompetition',competitionController.addNewCompetition);
 router.post('/competition/getAllCompetitions',competitionController.getAllCompetition);
+router.post('/competition/filterCompetition',competitionController.filterCompetition);
 router.post('/competition/configureCompetition',competitionController.configureCompetition);
 
 router.post('/competition/addPrize',competitionController.addPrize);
