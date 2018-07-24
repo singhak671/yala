@@ -18,7 +18,7 @@ const signup=(req,res)=>{
 	console.log("req.body---->>",req.body)
 	otp=message.getOTP();
 	req.body.otp = otp
-	let flag = Validator(req.body, ['email', 'password', ])  
+	let flag = Validator(req.body, ['email', 'password', ]) ; 
 	if(flag)
 	return Response.sendResponse(res, flag[0], flag[1])
 	else if(!req.body)
@@ -43,17 +43,23 @@ const signup=(req,res)=>{
 					  }
 					 
 				else{
+					let obj={
+						"oneEvent":"50",
+						"yearly":"1000",
+						"monthly":"200"
+					};
+					req.body.subscriptionPrice=obj[req.body.subscription];
 					userServices.addUser(req.body,(err,success)=>{
-						if(err){
+						if(err || !success){
 							console.log("err--->>",err)
-						return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+							return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
 						}
-						else if(!success)
-						return Response.sendResponse(res.responseCode.BAD_REQUEST,responseMsg.CORRECT_EMAIL_ID);
-						else{
-					  console.log("successfully sent")
-					   return Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,responseMsg.SIGNUP_SUCCESS,success)
-				}
+						else						
+						{	let newSuccess= success.toObject();		
+							delete newSuccess["password"];
+					 		 console.log("successfully sent")
+					  		 return Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,responseMsg.SIGNUP_SUCCESS,newSuccess)
+						}
 				
 			})
 		}
@@ -179,6 +185,7 @@ const login=(req,res)=>{
 		
 	}
 }
+
 //--------------------------Update User-----------------------------------------------------------
 const updateUser=(req,res)=>{
 	console.log("req.body",req.body)
@@ -450,7 +457,7 @@ const addCard=(req,res)=>{
         if(err)
             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
         if(!result)
-            return Response.sendResponse(res,responseCode.USER_NOT_EXISTS,responseMsg.USER_NOT_EXISTS);
+            return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
 
         for (let x of result.cardDetails){
             if(x.cardNumber==req.body.cardDetails.cardNumber)
@@ -583,8 +590,28 @@ const code=(req,res)=>{
 	 Response.sendResponse(res,responseCode.SUCCESSFULLY_DONE,responseMsg.EVERYTHING_IS_OK,country)
 }
 
+const paymentOrder=(req,res)=>{
+	console.log(req.body)
 
-
+	if(!req.body || !req.body.order_number || !req.body.invoice_id || !req.body.credit_card_processed=="Y")
+		return Response.sendResponse(res,responseCode.BAD_REQUEST,"Payment not successfull");
+	else
+		User.findById(req.body.userid,(err,success)=>{
+			if(err)
+				return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
+			else if(!success)
+				return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
+				else
+				User.findByIdAndUpdate(req.body.userid,{$set:{paymentStatus:true,payment:req.body}},(err,result)=>{
+					if(err)
+						return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
+					else if(!success)
+							return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
+						else
+						return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Payment is successfull");
+				})
+		})
+}
 
 module.exports={
 	signup,
@@ -602,7 +629,8 @@ module.exports={
 	getCardDetails,
 	editCardDetails,
 	deleteCard,
-	getCard
+	getCard,
+	paymentOrder
 }
 
 

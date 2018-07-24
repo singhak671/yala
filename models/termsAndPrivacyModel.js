@@ -44,7 +44,7 @@ const termsPrivacySchema = new Schema({
 });
 
 mongoose.model('termsAndPrivacy',termsPrivacySchema).findOne({"PLAYER.role":"PLAYER"},(err,result)=>{
-    console.log("***********************")
+    console.log("")
     if(err)
     console.log("error---->>>",err)
     else if(!result)
@@ -88,7 +88,7 @@ mongoose.model('termsAndPrivacy',termsPrivacySchema).findOne({"PLAYER.role":"PLA
         })
     }
     else
-        console.log('@@@@@@@@@@@@@@@@@@')
+        console.log("")
 })
 
 module.exports = mongoose.model('termsAndPrivacy',termsPrivacySchema);

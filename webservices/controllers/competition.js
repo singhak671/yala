@@ -54,19 +54,21 @@ const getAllCompetition=(req,res)=>{
 }
 
 const filterCompetition=(req,res)=>{
-    let flag =Validator(req.body,['userId'],[],["filterFields"])
+    let flag =Validator(req.body,['userId'],[],[])
 	if(flag)
         return Response.sendResponse(res,flag[0],flag[1]);       
     else
     {   let obj={};
+    if(req.body.filterFields){
         let array=["sports","division","period","status"];
         for (let key of array){
                 for(let data in req.body.filterFields){
-                    if(key==data)
+                    if(key==data && req.body.filterFields[data])
                     obj[key]=req.body.filterFields[key];
                 }
-        }
+        }}
         obj.organizer=req.body.userId;
+        console.log(obj)
         Competition.competition.find(obj,(err,result)=>{
         if (err)
             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
@@ -90,7 +92,7 @@ const configureCompetition=(req,res)=>{
         if(!success)
             return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
         message.uploadImg(req.body.imageURL,(err,success1)=>{
-            if (err || !success1)
+            if (err || !success1.secure_url)
                 return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
             req.body.imageURL=success1.secure_url;           
              Competition.competition.findByIdAndUpdate({_id:req.body.competitionId},req.body,(err,success)=>{
@@ -498,32 +500,38 @@ const getPlayerFields=(req,res)=>{
     })
 }
 
-
 const createTeamInCompetition=(req,res)=>{
-    let flag =Validator(req.body,["teamDetails"],["teamName","venue","phone","email","category","status","image"],["competitionId","userId"]);
+    let flag =Validator(req.body,[],[],["competitionId","organizer","teamName","venue","phone","email","category","status","image"]);
     if(flag)
         return Response.sendResponse(res,flag[0],flag[1]);
-    Competition.competition.findById({_id:req.body.competitionId,organizer:req.body.userId},(err,success)=>{
+    else
+    Competition.competition.findById({_id:req.body.competitionId,organizer:req.body.organizer},(err,success)=>{
         if(err)
             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
-        if(!success)
+        else if(!success)
             return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
-        Competition.createTeamInCompetition.findOne({competitionId:req.body.competitionId,organizer:req.body.userId,teamName:req.body.teamDetails.teamName},(err,success1)=>{
+        Competition.createTeamInCompetition.findOne({competitionId:req.body.competitionId,organizer:req.body.organizer,teamName:req.body.teamName},(err,success1)=>{
             if(err)
                 return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
-            if(success1)
+            else if(success1)
                 return Response.sendResponse(res,responseCode.BAD_REQUEST,"Team name already exists");
+            else
             message.uploadImg(req.body.image,(err,result)=>{
+                console.log("err",err,"result",result);
+                if(err || !result.secure_url)
+                    return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,"Image not uploaded successfully");
+                else
                 if(result.secure_url)
-                req.body.teamDetails.imageURL=result.secure_url;
-                req.body.teamDetails.save((err,success2)=>{
-                    if(err || !success2)
-                        return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+                req.body.imageURL=result.secure_url;
 
+                Competition.createTeamInCompetition.create(req.body,(err2,success2)=>{
+                    if(err2 || !success2)
+                        return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err2);
+                    else 
+                        return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success2);
                 })
             })
-        })
-        
+        })        
     })
 }
 

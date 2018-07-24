@@ -23,12 +23,12 @@ module.exports = {
                 if (!request_body['email']){                  
                     return [responseCode.BAD_REQUEST,responseMsg.EMAIL_IS_REQ];
                 }
-                else {                                    
-                    if(!validator.isEmail(request_body['email'])){
-                        return [responseCode.BAD_REQUEST,responseMsg.CORRECT_EMAIL_ID];
-                    }
-                    return false;
-                }
+                // else {                                    
+                //     if(!validator.isEmail(request_body['email'])){
+                //         return [responseCode.BAD_REQUEST,responseMsg.CORRECT_EMAIL_ID];
+                //     }
+                //     return false;
+                // }
                 break;
             case 'newPassword':
             if (!request_body['newPassword']) {

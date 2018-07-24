@@ -72,8 +72,17 @@ let userSchema = new Schema({
     },
 
     subscription:{
-      type:String,
-      uppercase:true
+      type:String
+    },
+    subscriptionPrice:{
+        type:Number
+    },
+    payment:{
+        type:Object
+    },
+    paymentStatus:{
+        type:Boolean,
+        default: false
     },
     organizerCompetition:[{ type: Schema.Types.ObjectId, ref: 'competition' }]
     ,

@@ -18,6 +18,7 @@ router.post('/addCard',AUTH.verifyToken,userController.addCard)
 router.get('/getCardDetails',AUTH.verifyToken,userController.getCardDetails)
 router.post('/editCardDetails',AUTH.verifyToken,userController.editCardDetails)
 router.post('/deleteCard',AUTH.verifyToken,userController.deleteCard)
+router.post('/paymentOrder',userController.paymentOrder);
 module.exports=router;
 
 

@@ -2,6 +2,7 @@ const router=require("express").Router();
 //const dataController = require('../webservices/controllers/data');
 const competitionController = require('../webservices/controllers/competition');
 const configOrganizerController = require('../webservices/controllers/configuration_organizer');
+const AUTH=require('../middlewares/auth_handler')
 
 //router.post('/data/team/addTeam',dataController.addTeam);
 
@@ -34,4 +35,5 @@ router.post('/competition/configTeamFields',competitionController.configTeamFiel
 router.post('/competition/getTeamfields',competitionController.getTeamfields);
 router.post('/competition/configPlayerFields',competitionController.configPlayerFields);
 router.post('/competition/getPlayerFields',competitionController.getPlayerFields);
+router.post('/competition/createTeamInCompetition',competitionController.createTeamInCompetition);
 module.exports=router;

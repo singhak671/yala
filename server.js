@@ -32,6 +32,7 @@ app.all('/*', function(req, res, next) {
 app.use('/api/v1/users',require('./routes/user'));
 app.use('/api/v1/terms',require('./routes/terms'))
 app.use('/api/v1/organizer',require('./routes/organizer'));
+app.use('/api/v1/player',require('./routes/player.js'));
 app.use('/api/v1/data',require('./routes/data'));
 
 app.listen(app.get('port'),()=>console.log('Server running on ' + app.get('port')));
