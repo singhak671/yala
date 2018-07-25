@@ -69,7 +69,11 @@ const filterCompetition=(req,res)=>{
         }}
         obj.organizer=req.body.userId;
         console.log(obj)
-        Competition.competition.find(obj,(err,result)=>{
+        let query={
+            page:req.body.page || 1,
+            limit:req.body.limit ||4
+        }
+        Competition.competition.paginate(obj,query,(err,result)=>{
         if (err)
             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
         else if(!result)

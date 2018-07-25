@@ -9,4 +9,7 @@ const AUTH=require('../middlewares/auth_handler')
 
 router.post('/competition/getAllCompetitions',AUTH.verifyToken,playerCompetitionController.getAllCompetitions);
 
+
+router.post('/competition/followCompetition',AUTH.verifyToken,playerCompetitionController.followCompetition);
+router.post('/competition/filterCompetitions',AUTH.verifyToken,playerCompetitionController.filterCompetitions);
 module.exports=router;

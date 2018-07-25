@@ -12,15 +12,16 @@ const auth = {
             console.log("secret key is "+config.secret_key)
             jwt.verify(req.headers.token, config.secret_key, (err,result)=>{
                 
-                if(err)
+                if(err || !result)
                 {
                     console.log("token not verified--->>",err)
                     return Response.sendResponse(res,responseCode.UNAUTHORIZED,responseMsg.AUTH_FAIL)
                 }    
                 else{
                     console.log("token verified")
-                    if(req.headers.userId){
-                        User.findById(req.headers.userId,(error, result)=>{
+                    
+                    if(req.headers.userid){
+                        User.findById(req.headers.userid,(error, result)=>{
                             console.log("result of user "+ JSON.stringify(result))
                             if(error)
                                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR)
@@ -34,6 +35,8 @@ const auth = {
                             }                        
                         })
                     }
+                    else
+                        return Response.sendResponse(res, responseCode.BAD_REQUEST,`Please provide "userid" in headers!`);
                     // else if(req.query._id){
                     //     User.findOne({_id:req.query._id},(error, result)=>{
                     //         console.log("result of user "+ JSON.stringify(result))

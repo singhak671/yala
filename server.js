@@ -33,6 +33,6 @@ app.use('/api/v1/users',require('./routes/user'));
 app.use('/api/v1/terms',require('./routes/terms'))
 app.use('/api/v1/organizer',require('./routes/organizer'));
 app.use('/api/v1/player',require('./routes/player.js'));
-app.use('/api/v1/data',require('./routes/data'));
+app.use('/api/v1/data',require('./routes/data.js'));
 
 app.listen(app.get('port'),()=>console.log('Server running on ' + app.get('port')));

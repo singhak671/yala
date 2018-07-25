@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
 const bcrypt=require('bcryptjs');
 const config = require("../../config/config");
 const jwt = require('jsonwebtoken');
+var Twocheckout = require('2checkout-node');
 var waterfall = require('async-waterfall');
 //var countries   = require('country-data-list').countries;
 var countryCodes = require('country-data');
@@ -591,26 +592,84 @@ const code=(req,res)=>{
 }
 
 const paymentOrder=(req,res)=>{
-	console.log(req.body)
+	console.log(req.body);
 
-	if(!req.body || !req.body.order_number || !req.body.invoice_id || !req.body.credit_card_processed=="Y")
+	if(!req.body || !req.body.response.token )
 		return Response.sendResponse(res,responseCode.BAD_REQUEST,"Payment not successfull");
 	else
-		User.findById(req.body.userid,(err,success)=>{
+		{
+			var tco = new Twocheckout({
+				sellerId: "901386003",         // Seller ID, required for all non Admin API bindings 
+				privateKey: "584700CF-CC96-4952-8AF5-3C0375978EF1",     // Payment API private key, required for checkout.authorize binding
+				sandbox: true                          // Uses 2Checkout sandbox URL for all bindings
+			});
+		  
+			var params = {
+				"merchantOrderId": "123",
+				"token": "NzQ0MDY1NmQtOWU2NS00MTBlLWIyODQtYzBmZjU5YjI2ZjQ3",
+				"currency": "USD",
+				"total": "10.00",
+				"billingAddr": {
+					"name": "Testing Tester",
+					"addrLine1": "123 Test St",
+					"city": "Columbus",
+					"state": "Ohio",
+					"zipCode": "43123",
+					"country": "USA",
+					"email": "example@2co.com",
+					"phoneNumber": "5555555555"
+				}
+			};
+		  
+			tco.checkout.authorize(params, function (error, data) {
+				console.log("i am data",data,error);
+				if (error || !data) {
+					return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,error);
+				} else {
+		// 		  tco.sales.retrieve({sale_id: data.orderNumber}, function (error, data) {
+		// 	  if (error) {
+		// 		  console.log(error);
+		// 	  } else {
+		// 		  console.log(data);
+		// 	  }
+		//   });
+
+
+
+
+
+		User.findById(req.headers.userid,(err,success)=>{
 			if(err)
-				return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
+				return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
 			else if(!success)
 				return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
 				else
-				User.findByIdAndUpdate(req.body.userid,{$set:{paymentStatus:true,payment:req.body}},(err,result)=>{
+				User.findByIdAndUpdate(req.body.userid,{$set:{paymentStatus:true,payment:data}},(err,result)=>{
 					if(err)
-						return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
-					else if(!success)
+						return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+					else if(!result)
 							return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
 						else
-						return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Payment is successfull");
+						return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Payment is successfull",result);
 				})
 		})
+				  console.log(data)
+				
+				}
+			});
+		}
+
+
+
+
+
+
+
+
+
+
+
+	
 }
 
 module.exports={
