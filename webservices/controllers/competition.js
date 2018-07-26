@@ -71,7 +71,8 @@ const filterCompetition=(req,res)=>{
         console.log(obj)
         let query={
             page:req.body.page || 1,
-            limit:req.body.limit ||4
+            limit:req.body.limit ||4,
+            sort:{"createdAt":-1}
         }
         Competition.competition.paginate(obj,query,(err,result)=>{
         if (err)

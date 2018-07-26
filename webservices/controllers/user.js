@@ -335,7 +335,7 @@ const changePassword=(req,res)=>{
 const forgetPassword=(req,res)=>{
 	console.log("req.body----->>>",req.body)
 	const password=message.genratePassword();
-	req.body.password=password
+	req.body.password=password;
 	console.log("password---->>>",req.body.password)
 	
 	let flag=Validator(req.body,['email'])
@@ -592,72 +592,163 @@ const code=(req,res)=>{
 }
 
 const paymentOrder=(req,res)=>{
-	console.log(req.body);
-
+	console.log("req.body>>>",req.body);
+	//console.log("req.body>>>",req.body.response.token.token);
 	if(!req.body || !req.body.response.token )
-		return Response.sendResponse(res,responseCode.BAD_REQUEST,"Payment not successfull");
-	else
-		{
-			var tco = new Twocheckout({
-				sellerId: "901386003",         // Seller ID, required for all non Admin API bindings 
-				privateKey: "584700CF-CC96-4952-8AF5-3C0375978EF1",     // Payment API private key, required for checkout.authorize binding
-				sandbox: true                          // Uses 2Checkout sandbox URL for all bindings
-			});
-		  
-			var params = {
-				"merchantOrderId": "123",
-				"token": "NzQ0MDY1NmQtOWU2NS00MTBlLWIyODQtYzBmZjU5YjI2ZjQ3",
-				"currency": "USD",
-				"total": "10.00",
-				"billingAddr": {
-					"name": "Testing Tester",
-					"addrLine1": "123 Test St",
-					"city": "Columbus",
-					"state": "Ohio",
-					"zipCode": "43123",
-					"country": "USA",
-					"email": "example@2co.com",
-					"phoneNumber": "5555555555"
-				}
-			};
-		  
-			tco.checkout.authorize(params, function (error, data) {
-				console.log("i am data",data,error);
-				if (error || !data) {
-					return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,error);
-				} else {
-		// 		  tco.sales.retrieve({sale_id: data.orderNumber}, function (error, data) {
-		// 	  if (error) {
-		// 		  console.log(error);
-		// 	  } else {
-		// 		  console.log(data);
-		// 	  }
-		//   });
-
-
-
-
-
-		User.findById(req.headers.userid,(err,success)=>{
-			if(err)
-				return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
-			else if(!success)
-				return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
-				else
-				User.findByIdAndUpdate(req.body.userid,{$set:{paymentStatus:true,payment:data}},(err,result)=>{
-					if(err)
-						return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
-					else if(!result)
-							return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
-						else
-						return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Payment is successfull",result);
-				})
-		})
-				  console.log(data)
-				
-				}
-			});
+	return Response.sendResponse(res,responseCode.BAD_REQUEST,"Payment not successfull");
+else{
+	var tco = new Twocheckout({
+		sellerId: "901386003",         // Seller ID, required for all non Admin API bindings 
+		privateKey: "CA54E803-AC54-41C3-8677-A36DE6C276A4",     // Payment API private key, required for checkout.authorize binding
+		sandbox: true                          // Uses 2Checkout sandbox URL for all bindings
+	});
+  
+	var params = {
+		"merchantOrderId": "123",
+		"token": req.body.response.token.token,
+		"currency": "USD",
+		"total": req.body.totalAmount,
+		"billingAddr": {
+			"name": "Testing Tester",
+			"addrLine1": "123 Test St",
+			"city": "Columbus",
+			"state": "Ohio",
+			"zipCode": "43123",
+			"country": "USA",
+			"email": "example@2co.com",
+			"phoneNumber": "5555555555"
 		}
+	};
+  
+	tco.checkout.authorize(params, function (error, data) {
+					console.log("i am data and error",data,error);
+					if (error || !data ) {
+						return Response.sendResponse(res,responseCode.BAD_REQUEST,"UNAUTHORIZED");
+					} else {
+						if(data.response.responseCode=="APPROVED" && data.response.orderNumber && !data.response.errors){
+	
+	
+			User.findById(req.headers.userid,(err,success)=>{
+				if(err)
+					return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+				else if(!success)
+					return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
+					else
+					User.findByIdAndUpdate(req.headers.userid,{$set:{paymentStatus:true,payment:data}},{new:true},(err,result)=>{
+						if(err)
+							return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+						else if(!result)
+								return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
+							else
+							return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Payment is successfull",result);
+					})
+			})
+		} 
+		else
+		return Response.sendResponse(res,responseCode.BAD_REQUEST,"Payment not successfull");
+					 
+					
+					}
+				});
+			}
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+																// 	tco.checkout.authorize(params, function (error, data) {
+																// 		if (error) {
+																// 			res.send(error.message);
+																// 		} else {
+																// 		  tco.sales.retrieve({sale_id: data.orderNumber}, function (error, data) {
+																// 	  if (error) {
+																// 		  console.log(error);
+																// 	  } else {
+																// 		  console.log(data);
+																// 	  }
+																//   });
+																// 		  console.log(data)
+																// 			res.send(data);
+																// 		}
+																// 	});
+
+	
+	// 	{
+	// 		var tco = new Twocheckout({
+	// 			sellerId: "901386003",         // Seller ID, required for all non Admin API bindings 
+	// 			privateKey: "E8733BDE-152A-4A66-83FF-3BA893702860",     // Payment API private key, required for checkout.authorize binding
+	// 			sandbox: true                          // Uses 2Checkout sandbox URL for all bindings
+	// 		});
+		  
+	// 		var params = {
+	// 			"merchantOrderId": "123",
+	// 			"token": req.body.response.token.token,
+	// 			"currency": "USD",
+	// 			"total":"20.00",
+		
+	// 		};
+		  
+	// 		tco.checkout.authorize(params, function (error, data) {
+	// 			console.log("i am data and error",data,error);
+	// 			if (error || !data ) {
+	// 				return Response.sendResponse(res,responseCode.BAD_REQUEST,"UNAUTHORIZED");
+	// 			} else {
+	// 	// 		  tco.sales.retrieve({sale_id: data.orderNumber}, function (error, data) {
+	// 	// 	  if (error) {
+	// 	// 		  console.log(error);
+	// 	// 	  } else {
+	// 	// 		  console.log(data);
+	// 	// 	  }
+	// 	//   });
+	// 				if(data.response.responseCode=="APPROVED" && data.response.orderNumber && !data.response.errors){
+
+
+
+
+	// 	User.findById(req.headers.userid,(err,success)=>{
+	// 		if(err)
+	// 			return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+	// 		else if(!success)
+	// 			return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
+	// 			else
+	// 			User.findByIdAndUpdate(req.headers.userid,{$set:{paymentStatus:true,payment:data}},{new:true},(err,result)=>{
+	// 				if(err)
+	// 					return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+	// 				else if(!result)
+	// 						return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
+	// 					else
+	// 					return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Payment is successfull",result);
+	// 			})
+	// 	})
+	// } 
+	// else
+	// return Response.sendResponse(res,responseCode.BAD_REQUEST,"Payment not successfull");
+				 
+				
+	// 			}
+	// 		});
+	// 	}
 
 
 
