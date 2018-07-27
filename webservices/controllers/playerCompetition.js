@@ -28,97 +28,117 @@ const getAllCompetitions=(req,res)=>{
 
 
 const filterCompetitions=(req,res)=>{
-    
-    let flag =Validator(req.body,[],[],[])
-	if(flag)
-        return Response.sendResponse(res,flag[0],flag[1]);       
-    else
-    {   let obj={};
-        if(req.body.filterFields){
-            let array=["sports","status","followStatus"];
-            for (let key of array){
-                    for(let data in req.body.filterFields){
-                        if(key==data && req.body.filterFields[data])
-                        obj[key]=req.body.filterFields[key];
-                    }
-            }
-        }
-        if(obj.followStatus){
-        console.log("i am object>>>>",obj);
-        if(obj.followStatus && !obj.status && !obj.sports)
-        {
-            followComp.competitionFollow.find({playerId:req.body.userId,followStatus:obj.followStatus}).populate("competitionId").exec((err,success)=>{
-                if(err)
-                    return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
-                else if(!success)
-                        return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
-                    else
-                    {
-                        return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success);
-                    }
+   // console.log("i am nody]]]]]]]]]]]]]]]]][[[[[[[[[[[[[[[[[[")
+   let flag =Validator(req.body,[],[],[])
+   if(flag)
+       return Response.sendResponse(res,flag[0],flag[1]);       
+   else
+   {   let obj={};
+       if(req.body.filterFields){
+           let array=["sports","status","followStatus"];
+           for (let key of array){
+                   for(let data in req.body.filterFields){
+                       if(key==data && req.body.filterFields[data])
+                       obj[key]=req.body.filterFields[key];
+                   }
+           }
+       }
+       if(obj.followStatus){
+
+       console.log("i am object>2",obj);
+       if(obj.followStatus && !obj.status && !obj.sports)
+       {
+           followComp.competitionFollow.find({playerId:req.body.userId,followStatus:obj.followStatus}).populate("competitionId").exec((err,success)=>{
+               if(err)
+                   return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+               else if(!success)
+                       return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
+                   else
+                   {
+                       return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success);
+                   }
 
 
-            })
-        }
-        else
-            if(obj.followStatus && obj.status && !obj.sports){
-                followComp.competitionFollow.find({playerId:req.body.userId,followStatus:obj.followStatus}).populate("competitionId").exec((err1,success1)=>{
-                    if(err1)
-                        return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err1);
-                    else if(!success1)
-                            return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
-                        else
-                        {   
-                            let arr=[];
-                            
-                            for(let data of success1){
-                                console.log(data);
-                                for(let key in data.competitionId){
-                                    if(key=="status" && data.competitionId.key==obj.status)
-                                    arr.push(success1[data].competitionId)
-                                }
-                            }                            
-                            return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,arr);
-                        }   
-                })
-            }
-            else if(obj.followStatus && obj.status && obj.sports){
-                followComp.competitionFollow.find({playerId:req.body.userId,followStatus:obj.followStatus}).populate("competitionId").exec((err2,success2)=>{
-                    if(err2)
-                        return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err2);
-                    else if(!success2)
-                            return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
-                        else
-                        {   
-                            let arr1=[];
-                            for(let data of success2){
-                                for(let key in success2[data].competitionId){
-                                    if(key=="status" && success2[data].competitionId.key==obj.status && key)
-                                    arr1.push(success2[data].competitionId)
-                                }
-                            }                            
-                            return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,arr);
-                        }   
-                })
-            }
+           })
+       }
+       else
+           if(obj.followStatus && obj.status && !obj.sports){
+               followComp.competitionFollow.find({playerId:req.body.userId,followStatus:obj.followStatus}).populate("competitionId").exec((err1,success1)=>{
+                   if(err1)
+                       return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err1);
+                   else if(!success1)
+                           return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
+                       else
+                       {   
+                           let arr=[];                            
+                           for(let data of success1){
+                              // console.log(data.competitionId);
+                               for(let key1 in data.competitionId){
+                                 
+                                   if(key1=="status" && data.competitionId.status==obj.status)
+                                   arr.push(data.competitionId);
+                               }
+                           }                            
+                           return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,arr);
+                       }   
+               })
+           }
+           else if(obj.followStatus && obj.status && obj.sports){
+               followComp.competitionFollow.find({playerId:req.body.userId,followStatus:obj.followStatus}).populate("competitionId").exec((err2,success2)=>{
+                   if(err2)
+                       return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err2);
+                   else if(!success2)
+                           return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
+                       else
+                       {   
+                           let arr1=[];
+                           for(let data of success2){
+                               for(let key in data.competitionId){
+                                   if(key=="status" && data.competitionId.status==obj.status && data.competitionId.sports==obj.sports)
+                                   arr1.push(data.competitionId)
+                               }
+                           }                            
+                           return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,arr1);
+                       }   
+               })
+           }
 
-
-
-        }
-
+           else if(obj.followStatus && !obj.status && obj.sports){
+               followComp.competitionFollow.find({playerId:req.body.userId,followStatus:obj.followStatus}).populate("competitionId").exec((err2,success2)=>{
+                   if(err2)
+                       return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err2);
+                   else if(!success2)
+                           return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
+                       else
+                       {   
+                           let arr1=[];
+                           for(let data of success2){
+                               for(let key in data.competitionId){
+                                   if(key=="sports" && data.competitionId.sports==obj.sports)
+                                   arr1.push(data.competitionId)
+                               }
+                           }                            
+                           return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,arr1);
+                       }   
+               })
+           }
+       }
 else{
+       let query={
+           page:req.body.page || 1,
+           limit : req.body.limit ||4
+       };
 
-
-        Competition.competition.find(obj,(err,result)=>{
-        if (err)
-            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
-        else if(!result)
-            return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
-        else
-        return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,result);
-        })   
-    }
-    }
+       Competition.competition.paginate(obj,query,(err,result)=>{
+       if (err)
+           return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+       else if(!result)
+           return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
+       else
+       return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,result);
+       })   
+   }
+   }
 }
 
 const followCompetition=(req,res)=>{
