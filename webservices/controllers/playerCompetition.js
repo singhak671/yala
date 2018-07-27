@@ -126,7 +126,8 @@ const filterCompetitions=(req,res)=>{
 else{
        let query={
            page:req.body.page || 1,
-           limit : req.body.limit ||4
+           limit : req.body.limit ||4,
+           lean:true
        };
 
        Competition.competition.paginate(obj,query,(err,result)=>{
@@ -134,19 +135,30 @@ else{
            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
        else if(!result)
            return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
-       else
-       return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,result);
+       else{
+           let newResult=result;
+           for( let data of newResult.docs){
+               if(data.playerfollowStatus)
+            for (let data1 of data.playerfollowStatus){
+                if(data1.playerId==req.body.userId)
+                    data.key=data1;
+            }
+           }
+
+          
+       return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,newResult);}
        })   
    }
    }
 }
 
 const followCompetition=(req,res)=>{
+    console.log(req.body)
     let flag =Validator(req.body,[],[],["userId","competitionId"])
 	if(flag)
         return Response.sendResponse(res,flag[0],flag[1]);       
     else
-        User.findOne({_id:req.body.userId,role:"ORGANIZER"},(err,success)=>{
+        User.findOne({_id:req.body.userId,role:"PLAYER"},(err,success)=>{
             if(err)
                 return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
             else if(!success)
@@ -158,16 +170,34 @@ const followCompetition=(req,res)=>{
                         else if(!success1)
                                 return Response.sendResponse(res,responseCode.NOT_FOUND,"Competition not found !");
                             else{
-                                if(success1.allowPublicToFollow)
-                                    req.body.followStatus="APPROVED";
+
+                                var obj={
+                                    playerId:req.body.userId,
+                                }
+
+
+                                if(success1.allowPublicToFollow){
+                                    obj.followStatus="APPROVED";
+                                    req.body.followStatus="APPROVED";}
+                                    else
+                                    obj.followStatus="PENDING";
+
+                                 console.log("objecvt>>>>>>>>",obj);
                                 req.body.playerId=req.body.userId;
                                 req.body.organizer=success1.organizer;
                                 let data= new followComp.competitionFollow(req.body);
                                 data.save((err2,success2)=>{
                                     if(err2 ||!success2)
                                         return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err2);
-                                    else
-                                        return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success2,success1);
+                                    else{
+                                        Competition.competition.findByIdAndUpdate(req.body.competitionId,{$push:{playerfollowStatus:obj}},{new:true},(error,result5)=>{
+                                            if(error || !result5)
+                                                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err2);
+                                            else
+                                                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success2);
+                                        })
+                                    }
+                                     
                                 })
                             }
                     })

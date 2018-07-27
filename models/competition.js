@@ -4,7 +4,10 @@ const paginate = require('mongoose-paginate');
 const Schema = mongoose.Schema;
 const userSchema=require("./user")
 let competitionSchema = new Schema({ 
-   
+   playerfollowStatus:{
+       type:Array
+   },
+
     competitionName: {
         type: String,
         trim: true
