@@ -48,8 +48,8 @@ const filterCompetitions=(req,res)=>{
        let query={
         page:req.body.page || 1,
         limit : req.body.limit ||4,
-        lean:true,
-        populate:{path:"competitionId",model:"competitions",match:{"status":obj.status}}
+        // lean:true,
+        // populate:{path:"competitionId",model:"competitions",match:{"status":obj.status}}
         }
       if(obj.followStatus){
           console.log("11111111111111111111");
@@ -61,14 +61,13 @@ const filterCompetitions=(req,res)=>{
             console.log("111query>>>>>>>>>>>",query2);}
             else if(obj.status && obj.sports){
             query2={$and:[{sports:{$in:obj.sports}},{status:obj.status}]}
-            console.log("22 query>>>>>",query2)};
+            console.log("222query>>>>>",query2)};
             
         followComp.competitionFollow.find({playerId:req.body.userId,followStatus:obj.followStatus}).populate(
             // here array is for our memory. 
             // because may need to populate multiple things
             {
-                path: 'competitionId',
-              
+                path: 'competitionId',              
                select:"competitionName _id createdAt organizer division period sports status venue",
                
                match:query2
@@ -79,8 +78,8 @@ const filterCompetitions=(req,res)=>{
           
            select:"firstName lastName"}).
         sort({createdAt:-1}).
-        skip((query.page-1)*query.limit).
-        limit(query.limit).
+            skip((query.page-1)*query.limit).
+            limit(query.limit).
         lean().
         exec((err,result)=>{
             if(err)
@@ -90,7 +89,7 @@ const filterCompetitions=(req,res)=>{
 
                        else
                                       {
-                                          return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,result);
+                                          return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,result,query);
                                       }
         })
     //    console.log("i am object>2",obj);
@@ -390,7 +389,14 @@ const unFollowCompetition=(req,res)=>{
                     else if(!success1)
                             return Response.sendResponse(res,responseCode.NOT_FOUND,"Competition not found !");
                         else{
-                            return Response.sendResponse(res,responseCode.RESOURCE_DELETED,"Successfully deleted",success1);
+                            followComp.competitionFollow.findOneAndRemove({playerId:req.body.userId,competitionId:req.body.competitionId},(err2,success2)=>{
+                                if(err2)
+                                     return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err2);
+                                else if(!success2)
+                                        return Response.sendResponse(res,responseCode.NOT_FOUND,"Competition not found !");
+                                    else                            
+                                        return Response.sendResponse(res,responseCode.RESOURCE_DELETED,"Successfully deleted");
+                                    })
                         }
                     })
                 })

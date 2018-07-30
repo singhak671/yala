@@ -28,7 +28,8 @@ router.post('/config/standing/getAllStanding',configOrganizerController.getAllSt
 router.post('/config/standing/editStanding',configOrganizerController.editStanding);
 router.post('/config/standing/deleteStanding',configOrganizerController.deleteStanding);
 
-
+router.post('/competition/getPlayerList',competitionController.getPlayerList);
+router.post('/competition/approveCompetition',competitionController.approveCompetition);
 
 router.post('/competition/competitionRegistration',competitionController.competitionRegistration);
 router.post('/competition/configTeamFields',competitionController.configTeamFields);
@@ -36,4 +37,5 @@ router.post('/competition/getTeamfields',competitionController.getTeamfields);
 router.post('/competition/configPlayerFields',competitionController.configPlayerFields);
 router.post('/competition/getPlayerFields',competitionController.getPlayerFields);
 router.post('/competition/createTeamInCompetition',competitionController.createTeamInCompetition);
+
 module.exports=router;

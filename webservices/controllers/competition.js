@@ -7,6 +7,7 @@ const responseCode = require('../../helper/httpResponseCode')
 const responseMsg = require('../../helper/httpResponseMessage')
 const userServices=require('../services/userApis');
 const mongoose = require('mongoose');
+const followComp=require("../../models/compFollowOrgPlay.js");
 
 
 const addNewCompetition=(req,res)=>{
@@ -540,6 +541,71 @@ const createTeamInCompetition=(req,res)=>{
     })
 }
 
+const getPlayerList=(req,res)=>{
+    let flag =Validator(req.body,[],[],["userId","competitionId"]);
+    if(flag)
+        return Response.sendResponse(res,flag[0],flag[1]);
+    else
+        Competition.competition.findOne({_id:req.body.competitionId},{"sports":1,"venue":1, "competitionName":1, "_id":1},(err,success)=>{
+            if(err)
+                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+            else if(!success)
+                    return Response.sendResponse(res,responseCode.NOT_FOUND,"Competition not found !");
+                else{let query={
+                    page:req.body.page || 1,
+                    limit : req.body.limit ||4};
+                    followComp.competitionFollow.find({organizer:req.body.userId,competitionId:req.body.competitionId}).count({},(err,result)=>{
+                       query.total=result;
+                       console.log(query)                      
+                        
+                    });
+                    followComp.competitionFollow.find({organizer:req.body.userId,competitionId:req.body.competitionId}).sort({"createdAt":-1}).populate({
+                        path: 'playerId',                      
+                       select:"firstName lastName countryCode mobileNumber email createdAt"})
+                       .populate({
+                        path: 'competitionId',                      
+                       select:"competitionName venue sports"}).
+                       skip((query.page-1)*query.limit).
+                       limit(query.limit).
+                       exec((err1,success1)=>{
+                        if(err1)
+                            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err1);
+                        else if(!success1)
+                                return Response.sendResponse(res,responseCode.NOT_FOUND,"No players found!");
+                             else
+                                 return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success1,query);
+
+                    })
+                }
+
+        })  
+  
+}
+
+const approveCompetition=(req,res)=>{
+    let flag =Validator(req.body,[],[],["approvalId","userId","competitionId","playerId","followStatus"]);
+    if(flag)
+        return Response.sendResponse(res,flag[0],flag[1]);
+    else
+    Competition.competition.findOneAndUpdate({"_id":req.body.competitionId,"playerFollowStatus.playerId":req.body.playerId},{$set : {"playerFollowStatus.$.followStatus":req.body.followStatus}},{new:true},(err,success)=>{
+        if(err)
+            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+        else if(!success)
+                return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND,"data");
+            else {
+                followComp.competitionFollow.findOneAndUpdate({_id:req.body.approvalId,competitionId:req.body.competitionId,playerId:req.body.playerId,followStatus:"PENDING"},{$set:{followStatus:req.body.followStatus}},{new:true},(err2,success2)=>{
+                    if(err2)
+                         return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err2);
+                    else if(!success2)
+                             return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND,"data2");
+                        else 
+                            return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success2);
+                })
+            }
+        })
+
+    
+}
 
 module.exports={
     addNewCompetition,
@@ -558,5 +624,7 @@ module.exports={
     configPlayerFields,
     getPlayerFields,
     createTeamInCompetition,
-    filterCompetition
+    filterCompetition,
+    getPlayerList,
+    approveCompetition
 }

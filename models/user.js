@@ -86,6 +86,18 @@ let userSchema = new Schema({
     },
     organizerCompetition:[{ type: Schema.Types.ObjectId, ref: 'competition' }]
     ,
+    competitionNotify:{
+        email:{type:Array},
+        mobile:{type:Array}
+    },
+    membershipNotify:{
+        email:{type:Array},
+        mobile:{type:Array}
+    },
+    venueNotify:{
+        email:{type:Array},
+        mobile:{type:Array}
+    },
     deviceType: {
         type: String,
         enum: ['iOS', 'android'],
