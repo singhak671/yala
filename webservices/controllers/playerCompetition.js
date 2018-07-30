@@ -52,25 +52,37 @@ const filterCompetitions=(req,res)=>{
         populate:{path:"competitionId",model:"competitions",match:{"status":obj.status}}
         }
       if(obj.followStatus){
-          console.log("11111111111111111111")
-        followComp.competitionFollow.find({playerId:req.body.userId,followStatus:obj.followStatus}).populate([
+          console.log("11111111111111111111");
+          let query2;
+    if(obj.followStatus && !obj.sports && !obj.sports)
+    query2={};
+    else if(obj.sports && !obj.status){
+            query2={sports:{$in:obj.sports}}
+            console.log("111query>>>>>>>>>>>",query2);}
+            else if(obj.status && obj.sports){
+            query2={$and:[{sports:{$in:obj.sports}},{status:obj.status}]}
+            console.log("22 query>>>>>",query2)};
+            
+        followComp.competitionFollow.find({playerId:req.body.userId,followStatus:obj.followStatus}).populate(
             // here array is for our memory. 
             // because may need to populate multiple things
             {
                 path: 'competitionId',
-                
+              
+               select:"competitionName _id createdAt organizer division period sports status venue",
                
-                options: {
-                    sort:{"createdAt":-1 },
-                    skip: ((query.page-1)*query.limit),
-                    limit : query.limit
-                },
-               match:{$and:[{"status":obj.status},{"sports":obj.sports}]
-                    // filter result in case of multiple result in populate
-                    // may not useful in this case
-                }
+               match:query2
             }
-        ]).exec((err,result)=>{
+        ).
+        populate({
+            path: 'organizer',
+          
+           select:"firstName lastName"}).
+        sort({createdAt:-1}).
+        skip((query.page-1)*query.limit).
+        limit(query.limit).
+        lean().
+        exec((err,result)=>{
             if(err)
                    return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
                else if(!result)
@@ -187,10 +199,20 @@ else{
     //        limit : req.body.limit ||4,
     //        lean:true,
     //        populate:{path:"organizer",select:"firstName lastName"}};
+    console.log("i am second obj",obj);
+    let query1;
+    if(!obj.sports)
+    query1=obj;
+    else if(obj.sports && !obj.status){
+            query1={sports:{$in:obj.sports}}
+            console.log("111query>>>>>>>>>>>",query1);}
+            else if(obj.status && obj.sports){
+            query1={$and:[{sports:{$in:obj.sports}},{status:obj.status}]}
+            console.log("22 query>>>>>",query1)};
+            
            Competition.competition.aggregate([
             {
-                "$match": 
-                   obj
+                "$match":query1
             },
             {
                 "$unwind":{path: '$playerFollowStatus',
@@ -248,14 +270,15 @@ else{
             
         
         ]).exec((err,result)=>{
-            
+            if(err || !result)
+            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
 
-
+            console.log("iam result>>>",result)
 
         User.populate(result[0].data,{path:"organizer",select:"firstName lastName",option:{lean:true}},(errrr,succcc)=>{
 
       
-            if(err || errrr)
+            if(errrr)
             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err,errrr);
 
 
@@ -338,7 +361,7 @@ const followCompetition=(req,res)=>{
                                             if(error || !result5)
                                                 return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err2);
                                             else
-                                                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success2);
+                                                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success2,result5);
                                         })
                                     }
                                      
@@ -347,8 +370,35 @@ const followCompetition=(req,res)=>{
                     })
         })
 }
+
+
+
+const unFollowCompetition=(req,res)=>{
+    let flag =Validator(req.body,[],[],["userId","competitionId"])
+	if(flag)
+        return Response.sendResponse(res,flag[0],flag[1]);       
+    else
+    User.findOne({_id:req.body.userId,role:"PLAYER"},(err,success)=>{
+        if(err)
+            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+        else if(!success)
+                return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
+            else
+                Competition.competition.findOneAndUpdate({_id:req.body.competitionId,"playerFollowStatus.playerId":req.body.userId},{ $pull: { playerFollowStatus : { playerId : req.body.userId} } },{ safe: true,new:true}).lean().exec((err1,success1)=>{
+                    if(err1)
+                        return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err1);
+                    else if(!success1)
+                            return Response.sendResponse(res,responseCode.NOT_FOUND,"Competition not found !");
+                        else{
+                            return Response.sendResponse(res,responseCode.RESOURCE_DELETED,"Successfully deleted",success1);
+                        }
+                    })
+                })
+
+}
 module.exports={
     getAllCompetitions,
     filterCompetitions,
-    followCompetition
+    followCompetition,
+    unFollowCompetition
 }
