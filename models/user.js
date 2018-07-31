@@ -94,6 +94,12 @@ let userSchema = new Schema({
         email:{type:Array},
         mobile:{type:Array}
     },
+    playDetail:[{
+        teamId:Schema.Types.ObjectId,
+        competitionId:Schema.Types.ObjectId,
+        organizer:Schema.Types.ObjectId,
+        playerId:Schema.Types.ObjectId
+    }],
     venueNotify:{
         email:{type:Array},
         mobile:{type:Array}

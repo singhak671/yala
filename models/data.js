@@ -2,85 +2,6 @@ const mongoose = require('mongoose');
 global.Promise = mongoose.Promise;
 const paginate = require('mongoose-paginate');
 const Schema = mongoose.Schema;
-//Team Schema
-let teamSchema = new Schema({ 
-  
-   orgId:{
-    type:Schema.Types.ObjectId
-    },
-   name:{
-    type:String
-    },
-    phoneNumber:{
-        type:String
-    },
-    email:{
-        type:String
-    },
-    venue:{
-        type:String
-    },
-    competition:{
-       type:String
-    },
-    category:{
-        type:String
-    },
-    status:{
-        type:String,
-       enum:["ACTIVE","PENDING","InProgress"],
-       default:"InProgress"
-    },
-    sports:{
-        type:String
-    }
-    
-}, {
-    timestamps: true
-});
-teamSchema.plugin(paginate);
-const team = mongoose.model('team', teamSchema);
-
-//Player Schema
-let playerSchema= new Schema({
-    orgId:{
-        type:Schema.Types.ObjectId
-    },
-    name:{
-        type:String
-    },
-    team:{
-        type:String
-    },
-    phone:{
-         type:String
-    },
-    email:{
-        type:String
-    },
-    residence:{
-        type:String
-    },
-    birthday:{
-        type:Date
-    },
-    gender:{
-        type:String
-    },
-    status:{
-        type:String
-    },
-    sports:{
-        type:String
-    }
-
-},
-{
-    timestamps:true
-})
-
-playerSchema.plugin(paginate);
-const player = mongoose.model('player', playerSchema);
 
 //Club Schema
 let clubSchema=new Schema({
@@ -115,26 +36,29 @@ let clubSchema=new Schema({
 
     //Referee Schema
 let refereeSchema=new Schema({
-        orgId:{
+        userId:{
             type:Schema.Types.ObjectId
         },
         name:{
             type:String
         },
-        phone:{
+        mobileNumber:{
             type:String
         },
         email:{
             type:String
         },
         dob:{
-            type:Date
+            type:String
         },
         gender:{
             type:String,
            enum:["Male","Female"],
         },
         activities:{
+            type:String
+        },
+        image:{
             type:String
         }
         },{
@@ -146,7 +70,7 @@ let refereeSchema=new Schema({
        
      //Venue Schema
     let venueSchema=new Schema({
-            orgId:{
+            userId:{
                 type:Schema.Types.ObjectId
             },
             venue:{
@@ -156,6 +80,10 @@ let refereeSchema=new Schema({
                 type:String
             },
             club:{
+                clubName:String,
+                clubId:Schema.Types.ObjectId
+            },
+            image:{
                 type:String
             }
             },{
@@ -166,17 +94,17 @@ let refereeSchema=new Schema({
      const venue=mongoose.model('venue',venueSchema)
 
      //Sponsers
-    let sponserSchema=new Schema({
-                orgId:{
+    let sponsorSchema=new Schema({
+                userId:{
                     type:Schema.Types.ObjectId
                 },
-                sponserName:{
+                sponsorName:{
                     type:String
                 },
                 link:{
                     type:String
                 },
-                descriptition:{
+                description:{
                     type:String
                 },
                 position:{
@@ -195,15 +123,31 @@ let refereeSchema=new Schema({
                 timestamps:true
                 })
             
-     sponserSchema.plugin(paginate);
-     const sponser=mongoose.model('sponser',sponserSchema)
+     sponsorSchema.plugin(paginate);
+     const sponsor=mongoose.model('sponser',sponsorSchema)
     
+     let sportSchema=new Schema({
+        organizer:{
+            type:Schema.Types.ObjectId
+        },
+        status:{
+          type:String,
+          default:"ACTIVE"
+        },
+        sportName:{
+            type:String
+        }
+        },{
+        timestamps:true
+        })
+    
+    sportSchema.plugin(paginate);
+    const sport=mongoose.model('sport',sportSchema)
          module.exports={
-                "team":team,
-                "player":player,
                 "club":club,
                 "referee":referee,
                 "venue":venue,
-                "sponser":sponser
+                "sponsor":sponsor,
+                "sport":sport
          }
 

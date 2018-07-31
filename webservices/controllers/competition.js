@@ -7,6 +7,7 @@ const responseCode = require('../../helper/httpResponseCode')
 const responseMsg = require('../../helper/httpResponseMessage')
 const userServices=require('../services/userApis');
 const mongoose = require('mongoose');
+const Team=require("../../models/team")
 const followComp=require("../../models/compFollowOrgPlay.js");
 
 
@@ -516,7 +517,7 @@ const createTeamInCompetition=(req,res)=>{
             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
         else if(!success)
             return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
-        Competition.createTeamInCompetition.findOne({competitionId:req.body.competitionId,organizer:req.body.organizer,teamName:req.body.teamName},(err,success1)=>{
+        Team.findOne({competitionId:req.body.competitionId,organizer:req.body.organizer,teamName:req.body.teamName},(err,success1)=>{
             if(err)
                 return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
             else if(success1)
@@ -530,7 +531,7 @@ const createTeamInCompetition=(req,res)=>{
                 if(result.secure_url)
                 req.body.imageURL=result.secure_url;
 
-                Competition.createTeamInCompetition.create(req.body,(err2,success2)=>{
+                Team.create(req.body,(err2,success2)=>{
                     if(err2 || !success2)
                         return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err2);
                     else 
@@ -602,9 +603,7 @@ const approveCompetition=(req,res)=>{
                             return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success2);
                 })
             }
-        })
-
-    
+    })
 }
 
 module.exports={

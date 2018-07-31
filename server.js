@@ -37,17 +37,11 @@ app.use('/api/v1/player',require('./routes/player.js'));
 app.use('/api/v1/data',require('./routes/data.js'));
 
 
-
-
-
-
-
-
-var serverKey = 'AAAAhTQQvgs:APA91bHYy14WxdIN6yAmGZJ3Utu07vukU3Yjonevmgq5-_zUeTkmgo2Aw_ldeNHJ7vLC29Iquoc1IqBQqabD_qSLDypMY3axWuHoN0N7JYMj3EbNyzmg9ApYQYDBiDiI9SZnt1JRVoWoYjV5ZVFZEOmGzMedL1Vv5A';
+var serverKey = 'AAAAQ0w6JT0:APA91bH6-L7dFYkPFneAiwevxN4rFPaewAylGJitQ4RnHVpsF2fuJpJPJ2gnxMJ2VPavo4PIqO8jcN2pWLuF0WCtQVHUjvlbtBcZAbhkkF5C3R5JMuC5ClfrMdocAaqJntGZ1yYYw5s50I-PCtSBQ4Ylk-m06navCA';
 var fcm = new FCM(serverKey);
 
 var message = {
-    to: 'ddMQdHYWfB4:APA91bHmiaJtIJAlonDRDEKSlZFi3-6tvvMJ9qRIs_IBRbZakJG1HUgmOZRkHQJ54uVwvcuPXhGHk-cc3AmZL0Cvnnklx5wC7-nQQXQtAiB5D5ttAOR-RkBZI6ZrjLeOD9uh6SttStoN2g2dmETfBpRqTpqUUhtXqQ', // required fill with device token or topics
+    to: 'cObLOr6Y1TE:APA91bEOMRY2_ZhxuZH3pBySfbuQLfd_gZkiUwj9uu7UClOZo6vVr0lUmPxegcrvctLe2AZ9BLZHlgWr-A43TwiAOR8s5rMTVt3xK0_0oTykIHlwmJsCC7FQE7R4pvq1lEwISn2vle_hWGD3_tRavG59D66QS5RB4Q', // required fill with device token or topics
     // collapse_key: 'your_collapse_key', 
     // data: {
     //     your_custom_data_key: 'your_custom_data_value'
