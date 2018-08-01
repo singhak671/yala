@@ -306,7 +306,7 @@ const competitionRegistration=(req,res)=>{
     if(flag)
         return Response.sendResponse(res,flag[0],flag[1]);
     if(req.body.freeOrPaid=="paid"){
-    let flag1 =Validator(req.body,[],[],["registrationFee","accountNumber","paymentInHandDetails"]);
+    let flag1 =Validator(req.body,[],[],["registrationFee","paymentInHandDetails"]);
     if(flag1)
         return Response.sendResponse(res,flag1[0],flag1[1]);}
     Competition.competition.findById(req.body.competitionId,(err,success2)=>{
