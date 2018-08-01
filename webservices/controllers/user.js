@@ -19,7 +19,7 @@ const signup=(req,res)=>{
 	console.log("req.body---->>",req.body)
 	otp=message.getOTP();
 	req.body.otp = otp
-	let flag = Validator(req.body, ['email', 'password', ]) ; 
+	let flag = Validator(req.body, ['email', 'password', ])  
 	if(flag)
 	return Response.sendResponse(res, flag[0], flag[1])
 	else if(!req.body)
@@ -36,6 +36,7 @@ const signup=(req,res)=>{
 	  else{
 	  let salt = bcrypt.genSaltSync(10);
 	  req.body.password = bcrypt.hashSync(req.body.password, salt)
+			
 		    message.sendSMS("Your verification code is " + otp,req.body.countryCode,req.body.mobileNumber, (error, sent) => {
 				if(error){
 				  console.log(error);
@@ -44,26 +45,20 @@ const signup=(req,res)=>{
 					  }
 					 
 				else{
-					let obj={
-						"oneEvent":"50",
-						"yearly":"1000",
-						"monthly":"200"
-					};
-					req.body.subscriptionPrice=obj[req.body.subscription];
 					userServices.addUser(req.body,(err,success)=>{
-						if(err || !success){
+						if(err){
 							console.log("err--->>",err)
-							return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+						return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
 						}
-						else						
-						{	let newSuccess= success.toObject();		
-							delete newSuccess["password"];
-					 		 console.log("successfully sent")
-					  		 return Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,responseMsg.SIGNUP_SUCCESS,newSuccess)
-						}
+						else if(!success)
+						return Response.sendResponse(res.responseCode.BAD_REQUEST,responseMsg.CORRECT_EMAIL_ID);
+						else{
+						  console.log("successfully sent")
+					   return Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,responseMsg.SIGNUP_SUCCESS,success)
+				}
 				
 			})
-		}
+		 }
 	  })
 	}
 	})
@@ -89,8 +84,7 @@ const verifyOtp=(req,res)=>{
 				_id:mongoose.Types.ObjectId(req.body._id),
 			}
 			let set={
-					phoneVerified: true,
-					jwt:token
+					phoneVerified: true
 			}
 			let options={
 				new:true,
@@ -100,7 +94,7 @@ const verifyOtp=(req,res)=>{
 				if(err)
 				return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
 				else
-				return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.VERIFICATION_SUCCESSFULLY_DONE,success)
+				return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.VERIFICATION_SUCCESSFULLY_DONE,success,token)
 			})
 		}
 		else{
@@ -153,7 +147,7 @@ const login=(req,res)=>{
 		let query={
 			email:req.body.email
 		}
-		User.findOne(query).lean().exec((err,result)=>{
+		userServices.findUser(query,(err,result)=>{
 			if(err)
 			return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR)
 			else if(!result)
@@ -163,29 +157,99 @@ const login=(req,res)=>{
 				if(err)
 				return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
 				else if(!success)
-				return Response.sendResponse(res,responseCode.UNAUTHORIZED,responseMsg.WRONG_PASSWORD)
+				return Response.sendResponse(res,responseCode.UNAUTHORIZED,responseMsg.WRONG_PASSWORD1)
 				else{
-				// console.log("secret key is "+config.secret_key)
+				console.log("secret key is "+config.secret_key)
+				// var calculatedExpiresIn = (((d.getTime()) + (60 * 60 * 1000)) - (d.getTime() - d.getMilliseconds()) / 1000);
+				// console.log("secret key is "+calculatedExpiresIn)
+				//var token =  jwt.sign({_id:result._id,email:result.email,password:result.password},config.secret_key,{ expiresIn: calculatedExpiresIn }
 				var token =  jwt.sign({_id:result._id,email:result.email,password:result.password},config.secret_key);
-				console.log("token>>>>>>>",token)
-				result.jwt=token;
-				delete result["password"];
-				// console.log("new>>>",newResult)
-				// userServices.updateUser({_id:result._id},{new:true,select:{"password":0}},(err,success)=>{
-				// 	if(err)
-				// 	return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-				// 	else if(!success)
-				// 	return Response.sendResponse(res,responseCode.NOT_MODIFIED,responseMsg.NOT_MODIFIED)
-				// 	else
-                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.LOG_SUCCESS,result)
+				console.log("token----->>",token)
+                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.LOG_SUCCESS,result,token)	
 				}
-				
-				})
+			})
+		
 			}
 		})
-		
 	}
 }
+//--------------------------Resend OTP-----------------------------------------------------------
+// const resendOtp=(req,res)=>{
+// 	console.log("user Id------>>>>",req.query._id)
+	
+// 	if(!req.query._id)
+// 	return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.USER_IS_REQ)
+// 	else{
+//       const otp=message.getOTP();
+//   let set={
+// 	  otp:otp
+//   }
+//   let options={
+// 	  new:true
+//   }
+//   userServices.updateUser({_id:req.query._id},set,options,(err,success)=>{
+// 	  if(err)
+// 	  return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
+// 	  else if(!success)
+// 	  return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_IS_REQ)
+// 	  else{
+// 		  console.log(success)
+// 		message.sendSMS("Your verification code is "+otp,success.countryCode,success.mobileNumber,(err,sent)=>{
+// 			if (err)
+// 			Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+// 			else{
+// 			Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.OTP_SENDS)
+// 			}
+			
+// 		})
+// 	  }
+
+//   })
+// }
+// }
+// //--------------------------Log In-----------------------------------------------------------
+// const login=(req,res)=>{
+// 	console.log("req.body--->>",req.body)
+// 	let flag = Validator(req.body, ['email', 'password'])  
+// 	if(flag)
+// 	Response.sendResponse(res, flag[0],flag[1]) 
+// 	else{
+// 		let query={
+// 			email:req.body.email
+// 		}
+// 		User.findOne(query).lean().exec((err,result)=>{
+// 			if(err)
+// 			return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR)
+// 			else if(!result)
+// 			return Response.sendResponse(res,responseCode.UNAUTHORIZED,responseMsg.EMAIL_NOT_EXISTS)
+// 			else{
+//             bcrypt.compare(req.body.password,result.password,(err,success)=>{
+// 				if(err)
+// 				return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+// 				else if(!success)
+// 				return Response.sendResponse(res,responseCode.UNAUTHORIZED,responseMsg.WRONG_PASSWORD)
+// 				else{
+// 				// console.log("secret key is "+config.secret_key)
+// 				var token =  jwt.sign({_id:result._id,email:result.email,password:result.password},config.secret_key);
+// 				console.log("token>>>>>>>",token)
+// 				result.jwt=token;
+// 				delete result["password"];
+// 				// console.log("new>>>",newResult)
+// 				// userServices.updateUser({_id:result._id},{new:true,select:{"password":0}},(err,success)=>{
+// 				// 	if(err)
+// 				// 	return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+// 				// 	else if(!success)
+// 				// 	return Response.sendResponse(res,responseCode.NOT_MODIFIED,responseMsg.NOT_MODIFIED)
+// 				// 	else
+//                     return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.LOG_SUCCESS,result)
+// 				}
+				
+// 				})
+// 			}
+// 		})
+		
+// 	}
+// }
 
 //--------------------------Update User-----------------------------------------------------------
 const updateUser=(req,res)=>{

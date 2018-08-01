@@ -5,10 +5,11 @@ const Schema = mongoose.Schema;
 const Competition=require("./competition.js");
 let userSchema = new Schema({ 
    
-    role: {
+    role: [{
         type: String,
+        enum:["PLAYER","ORGANIZER","VENUE"],
         trim: true
-    },
+    }],
     firstName: {
         type: String,
         sparse: true
