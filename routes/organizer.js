@@ -8,6 +8,7 @@ const AUTH=require('../middlewares/auth_handler')
 
 
 router.post('/competition/addNewCompetition',competitionController.addNewCompetition);
+router.post('/competition/getACompetition',competitionController.getACompetition);
 router.post('/competition/getAllCompetitions',competitionController.getAllCompetition);
 router.post('/competition/filterCompetition',competitionController.filterCompetition);
 router.post('/competition/configureCompetition',competitionController.configureCompetition);

@@ -34,6 +34,20 @@ const addNewCompetition=(req,res)=>{
     });
 }
 
+const getACompetition=(req,res)=>{
+    let flag =Validator(req.body,['userId'],[],["competitionId"])
+	if(flag)
+        return Response.sendResponse(res,flag[0],flag[1]);
+    Competition.competition.findOne({organizer:req.body.userId,_id:req.body.competitionId},(err,success)=>{
+        if (err)
+         return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
+        else if(!success)
+            return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
+        else{
+                return Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,responseMsg.SUCCESSFULLY_DONE,success);
+            }     
+    });
+}
 const getAllCompetition=(req,res)=>{
     let flag =Validator(req.body,['userId'],[])
 	if(flag)
@@ -608,6 +622,7 @@ const approveCompetition=(req,res)=>{
 
 module.exports={
     addNewCompetition,
+    getACompetition,
     getAllCompetition,
     configureCompetition,
     addPrize,

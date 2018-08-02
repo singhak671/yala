@@ -12,7 +12,7 @@ let userSchema = new Schema({
     }],
     firstName: {
         type: String,
-        sparse: true
+        sparse: true 
     },
     lastName:{
         type:String
@@ -53,6 +53,7 @@ let userSchema = new Schema({
         type:String,
         uppercase:true
     },
+
     cardDetails:[{
         cardNumber:{type:Number,
             max:9999999999999999,
@@ -77,6 +78,15 @@ let userSchema = new Schema({
     },
     subscriptionPrice:{
         type:Number
+    },
+    subscriptionAccess:{
+        type:Array
+    },
+    subscriptionStartDate:{
+        type:Date
+    },
+    subscriptionEndDate:{
+        type:Date
     },
     payment:{
         type:Object
