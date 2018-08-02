@@ -12,26 +12,39 @@ const followComp=require("../../models/compFollowOrgPlay.js");
 
 
 const addNewCompetition=(req,res)=>{
-    let flag =Validator(req.body,['userId','competitionDetails'],["competitionName","venue","division","period","sports","club","allowPublicToFollow"])
+    let flag =Validator(req.body,['userId','competitionDetails'],["competitionName","venue","division","period","sports","club","allowPublicToFollow"],[],["competition","player","anurags ingh"])
 	if(flag)
         return Response.sendResponse(res,flag[0],flag[1]);
-    Competition.competition.findOne({organizer:req.body.userId,competitionName:req.body.competitionDetails.competitionName},(err,success)=>{
-        if (err)
-         return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
-        if(success)
-            return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ALREADY_EXISTS);
-        req.body.competitionDetails.organizer=req.body.userId;
-        console.log(req.body);
-        Competition.competition.create(req.body.competitionDetails,(err,success)=>{
-            if(err || !success)
-                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR); 
-            User.findByIdAndUpdate(req.body.userId,{$push:{organizerCompetition:success._id}},{},(err,success1)=>{
-                if(err || !success1)
-                    return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,"Unable to create competition _id into the User _id");
-                return Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,responseMsg.SUCCESSFULLY_DONE,success);
-            })           
-        });        
-    });
+    else 
+    User.findById(req.body.userId,(err2,success2)=>{
+           // console.log(success2.subscription)
+            if(success2.subscription=="oneEvent")
+                Competition.competition.count({organizer:req.body.userId,competitionName:req.body.competitionDetails.competitionName},(err,success)=>{
+                    console.log("count>>>>>>>>>>",success)
+                    if (err)
+                        return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
+                    if(success>=1)
+                    return  Response.sendResponse(res,responseCode.BAD_REQUEST,"Only one competition is allowed!");
+            })
+            else
+                Competition.competition.findOne({organizer:req.body.userId,competitionName:req.body.competitionDetails.competitionName},(err,success)=>{
+                if (err)
+                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
+                if(success)
+                    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ALREADY_EXISTS);
+                req.body.competitionDetails.organizer=req.body.userId;
+               // console.log(req.body);
+                Competition.competition.create(req.body.competitionDetails,(err,success)=>{
+                    if(err || !success)
+                        return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR); 
+                    User.findByIdAndUpdate(req.body.userId,{$push:{organizerCompetition:success._id}},{},(err,success1)=>{
+                        if(err || !success1)
+                            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,"Unable to create competition _id into the User _id");
+                        return Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,responseMsg.SUCCESSFULLY_DONE,success);
+                    })           
+                });        
+            });
+        })
 }
 
 const getACompetition=(req,res)=>{

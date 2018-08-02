@@ -4,14 +4,14 @@ const teamController=require('../webservices/controllers/team')
 const AUTH=require('../middlewares/auth_handler')
 
 router.post('/addClub',AUTH.verifyToken,dataController.addClub);
-router.post("/getListOfClub",AUTH.verifyToken,dataController.getListOfClub)
+router.get("/getListOfClub",AUTH.verifyToken,dataController.getListOfClub);
 router.get('/findClub',AUTH.verifyToken,dataController.findClub)
 router.post('/editClub',AUTH.verifyToken,dataController.editClub)
 router.get('/deleteClub',AUTH.verifyToken,dataController.deleteClub)
 router.post('/searchClub',AUTH.verifyToken,dataController.searchClub)
 
 router.post('/addSponsors',AUTH.verifyToken,dataController.addSponsors);
-router.post('/getListOfSponsor',AUTH.verifyToken,dataController.getListOfSponsor)
+router.post('/getListOfSponsor',AUTH.verifyToken,dataController.getListOfSponsor);
 router.get('/getEditDetailOfSponsor',AUTH.verifyToken,dataController.getEditDetailOfSponsor)
 router.post('/editSponsor',AUTH.verifyToken,dataController.editSponsor)
 router.get("/deleteSponsor",AUTH.verifyToken,dataController.deleteSponsor)

@@ -49,10 +49,10 @@ let userSchema = new Schema({
     nationality:{
         type:String
     },
-    organizerType:{
+    organizerType:[{
         type:String,
         uppercase:true
-    },
+    }],
 
     cardDetails:[{
         cardNumber:{type:Number,

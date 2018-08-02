@@ -1,14 +1,36 @@
 const  validator = require('validator');
 const responseCode = require('../helper/httpResponseCode')
-const responseMsg = require('../helper/httpResponseMessage')
+const responseMsg = require('../helper/httpResponseMessage');
+const User=require("../models/user");
+const mongoose = require('mongoose');
+const Response = require("../global_functions/response_handler")
 module.exports = {
-    validate_all_request:  (request_body, require_parameter,inner_parameters,direct_body_parameters) => {       
+    validate_all_request:  (request_body, require_parameter,inner_parameters,direct_body_parameters,access_parameters) => {       
         function inner_paramater_function(data){
             console.log(data) ;               
             for (let key of inner_parameters){                  
             if(!data[key])
                 return [responseCode.BAD_REQUEST,`"${key}" field is required`];
             }
+        }
+        if(access_parameters){
+           
+            User.findOne({_id:request_body.userId,role:"ORGANIZER"},(err,success)=>{
+                if(err)
+                    return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+                else if(!success)
+                    return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
+                else{console.log(success.subscriptionAccess,"d$$$$$$$>>>>",access_parameters);
+                return [responseCode.BAD_REQUEST];
+                    for(let data of access_parameters)
+                        if(success.subscriptionAccess.indexOf(data)==-1){
+                            console.log(" I HAV COME")
+                            return [responseCode.BAD_REQUEST,`"${data}" is not accessible by you !`];
+                        }
+                }
+
+            })
+
         }
 
         if(direct_body_parameters){

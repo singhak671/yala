@@ -70,6 +70,7 @@ const addClub=(req,res)=>{
 
 //--------------------------Get Detail of Club-------------------------------------------------------
 const getListOfClub=(req,res)=>{
+    console.log(req.body);
     if(!req.query.userId){
         Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED)
     }
@@ -78,14 +79,14 @@ const getListOfClub=(req,res)=>{
              userId:req.query.userId
        }
        let options = {
-        page:req.body.page || 1,
-        limit:req.body.limit || 4,
-        sort:{ createdAt: -1 }
+        // page:req.body.page || 1,
+        // limit:req.body.limit || 4,
+         createdAt: -1 
      }
        dataServices.getListOfClub(query,options,(err,success)=>{
            if(err)
            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-           else if(!success.docs.length)
+           else if(!success)
            return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.CLUB_NOT_FOUND)
            else return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.CLUB_LIST,success)
            
