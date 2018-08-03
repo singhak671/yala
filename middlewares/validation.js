@@ -1,8 +1,9 @@
 const  validator = require('validator');
 const responseCode = require('../helper/httpResponseCode')
 const responseMsg = require('../helper/httpResponseMessage');
-const User=require("../models/user");
 const mongoose = require('mongoose');
+const User=require("../models/user");
+
 const Response = require("../global_functions/response_handler")
 module.exports = {
     validate_all_request:  (request_body, require_parameter,inner_parameters,direct_body_parameters,access_parameters) => {       
@@ -16,12 +17,13 @@ module.exports = {
         if(access_parameters){
            
             User.findOne({_id:request_body.userId,role:"ORGANIZER"},(err,success)=>{
+                console.log("i am success>>>>",success)
                 if(err)
-                    return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+                    return [responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR]
                 else if(!success)
-                    return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
+                    return [responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS];
                 else{console.log(success.subscriptionAccess,"d$$$$$$$>>>>",access_parameters);
-                return [responseCode.BAD_REQUEST];
+               
                     for(let data of access_parameters)
                         if(success.subscriptionAccess.indexOf(data)==-1){
                             console.log(" I HAV COME")

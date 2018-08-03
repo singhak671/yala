@@ -32,6 +32,11 @@ router.post('/config/standing/deleteStanding',configOrganizerController.deleteSt
 router.post('/competition/getPlayerList',competitionController.getPlayerList);
 router.post('/competition/approveCompetition',competitionController.approveCompetition);
 
+
+
+router.post('/competition/publishCompetition',competitionController.publishCompetition);
+router.post('/competition/unPublishCompetition',competitionController.unPublishCompetition);
+router.post('/competition/getRegistrationDetail',competitionController.getRegistrationDetail);
 router.post('/competition/competitionRegistration',competitionController.competitionRegistration);
 router.post('/competition/configTeamFields',competitionController.configTeamFields);
 router.post('/competition/getTeamfields',competitionController.getTeamfields);

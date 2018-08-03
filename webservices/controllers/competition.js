@@ -12,7 +12,7 @@ const followComp=require("../../models/compFollowOrgPlay.js");
 
 
 const addNewCompetition=(req,res)=>{
-    let flag =Validator(req.body,['userId','competitionDetails'],["competitionName","venue","division","period","sports","club","allowPublicToFollow"],[],["competition","player","anurags ingh"])
+    let flag =Validator(req.body,['userId'],[],[],["competition","player","hj"])
 	if(flag)
         return Response.sendResponse(res,flag[0],flag[1]);
     else 
@@ -329,64 +329,118 @@ const deleteFile=(req,res)=>{
 
 
 const competitionRegistration=(req,res)=>{
-    let flag =Validator(req.body,[],[],["competitionId","userId","freeOrPaid","description","startDate","endDate","image"]);
+    let flag =Validator(req.body,[],[],["competitionId","userId","freeOrPaid","description","startDate","endDate"]);
     if(flag)
         return Response.sendResponse(res,flag[0],flag[1]);
     if(req.body.freeOrPaid=="paid"){
     let flag1 =Validator(req.body,[],[],["registrationFee","paymentInHandDetails"]);
     if(flag1)
         return Response.sendResponse(res,flag1[0],flag1[1]);}
-    Competition.competition.findById(req.body.competitionId,(err,success2)=>{
+    Competition.competition.findOne({_id:req.body.competitionId,registrationForm:false},(err,success2)=>{
         if(err)
             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
-        if(!success2)
+        else if(!success2)
             return Response.sendResponse(res,responseCode.NOT_FOUND,"competitionId not found");
-    if(success2.organizer==req.body.userId){
-    Competition.competitionReg.findOne({competitionId:req.body.competitionId},(err,result)=>{
-        if(err)
-            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
-        if(result)    
-            message.uploadImg(req.body.image,(err,success)=>{
-                if(success.secure_url)
-                {
-                    result.imageURL=success.secure_url;
-                    result.organizer=req.body.userId;
-                    result.save((err,result1)=>{
-                        if(err)
+            else
+                if(success2.organizer==req.body.userId){
+                    req.body.organizer=req.body.userId;
+                    Competition.competitionReg.findOneAndUpdate({competitionId:req.body.competitionId},req.body,{new:true,upsert:true},(err,result)=>{
+                        if(err || !result)
                             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
-                        if(!result1)
-                            return Response.sendResponse(res,responseCode.SOMETHING_WENT_WRONG,"Registration unsuccessfull");
-                          return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Registration successfully updated",result1);
-                     })                
-                }
-                else
-                    return Response.sendResponse(res,responseCode.BAD_REQUEST,"Unable to update registration",err);
-            })
-        else
-        {
-            message.uploadImg(req.body.image,(err,success)=>{
-                if(success.secure_url)
-                {
-                    req.body.imageURL=success.secure_url;
-                    Competition.competitionReg.create(req.body,(err1,success1)=>{
-                        if(err1)
-                            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err1);
-                        if(!success1)
-                            return Response.sendResponse(res,responseCode.SOMETHING_WENT_WRONG,"Registration unsuccessfull");
-                        return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Registration successfull",success1);
-                    })
-                }
-                else
-                    return Response.sendResponse(res,responseCode.BAD_REQUEST,"Unable to save registration",err); 
+                        else
+                        Competition.competition.findOneAndUpdate({_id:req.body.competitionId},{$set:{registrationForm:true}},{new:true},(err,success3)=>{
+                          if(success2)
+                             return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Registration successfull",result);
+
+        // if(result) {  
+        //     // message.uploadImg(req.body.image,(err,success)=>{
+        //     //     if(success.secure_url)
+        //     //     {
+        //     //         result.imageURL=success.secure_url;
+        //             result.organizer=req.body.userId;
+        //             result.save((err,result1)=>{
+        //                 if(err)
+        //                     return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+        //                 if(!result1)
+        //                     return Response.sendResponse(res,responseCode.SOMETHING_WENT_WRONG,"Registration unsuccessfull");
+        //                   return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Registration successfully updated",result1);
+        //             // })                
+        //         })
+        //         // else
+        //         //     return Response.sendResponse(res,responseCode.BAD_REQUEST,"Unable to update registration",err);
+        //     }
+        // else
+        // {
+        //     // message.uploadImg(req.body.image,(err,success)=>{
+        //     //     if(success.secure_url)
+        //     //     {
+        //     //         req.body.imageURL=success.secure_url;
+        //             Competition.competitionReg.create(req.body,(err1,success1)=>{
+        //                 if(err1)
+        //                     return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err1);
+        //                 if(!success1)
+        //                     return Response.sendResponse(res,responseCode.SOMETHING_WENT_WRONG,"Registration unsuccessfull");
+        //                 return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Registration successfull",success1);
+        //             })
+        //         }
+                // else
+                //     return Response.sendResponse(res,responseCode.BAD_REQUEST,"Unable to save registration",err); 
              })
-        }
-    })
-}
+        })
+    }
+
 else{
-    return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
+    return Response.sendResponse(res,responseCode.NOT_FOUND,"Competition doesn't belong to this organizer");
 }
   })
 }
+
+const publishCompetition=(req,res)=>{
+    let flag =Validator(req.body,[],[],["competitionId","userId",]);
+    if(flag)
+        return Response.sendResponse(res,flag[0],flag[1]);
+    else
+        Competition.competition.findOneAndUpdate({_id:req.body.competitionId,organizer:req.body.userId},{$set:{published:true}},{new:true,select:{"published":1}},(err,success)=>{
+            if(err)
+                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+            else if(!success)
+                return Response.sendResponse(res,responseCode.NOT_FOUND,"competitionId not found");
+                else
+                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success);
+    })
+}
+
+
+const unPublishCompetition=(req,res)=>{
+    let flag =Validator(req.body,[],[],["competitionId","userId",]);
+    if(flag)
+        return Response.sendResponse(res,flag[0],flag[1]);
+    else
+        Competition.competition.findOneAndUpdate({_id:req.body.competitionId,organizer:req.body.userId},{$set:{published:false}},{new:true},(err,success)=>{
+            if(err)
+                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+            else if(!success)
+                return Response.sendResponse(res,responseCode.NOT_FOUND,"competitionId not found");
+                else
+                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success);
+    })
+}
+
+const getRegistrationDetail=(req,res)=>{
+    let flag =Validator(req.body,[],[],["competitionId","userId",]);
+    if(flag)
+        return Response.sendResponse(res,flag[0],flag[1]);
+    else
+        Competition.competitionReg.findOne({competitionId:req.body.competitionId,organizer:req.body.userId},(err,success)=>{
+            if(err)
+                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+            else if(!success)
+                return Response.sendResponse(res,responseCode.NOT_FOUND,"competitionId not found");
+                else
+                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success);
+        })
+}
+
 
 const configTeamFields=(req,res)=>{
     let flag =Validator(req.body,["teamFields"],["field","importance"],["competitionId","userId",]);
@@ -653,5 +707,8 @@ module.exports={
     createTeamInCompetition,
     filterCompetition,
     getPlayerList,
-    approveCompetition
+    approveCompetition,
+    publishCompetition,
+    unPublishCompetition,
+    getRegistrationDetail
 }

@@ -38,7 +38,8 @@ let competitionSchema = new Schema({
     },
     status:{
         type:String,
-        trim:true
+        trim:true,
+        default:"settingUp"
     },
     organizer:{
       type: Schema.Types.ObjectId, ref:'user'
@@ -105,6 +106,14 @@ let competitionSchema = new Schema({
        },
            
        }],
+    registrationForm:{
+        type:Boolean,
+        default:false
+    },
+    published:{
+        type:Boolean,
+        default:false
+    },
     deviceType: {
         type: String,
         enum: ['iOS', 'android']
@@ -136,9 +145,6 @@ let registrationSchema = new Schema({
     },
     resistrationFee:{
         type:Number,
-    },
-    accountNumber:{
-        type:String,
     },
     paymentInHandDetails:{
         type:String
