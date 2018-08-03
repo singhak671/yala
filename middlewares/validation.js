@@ -6,7 +6,7 @@ const User=require("../models/user");
 
 const Response = require("../global_functions/response_handler")
 module.exports = {
-    validate_all_request:  (request_body, require_parameter,inner_parameters,direct_body_parameters,access_parameters) => {       
+    validate_all_request:  (request_body, require_parameter,inner_parameters,direct_body_parameters) => {       
         function inner_paramater_function(data){
             console.log(data) ;               
             for (let key of inner_parameters){                  
@@ -14,26 +14,7 @@ module.exports = {
                 return [responseCode.BAD_REQUEST,`"${key}" field is required`];
             }
         }
-        if(access_parameters){
-           
-            User.findOne({_id:request_body.userId,role:"ORGANIZER"},(err,success)=>{
-                console.log("i am success>>>>",success)
-                if(err)
-                    return [responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR]
-                else if(!success)
-                    return [responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS];
-                else{console.log(success.subscriptionAccess,"d$$$$$$$>>>>",access_parameters);
-               
-                    for(let data of access_parameters)
-                        if(success.subscriptionAccess.indexOf(data)==-1){
-                            console.log(" I HAV COME")
-                            return [responseCode.BAD_REQUEST,`"${data}" is not accessible by you !`];
-                        }
-                }
-
-            })
-
-        }
+        
 
         if(direct_body_parameters){
             for (let data of direct_body_parameters){                  
@@ -149,6 +130,30 @@ module.exports = {
             }
             break;
         }
+    }
+},
+validate_subscription_plan:(request_body,access_parameters,callback)=>{
+    if(access_parameters){
+           
+        User.findOne({_id:request_body.userId,role:"ORGANIZER"},(err,success)=>{
+           // console.log("i am success>>>>",success)
+            if(err)
+                return callback(err,[responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err]);
+            else if(!success)
+                return callback(err,[responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS]);
+            else{
+                console.log(success.subscriptionAccess,"d$$$$$$$>>>>",access_parameters);
+           
+                for(let data of access_parameters)
+                    if(success.subscriptionAccess.indexOf(data)==-1){
+                        console.log(" I HAV COME");
+                            return callback(err,[responseCode.BAD_REQUEST,`"${data}" is not accessible by you !`]);
+                    }
+                    callback(err,[responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE]);
+            }
+
+        })
+
     }
 }
 }   

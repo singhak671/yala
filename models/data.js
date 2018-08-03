@@ -126,28 +126,10 @@ let refereeSchema=new Schema({
      sponsorSchema.plugin(paginate);
      const sponsor=mongoose.model('sponser',sponsorSchema)
     
-     let sportSchema=new Schema({
-        organizer:{
-            type:Schema.Types.ObjectId
-        },
-        status:{
-          type:String,
-          default:"ACTIVE"
-        },
-        sportName:{
-            type:String
-        }
-        },{
-        timestamps:true
-        })
-    
-    sportSchema.plugin(paginate);
-    const sport=mongoose.model('sport',sportSchema)
          module.exports={
                 "club":club,
                 "referee":referee,
                 "venue":venue,
                 "sponsor":sponsor,
-                "sport":sport
          }
 

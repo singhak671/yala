@@ -3,6 +3,7 @@ const message = require("../../global_functions/message");
 const User=require("../../models/user");
 const  Competition=require("../../models/competition");
 const Validator = require('../../middlewares/validation').validate_all_request;
+const subscriptionValidator = require('../../middlewares/validation').validate_subscription_plan;
 const responseCode = require('../../helper/httpResponseCode')
 const responseMsg = require('../../helper/httpResponseMessage')
 const userServices=require('../services/userApis');
@@ -12,10 +13,16 @@ const followComp=require("../../models/compFollowOrgPlay.js");
 
 
 const addNewCompetition=(req,res)=>{
-    let flag =Validator(req.body,['userId'],[],[],["competition","player","hj"])
-	if(flag)
+    let flag=Validator(req.body,['userId'],[],[])
+    if(flag)
         return Response.sendResponse(res,flag[0],flag[1]);
-    else 
+        else
+    subscriptionValidator(req.body,["competition"],(err,flag)=>{
+        if(flag[0]!==200)
+        return Response.sendResponse(res,flag[0],flag[1],flag[2]);
+    
+    else{
+    //console.log("====================Data ELSE",data)
     User.findById(req.body.userId,(err2,success2)=>{
            // console.log(success2.subscription)
             if(success2.subscription=="oneEvent")
@@ -29,14 +36,14 @@ const addNewCompetition=(req,res)=>{
             else
                 Competition.competition.findOne({organizer:req.body.userId,competitionName:req.body.competitionDetails.competitionName},(err,success)=>{
                 if (err)
-                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
+                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
                 if(success)
                     return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ALREADY_EXISTS);
                 req.body.competitionDetails.organizer=req.body.userId;
                // console.log(req.body);
                 Competition.competition.create(req.body.competitionDetails,(err,success)=>{
                     if(err || !success)
-                        return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR); 
+                        return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err); 
                     User.findByIdAndUpdate(req.body.userId,{$push:{organizerCompetition:success._id}},{},(err,success1)=>{
                         if(err || !success1)
                             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,"Unable to create competition _id into the User _id");
@@ -45,6 +52,8 @@ const addNewCompetition=(req,res)=>{
                 });        
             });
         })
+    }
+    })
 }
 
 const getACompetition=(req,res)=>{
