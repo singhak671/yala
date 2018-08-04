@@ -199,8 +199,9 @@ else{
     //        lean:true,
     //        populate:{path:"organizer",select:"firstName lastName"}};
     console.log("i am second obj",obj);
+    obj.published=true;
     let query1;
-    if(!obj.sports)
+    if(!obj.sports || !status)
     query1=obj;
     else if(obj.sports && !obj.status){
             query1={sports:{$in:obj.sports}}
