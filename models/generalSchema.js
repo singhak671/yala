@@ -26,11 +26,14 @@ let sportSchema=new Schema({
     //Period schema
     let periodSchema=new Schema({
     organizer:{
-    type:Schema.Types.ObjectId
+    type:Schema.Types.ObjectId,
+    ref:"user"
     },
     periodName:String,
-    startDate:String,
-    endDate:String
+    status:{
+        type:String,
+        default:"ACTIVE"
+    }
     },{
     timestamps:true
     })
@@ -48,7 +51,11 @@ let sportSchema=new Schema({
         gender:String,
         minAge:Number,
         maxAge:Number,
-        date:Date
+        date:Date,
+        status:{
+            type:String,
+            default:"ACTIVE"
+        }
         
     },{
         timestamps:true

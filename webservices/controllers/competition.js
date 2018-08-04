@@ -62,12 +62,12 @@ const getACompetition=(req,res)=>{
         return Response.sendResponse(res,flag[0],flag[1]);
     Competition.competition.findOne({organizer:req.body.userId,_id:req.body.competitionId},(err,success)=>{
         if (err)
-         return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
+            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
         else if(!success)
             return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
-        else{
-                return Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,responseMsg.SUCCESSFULLY_DONE,success);
-            }     
+            else{
+                    return Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,responseMsg.SUCCESSFULLY_DONE,success);
+                }     
     });
 }
 const getAllCompetition=(req,res)=>{
@@ -77,18 +77,18 @@ const getAllCompetition=(req,res)=>{
         User.findById(req.body.userId,(err,succ)=>{
             if(err)
                 return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
-            if(!succ)
+            else if(!succ)
                 return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
 
-        
-    Competition.competition.paginate({organizer:req.body.userId},{page:req.body.page,limit:req.body.limit},(err,success)=>{
-        if (err)
-            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
-        if(!success)
-            return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
-        return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success)       
-    });
-})
+        else
+            Competition.competition.paginate({organizer:req.body.userId},{page:req.body.page,limit:req.body.limit},(err,success)=>{
+                if (err)
+                    return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+                if(!success)
+                    return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
+                return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success)       
+            });
+        })
 }
 
 const filterCompetition=(req,res)=>{
@@ -116,9 +116,9 @@ const filterCompetition=(req,res)=>{
         if (err)
             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
         else if(!result)
-            return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
-        else
-        return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,result);
+                 return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
+             else
+                return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,result);
         })   
     }
 }
@@ -409,7 +409,7 @@ const publishCompetition=(req,res)=>{
     if(flag)
         return Response.sendResponse(res,flag[0],flag[1]);
     else
-        Competition.competition.findOneAndUpdate({_id:req.body.competitionId,organizer:req.body.userId},{$set:{published:true}},{new:true,select:{"published":1}},(err,success)=>{
+        Competition.competition.findOneAndUpdate({_id:req.body.competitionId,organizer:req.body.userId},{$set:{published:true}},{new:true,select:{"published":1,organizer:1,competitionName:1}},(err,success)=>{
             if(err)
                 return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
             else if(!success)
@@ -425,7 +425,7 @@ const unPublishCompetition=(req,res)=>{
     if(flag)
         return Response.sendResponse(res,flag[0],flag[1]);
     else
-        Competition.competition.findOneAndUpdate({_id:req.body.competitionId,organizer:req.body.userId},{$set:{published:false}},{new:true},(err,success)=>{
+        Competition.competition.findOneAndUpdate({_id:req.body.competitionId,organizer:req.body.userId},{$set:{published:false}},{new:true,select:{"published":1,organizer:1,competitionName:1}},(err,success)=>{
             if(err)
                 return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
             else if(!success)
@@ -440,7 +440,9 @@ const getRegistrationDetail=(req,res)=>{
     if(flag)
         return Response.sendResponse(res,flag[0],flag[1]);
     else
-        Competition.competitionReg.findOne({competitionId:req.body.competitionId,organizer:req.body.userId},(err,success)=>{
+        Competition.competitionReg.findOne({competitionId:req.body.competitionId,organizer:req.body.userId})
+        .populate("competitionId","_id published competitionName organizer")
+        .exec((err,success)=>{
             if(err)
                 return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
             else if(!success)
@@ -661,7 +663,7 @@ const getPlayerList=(req,res)=>{
                        exec((err1,success1)=>{
                         if(err1)
                             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err1);
-                        else if(!success1)
+                        else if(success1 ==false)
                                 return Response.sendResponse(res,responseCode.NOT_FOUND,"No players found!");
                              else
                                  return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success1,query);

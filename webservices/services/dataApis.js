@@ -1,4 +1,6 @@
 const Data=require("../../models/data")
+const General=require("../../models/generalSchema")
+
 
 
 //Club Apis 
@@ -112,30 +114,57 @@ const deleteRefree=(bodyData,callback)=>{
 }
 //------------------APis of Sports-----------
 const addSport=(bodyData,callback)=>{
-    Data.sport.create(bodyData,(err,result)=>{
+    General.sport.create(bodyData,(err,result)=>{
         callback(err,result)
     })
 }
 const findSport=(bodyData,callback)=>{
-    Data.sport.findOne(bodyData,(err,result)=>{
+    General.sport.findOne(bodyData,(err,result)=>{
         callback(err,result)
     })
 }
 const getListOfSport=(bodyData,option,callback)=>{
-    Data.sport.paginate(bodyData,option,(err,result)=>{
+    General.sport.paginate(bodyData,option,(err,result)=>{
         callback(err,result)
     })
 }
 const editSport=(bodyData,set,option,callback)=>{
-    Data.sport.findOneAndUpdate(bodyData,set,option,(err,result)=>{
+    General.sport.findOneAndUpdate(bodyData,set,option,(err,result)=>{
         callback(err,result)
     })
 }
 const selectSport=(bodyData,callback)=>{
-    Data.sport.find(bodyData,(err,result)=>{
+    General.sport.find(bodyData,(err,result)=>{
         callback(err,result)
     })
 }
+
+//  //------------------APis of Sports-----------
+//  const addSport = (bodyData, callback) => {
+//     Data.sport.create(bodyData, (err, result) => {
+//         callback(err, result)
+//     })
+// }
+// const findSport = (bodyData, callback) => {
+//     Data.sport.findOne(bodyData, (err, result) => {
+//         callback(err, result)
+//     })
+// }
+// const getListOfSport = (bodyData, option, callback) => { 
+//     Data.sport.paginate(bodyData, option, (err, result) => {
+//         callback(err, result)
+//     })
+// }
+// const editSport = (bodyData, set, option, callback) => {
+//     Data.sport.findOneAndUpdate(bodyData, set, option, (err, result) => {
+//         callback(err, result)
+//     })
+// }
+// const selectSport = (bodyData, callback) => {
+//     Data.sport.find(bodyData, (err, result) => {
+//         callback(err, result)
+//     })
+// }
  
 module.exports={
     "addClub":addClub,

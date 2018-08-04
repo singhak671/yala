@@ -14,7 +14,7 @@ const getAllCompetitions=(req,res)=>{
     let flag =Validator(req.body,[],[],["userId"]); 
     if(flag)
         return Response.sendResponse(res,flag[0],flag[1]);
-    Competition.competition.find({status:{$in:["inProcess","settingUp","running","completed"]}},(err,success)=>{
+    Competition.competition.find({published:true},(err,success)=>{
         if(err)
             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
         else if(!success)
