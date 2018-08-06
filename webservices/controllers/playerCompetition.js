@@ -270,10 +270,11 @@ else{
             
         
         ]).exec((err,result)=>{
+            console.log("query }}}}}}}}}}}}}}}}}}}}}",query)
             if(err || !result)
             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
 
-            console.log("iam result>>>",result)
+            
 
         User.populate(result[0].data,{path:"organizer",select:"firstName lastName",option:{lean:true}},(errrr,succcc)=>{
 
@@ -282,7 +283,7 @@ else{
             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err,errrr);
 
 
-
+            console.log("iam result>>>",result)
 
 
 

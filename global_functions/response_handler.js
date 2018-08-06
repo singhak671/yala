@@ -1,5 +1,5 @@
 module.exports={
-    sendResponse:(responseObj,responseCode,responseMessage,data,token,paginationData)=> {    
+    sendResponse:(responseObj,responseCode,responseMessage,data,paginationData,token)=> {    
         if(paginationData){
             if(paginationData && responseMessage == 'Success.'){
                 return responseObj.send({'responseCode':responseCode,'responseMessage':responseMessage,routeList:data,pagination:paginationData});

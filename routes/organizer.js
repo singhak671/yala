@@ -71,6 +71,10 @@ router.post('/editSport',generalController.editSport);
 router.post('/deleteSport',generalController.deleteSport);
 
 
+router.post('/addSmtpDetails',generalController.addSMTPDetails);
+router.post('/getMailMessageDetails',generalController.getMailMessageDetails);
+
+
 
 
 module.exports=router;

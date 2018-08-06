@@ -62,8 +62,24 @@ let sportSchema=new Schema({
     });
     divisionSchema.plugin(paginate);
     const division=mongoose.model('division',divisionSchema);
+
+
+    let mailMessageSchema=Schema({
+        organizer:{
+            type:Schema.Types.ObjectId,
+            ref:"user"  
+        },
+        smtpUsername:String,
+        smtpPassword:String,
+        mailerId:String
+    },{
+        timestamps:true
+    });
+    const mailMessage=mongoose.model("mailMessage",mailMessageSchema)
+    
     module.exports={
         sport:sport,
         period:period,
-        division:division
+        division:division,
+        mailMessage:mailMessage
     }

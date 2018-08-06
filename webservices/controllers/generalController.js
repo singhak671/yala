@@ -289,6 +289,40 @@ const deleteSport=(req,res)=>{
     })
 }
 
+//===========================================Set SMTP username and Password ==================================
+
+const addSMTPDetails=(req,res)=>{
+    let flag=Validator(req.body,["userId"],[],["smtpUsername","smtpPassword"]);
+    if(flag)
+        return Response.sendResponse(res,flag[0],flag[1]);
+    req.body.organizer=req.body.userId;
+    General.mailMessage.findOneAndUpdate({organizer:req.body.userId},req.body,{new:true,upsert:true},(err,success)=>{
+        if(err)
+            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+        else if(!success)
+                return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
+            else
+                return Response.sendResponse(res,responseCode.RESOURCE_DELETED,responseMsg.SUCCESSFULLY_DONE,success)
+        
+    })
+    
+}
+
+const getMailMessageDetails=(req,res)=>{
+    let flag=Validator(req.body,["userId"],[],[]);
+    if(flag)
+        return Response.sendResponse(res,flag[0],flag[1]);
+    General.mailMessage.findOne({organizer:req.body.userId},(err,success)=>{
+        if(err)
+            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+        else if(!success)
+                return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
+            else
+                return Response.sendResponse(res,responseCode.RESOURCE_DELETED,responseMsg.SUCCESSFULLY_DONE,success);
+    })
+
+}
+
 
 
 module.exports={
@@ -309,4 +343,9 @@ module.exports={
     getASport,
     editSport,
     deleteSport,
+
+
+
+    addSMTPDetails,
+    getMailMessageDetails
 }
