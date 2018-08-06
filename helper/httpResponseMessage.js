@@ -375,6 +375,21 @@ WRONG_PHONE
 lIST_OF_TEAM
 :
 "List of teams.",
+MEDIA_LIKE:"Media liked successfully.",
+PLAYER_IS_REQUIRED:"Player is required.",
+ALREADY_LIKE:"Media already liked.",
+MEDIA_UNLIKE:"Media unliked successfully.",
+COMMENT_ADDED:"Comment added successfully.",
+COMMENT_LIST:"list of comment.",
+EMPLOYEE_EXISTS:"Employee already exists.",
+EMPLOYEE_CREATED:"Employee added successfully.",
+LIST_OF_EMPLOYEE:"List of employee.",
+EMPLOYEE_NOT_FOUND:"Employee not found.",
+EMPLOYEE_ROLE:"Employee role set.",
+EMPLOYEE_IS_REQUIRED:"Employee is required.",
+EMPLOYEE_DELETE:"Employee dleted successfully.",
+ROLE_MATRIX:"Role Matrix for employees",
+COMMENT_DISABLE:"Comment is disabled."
 
     // INTERNAL_SERVER_ERROR: 'Internal server error.',
     // REQUIRED_DATA: 'Please fill all required data.',

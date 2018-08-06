@@ -79,6 +79,7 @@ let userSchema = new Schema({
     subscriptionPrice:{
         type:Number
     },
+    optionalSubsPrices:Object,
     subscriptionAccess:{
         type:Array
     },
@@ -123,6 +124,32 @@ let userSchema = new Schema({
     deviceToken: {
         type: String
     },
+    employeeRole:{
+        type:String,
+        enum:["COORDINATOR","ADMINSTRATOR"]
+    },
+    employeerId:{
+        type:Schema.Types.ObjectId
+    },
+    employeePermissionForCoordinator:{
+          dataBase:Array,
+          myCompetition:Array,
+          myVenue:Array,
+          media:Array,
+          myMembership:Array
+    },
+    employeePermissionForAdminstartor:{
+        dataBase:Array,
+        myCompetition:Array,
+        myVenue:Array,
+        media:Array,
+        myMembership:Array
+  },
+    status:{
+        type:String,
+        default:"ACTIVE"
+    }
+
 }, {
     timestamps: true
 },);

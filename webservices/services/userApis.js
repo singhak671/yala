@@ -41,6 +41,21 @@ const findTerms=(bodyData,callback)=>{
 		callback(err,result)
 	})
 }
+const getListOfEmployee=(bodyData,option,callback)=>{
+	User.paginate(bodyData,option,(err,result)=>{
+		callback(err,result)
+	})
+}
+const findUserRole=(bodyData,select,callback)=>{
+	User.findOne(bodyData,select,(err,result)=>{
+		callback(err,result);
+	})
+}
+const updateEmployee=(bodyData,set,option,callback)=>{
+	User.update(bodyData,set,option,(err,result)=>{
+		callback(err,result)
+	})
+}
 module.exports={
 	"addUser":addUser,
 	"findUser":findUser,
@@ -50,4 +65,7 @@ module.exports={
 	"findUserDetail":findUserDetail,
 	"findTermsAndUpdate":findTermsAndUpdate,
 	"findTerms":findTerms,
+	"getListOfEmployee":getListOfEmployee,
+	"findUserRole":findUserRole,
+	"updateEmployee":updateEmployee
 }

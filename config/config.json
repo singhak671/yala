@@ -22,8 +22,8 @@
         "secret_key":""
     },
     "nodemailer":{
-        "pass": "",
-        "user": ""
+        "pass": "kanakamagar",
+        "user": "sunitacoolm@gmail.com"
     },
     "cloudinary":{
         "cloud_name": "singhanurag400", 

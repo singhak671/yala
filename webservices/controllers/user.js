@@ -1,6 +1,7 @@
 const Response = require("../../global_functions/response_handler")
 const message = require("../../global_functions/message");
 const Validator = require('../../middlewares/validation').validate_all_request;
+const communicationValidator = require('../../middlewares/validation').validate_communication_credentials;
 const responseCode = require('../../helper/httpResponseCode')
 const responseMsg = require('../../helper/httpResponseMessage')
 const userServices=require('../services/userApis');
@@ -10,10 +11,11 @@ const config = require("../../config/config");
 const jwt = require('jsonwebtoken');
 var Twocheckout = require('2checkout-node');
 var waterfall = require('async-waterfall');
+
 //var countries   = require('country-data-list').countries;
 var countryCodes = require('country-data');
 
-const User=require("../../models/user")
+const User=require("../../models/user");
 //--------------------------Add Users-----------------------------------------------------------
 const signup=(req,res)=>{
 	console.log("req.body---->>",req.body)
@@ -45,6 +47,17 @@ const signup=(req,res)=>{
 					  }
 					 
 				else{
+					let obj={
+						"oneEvent":"50",
+						"yearly":"1000",
+						"monthly":"200"
+					};
+					req.body.subscriptionPrice=obj[req.body.subscription];
+					req.body.optionalSubsPrices={
+						"web&hosting":"50",
+						"event&membershipManagement":"50"
+
+					};
 					userServices.addUser(req.body,(err,success)=>{
 						if(err){
 							console.log("err--->>",err)
@@ -827,6 +840,239 @@ else{
 	
 }
 
+const addEmployee=(req,res)=>{
+	console.log("req.body--->>",req.body)
+   if(!req.query.userId)
+   return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED);
+   else
+    communicationValidator(req.query.userId,["mail"],(err,flag)=>{
+        if(flag[0]!==200)
+        return Response.sendResponse(res,flag[0],flag[1],flag[2]);
+   else{
+	   let query={
+		   _id:req.query.userId,
+		   role:"ORGANIZER"
+	   }
+	   userServices.findUser(query,(err,success)=>{
+		   if(err)
+		   return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+		   else if(!success)
+		   return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.ORGANIZER_NOT_FOUND)
+		   else{
+			   if(req.body.employeeRole=="ADMINSTRATOR")
+			   req.body.employeePermissionForAdminstartor={
+				   dataBase:success.employeePermissionForAdminstartor.dataBase,
+				   myCompetition:success.employeePermissionForAdminstartor.myCompetition,
+				   myVenue:success.employeePermissionForAdminstartor.myVenue,
+				   myMembership:success.employeePermissionForAdminstartor.myMembership,
+				   media:success.employeePermissionForAdminstartor.media
+			   }
+			   if(req.body.employeeRole=="COORDINATOR")
+			    req.body.employeePermissionForCoordinator={
+				dataBase:success.employeePermissionForCoordinator.dataBase,
+				myCompetition:success.employeePermissionForCoordinator.myCompetition,
+				myVenue:success.employeePermissionForCoordinator.myVenue,
+				myMembership:success.employeePermissionForCoordinator.myMembership,
+				media:success.employeePermissionForCoordinator.media
+			   }
+			  const password=message.genratePassword();
+			  console.log("@@@@@@",password)
+              let salt = bcrypt.genSaltSync(10);
+			  req.body.password = bcrypt.hashSync(password, salt)
+			  req.body.role=success.role
+			  req.body.employeerId=success._id,
+			  req.body.phoneVerified=true,
+			  req.body.organizerType=success.organizerType,
+			  req.body.subscription=success.subscription,
+			  req.body.subscriptionAccess=success.subscriptionAccess
+			  req.body.paymentStatus=success.paymentStatus
+			  console.log(req.body)
+			 userServices.findUser({email:req.body.email},(err,success1)=>{
+			  if(err)
+			  return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+			  else if(success1)
+			  return Response.sendResponse(res,responseCode.ALREADY_EXIST,responseMsg.EMPLOYEE_EXISTS)
+			  else{
+				userServices.addUser(req.body,(err,success2)=>{
+					if(err)
+					return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+					else{
+					  message.sendMail(success2.email,"YALA App Login Credentials","Your Login Credentials are :"+"<br/>UserId : "+req.body.email+"<br/>Password : "+ password,(err,result1)=>{
+						  if(err || !result1){
+						  return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.EMAIL_NOT_SEND);
+						  }
+						  else{
+							  return Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,responseMsg.EMPLOYEE_CREATED,success2)
+						  }
+					  },success._id)
+					}			
+				 })
+			   }
+			 })
+		   }
+	   })
+   }
+})
+
+}
+//-------------------------------------------------------Get List of employee---------------------------------
+const getListOfEmployee=(req,res)=>{
+	if(!req.query.userId)
+	return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED)
+	else{
+		let query={
+			employeerId:req.query.userId,
+			status:"ACTIVE",
+		}
+		if(req.body.employeeRole){
+			query.employeeRole=req.body.employeeRole
+		}
+		let option={
+			page:req.body.page||1,
+			limit:req.body.limit||10,
+			sort:{createdAt:-1}
+		}
+       userServices.getListOfEmployee(query,option,(err,success)=>{
+		   if(err)
+		   return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+		   else if(!success.docs.length)
+		   return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.EMPLOYEE_NOT_FOUND)
+		   else
+		   return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.LIST_OF_EMPLOYEE,success)
+	   })
+	}
+}
+//-----------------------------------Delete User-----------------------------
+const deleteEmployee=(req,res)=>{
+	if(!req.query.userId)
+	return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED)
+	else if(!req.query.employeeId)
+	return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.EMPLOYEE_IS_REQUIRED)
+	else{
+		userServices.findUser({_id:req.query.employeeId,employeerId:req.query.userId},(err,success)=>{
+			if(err)
+			return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+			else if(!success)
+			return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.EMPLOYEE_NOT_FOUND)
+			else{
+				userServices.updateUser({employeerId:req.query.userId},{status:"INACTIVE"},{new:true},(err,success)=>{
+					if(err)
+					return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+					else if(!success)
+					return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NO_DATA_FOUND)
+					else
+					return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.EMPLOYEE_DELETE)
+				})
+			}
+		})	
+	}
+}
+//-----------------------------Search User-----------------------------------
+const searchUser=(req,res)=>{
+	let search=new RegExp("^"+req.body.search)
+	let query={
+		$or:[{firstName:search},{employeeRole:search}],
+		employeerId:req.query.userId
+	}
+		 var options={
+			 page:req.body.page||1,
+			 limit:req.body.limit||10,
+			 sort:{ createdAt: -1 }
+		 }
+		 userServices.getListOfEmployee(query,options,(err,success)=>{
+			 if(err)
+			 return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
+			 else if(!success.docs.length)
+			 return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.EMPLOYEE_NOT_FOUND);
+			 else
+			 return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.LIST_OF_EMPLOYEE,success)
+		 })
+}
+//----------------------------Role Matrix-----------------------------
+const setRoleForEmployee=(req,res)=>{
+	console.log("req.body--->>",req.body)
+	if(!req.query.userId)
+	return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED)
+	else{
+		let query={}
+		if(req.body.employeePermissionForCoordinator.dataBase)
+		 query["employeePermissionForCoordinator.dataBase"]=req.body.employeePermissionForCoordinator.dataBase
+		if(req.body.employeePermissionForCoordinator.myCompetition)
+		query["employeePermissionForCoordinator.myCompetition"]=req.body.employeePermissionForCoordinator.myCompetition
+		if(req.body.employeePermissionForCoordinator.myVenue)
+		query["employeePermissionForCoordinator.myVenue"]=req.body.employeePermissionForCoordinator.myVenue
+		if(req.body.employeePermissionForCoordinator.media)
+		query["employeePermissionForCoordinator.media"]=req.body.employeePermissionForCoordinator.media
+		if(req.body.employeePermissionForCoordinator.myMembership)
+		query["employeePermissionForCoordinator.myMembership"]=req.body.employeePermissionForCoordinator.myMembership
+		if(req.body.employeePermissionForAdminstartor.dataBase)
+		query["employeePermissionForAdminstartor.dataBase"]=req.body.employeePermissionForAdminstartor.dataBase
+		if(req.body.employeePermissionForAdminstartor.myCompetition)
+		query["employeePermissionForAdminstartor.myCompetition"]=req.body.employeePermissionForAdminstartor.myCompetition
+		if(req.body.employeePermissionForAdminstartor.myVenue)
+		query["employeePermissionForAdminstartor.myVenue"]=req.body.employeePermissionForAdminstartor.myVenue
+		if(req.body.employeePermissionForAdminstartor.media)
+		query["employeePermissionForAdminstartor.media"]=req.body.employeePermissionForAdminstartor.media
+		if(req.body.employeePermissionForAdminstartor.myMembership)
+		query["employeePermissionForAdminstartor.myMembership"]=req.body.employeePermissionForAdminstartor.myMembership
+		userServices.findUser({_id:req.query.userId,role:"ORGANIZER"},(err,success)=>{
+			if(err)
+			return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED)
+			else if(!success)
+			return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.ORGANIZER_NOT_FOUND,"anurag")
+			else{
+				let set=query;
+				let option={
+					new:true
+				};
+				userServices.updateUser({_id:req.query.userId,role:"ORGANIZER"},set,option,(err,success)=>{
+					if(err)
+					return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+			        else{
+						let set={
+							employeePermissionForCoordinator:success.employeePermissionForCoordinator
+						}
+						userServices.updateEmployee({employeerId:req.query.userId,employeeRole:"COORDINATOR"},set,{new:true},(err,success1)=>{
+						if(err)
+						return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+						else {
+                             let set={
+								employeePermissionForAdminstartor:success.employeePermissionForAdminstartor
+							 }
+							 userServices.updateEmployee({employeerId:req.query.userId,employeeRole:"ADMINSTRATOR"},set,(err,success2)=>{
+								if(err)
+								return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+								else
+								return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.EMPLOYEE_ROLE,success)
+							  })
+						   }
+					   })
+					}
+				})
+			}
+		})
+	}
+}
+//---------------------------------Get Role Matrix----------------------------
+const getRoleForEmployee=(req,res)=>{
+	 if(!req.query.userId)
+	 return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED)
+	 else {
+		 let select={
+			employeePermissionForCoordinator:1,
+			employeePermissionForAdminstartor:1,
+			_id:0
+		 }
+		 userServices.findUserRole({_id:req.query.userId,role:"ORGANIZER"},select,(err,success)=>{
+		  if(err)
+		  return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+		  else if(!success)
+		  return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.ORGANIZER_NOT_FOUND);
+		  else
+		  return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.ROLE_MATRIX,success)
+		 })
+	 }
+}
 module.exports={
 	signup,
 	verifyOtp,
@@ -844,8 +1090,40 @@ module.exports={
 	editCardDetails,
 	deleteCard,
 	getCard,
-	paymentOrder
+	paymentOrder,
+	addEmployee,
+	getListOfEmployee,
+	deleteEmployee,
+	searchUser,
+	setRoleForEmployee,
+	getRoleForEmployee
 }
+
+
+
+
+
+
+
+// module.exports={
+// 	signup,
+// 	verifyOtp,
+// 	resendOtp,
+// 	login,
+// 	updateUser,
+// 	changePassword,
+// 	getDetail,
+// 	forgetPassword,
+// 	changePlan,
+// 	logOut,
+// 	code,
+// 	addCard,
+// 	getCardDetails,
+// 	editCardDetails,
+// 	deleteCard,
+// 	getCard,
+// 	paymentOrder
+// }
 
 
 

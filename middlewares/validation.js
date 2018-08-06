@@ -3,6 +3,7 @@ const responseCode = require('../helper/httpResponseCode')
 const responseMsg = require('../helper/httpResponseMessage');
 const mongoose = require('mongoose');
 const User=require("../models/user");
+const General=require("../models/generalSchema.js")
 
 const Response = require("../global_functions/response_handler")
 module.exports = {
@@ -155,5 +156,22 @@ validate_subscription_plan:(request_body,access_parameters,callback)=>{
         })
 
     }
+},
+validate_communication_credentials:(userId,access_parameters,callback)=>{
+        if(access_parameters)
+        for(let data of access_parameters)
+        if(data=="mail"){   
+            General.mailMessage.findOne({organizer:userId},(err,success)=>{
+                if(err)
+                    return callback(err,[responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err]);
+                else if(!success)
+                        return callback(err,[responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS]);
+                    else if( !success.smtpUsername || !success.smtpPassword)
+                            return callback(err,[responseCode.BAD_REQUEST,"Please setup your SMTP credentials first"]);
+                        else{
+                            return callback({},[responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE])
+                            }        
+            })
+        }
+    } 
 }
-}   

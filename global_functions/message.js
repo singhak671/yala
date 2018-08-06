@@ -3,7 +3,10 @@ const mailer = require('nodemailer');
 const config = require("../config/config");
 var waterfall = require('async-waterfall');
 var cloudinary = require('cloudinary');
+var generator = require('generate-password');
+const General=require("../models/generalSchema.js")
 var fs = require('fs');
+let pwd,usr;
 
 cloudinary.config({ 
     cloud_name: config.cloudinary.cloud_name, 
@@ -49,8 +52,16 @@ module.exports = {
         return val;
         
     },
-    sendMail: (email, subject, text, callback) => {
-
+    sendMail: (email, subject, text, callback, userId) => {
+        
+        if(userId)
+        General.mailMessage.findOne({organizer:userId},(err,success)=>{
+            if(success){
+                usr=success.smtpUsername;
+                pwd=success.smtpPassword
+            }
+           
+        })
         const mailBody = {
             from: "<do_not_reply@gmail.com>",
             to: email,
@@ -58,7 +69,20 @@ module.exports = {
             html: text,
             //  html: "<p>Your verification code is " + otp + "</p>"
         };
+        console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%",pwd,usr);
+        if(userId){
+        mailer.createTransport({
+            service:'GMAIL',
+            auth: {
+                user: usr,
+                pass: pwd
+            },
+            port: 587,
+            host: 'smtp.gmail.com'
 
+        }).sendMail(mailBody, callback)
+    }
+    else{
         mailer.createTransport({
             service:'GMAIL',
             auth: {
@@ -69,6 +93,8 @@ module.exports = {
             host: 'smtp.gmail.com'
 
         }).sendMail(mailBody, callback)
+    }
+ 
     },
 
     uploadImg:(pdf_base64, cb)=> {
@@ -79,6 +105,14 @@ module.exports = {
                 else
                     cb(true,null)},{resource_type: 'auto',
             });        
+        },
+        genratePassword:()=>{
+            var password = generator.generate({
+                length: 10,
+                numbers: true
+            });
+            console.log("forget password--------->>>>>",password)
+            return password;
         },
    
     editUploadedFile:(pdf_base64,publicId, cb)=> {

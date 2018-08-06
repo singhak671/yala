@@ -35,6 +35,7 @@ app.use('/api/v1/terms',require('./routes/terms'))
 app.use('/api/v1/organizer',require('./routes/organizer'));
 app.use('/api/v1/player',require('./routes/player.js'));
 app.use('/api/v1/data',require('./routes/data.js'));
+app.use('/api/v1/chat',require('./routes/chat.js'));
 
 
 // var serverKey = 'AAAAQ0w6JT0:APA91bH6-L7dFYkPFneAiwevxN4rFPaewAylGJitQ4RnHVpsF2fuJpJPJ2gnxMJ2VPavo4PIqO8jcN2pWLuF0WCtQVHUjvlbtBcZAbhkkF5C3R5JMuC5ClfrMdocAaqJntGZ1yYYw5s50I-PCtSBQ4Ylk-m06navCA';
