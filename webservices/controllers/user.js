@@ -8,6 +8,7 @@ const userServices=require('../services/userApis');
 const mongoose = require('mongoose');
 const bcrypt=require('bcryptjs');
 const config = require("../../config/config");
+const moment=require("moment")
 const jwt = require('jsonwebtoken');
 var Twocheckout = require('2checkout-node');
 var waterfall = require('async-waterfall');
@@ -674,7 +675,7 @@ const paymentOrder=(req,res)=>{
 	//console.log("req.body>>>",req.body.response.token.token);
 	if(!req.body || !req.body.response.token )
 	return Response.sendResponse(res,responseCode.BAD_REQUEST,"Payment not successfull");
-else{
+else{paymentAmount=0;
 	User.findById(req.headers.userid,(err,success)=>{
 			if(err)
 				return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
@@ -684,11 +685,13 @@ else{
 					if(req.body.optionalSubsPrices!==false)
 					{
 						for(let data of req.body.optionalSubsPrices)
-						paymentAmount= (success.subscriptionPrice+= success.optionalSubsPrices[data]);
-						console.log("@@@@@@@@@@@@@@@@@@@@>>>>>",paymentAmount);
+						paymentAmount+=Number(success.optionalSubsPrices[data]);
+						
+						paymentAmount=paymentAmount+(Number(success.subscriptionPrice));
 					}
 					else
 					paymentAmount=success.subscriptionPrice;
+					console.log("@@@@@@@@@@@@@@@@@@@@>>>>>",paymentAmount);
 	var tco = new Twocheckout({
 		sellerId: "901386003",         // Seller ID, required for all non Admin API bindings 
 		privateKey: "CA54E803-AC54-41C3-8677-A36DE6C276A4",     // Payment API private key, required for checkout.authorize binding
@@ -700,7 +703,7 @@ else{
 		"token": req.body.response.token.token,
 		"currency": "USD",
 		"total":paymentAmount,
-		"billingAddr": {
+		"billingAddr": {     
 			"name": "Testing Tester",
 			"addrLine1": "123 Test St",
 			"city": "Columbus",
@@ -718,10 +721,11 @@ else{
 						return Response.sendResponse(res,responseCode.BAD_REQUEST,"UNAUTHORIZED");
 					} else {
 						if(data.response.responseCode=="APPROVED" && data.response.orderNumber && !data.response.errors){
+							let subscriptionOverDate;
+							subscriptionOverDate=(moment(req.body.response.token.dateCreated).add(29, 'd'));
 	
-	
-			//
-					User.findByIdAndUpdate(req.headers.userid,{$set:{paymentStatus:true,payment:data},$push:{subscriptionAccess:req.body.optionalSubsPrices}},{new:true},(err,result)=>{
+			
+					User.findByIdAndUpdate(req.headers.userid,{$set:{paymentStatus:true,payment:data,subscriptionStartDate:req.body.response.token.dateCreated,subscriptionEndDate:subscriptionOverDate},$push:{subscriptionAccess:req.body.optionalSubsPrices}},{new:true},(err,result)=>{
 						if(err)
 							return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
 						else if(!result)

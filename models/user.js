@@ -49,10 +49,10 @@ let userSchema = new Schema({
     nationality:{
         type:String
     },
-    organizerType:[{
-        type:String,
+    organizerType:{
+        type:Array,
         uppercase:true
-    }],
+    },
 
     cardDetails:[{
         cardNumber:{type:Number,
@@ -84,10 +84,10 @@ let userSchema = new Schema({
         type:Array
     },
     subscriptionStartDate:{
-        type:Date
+        type:Number
     },
     subscriptionEndDate:{
-        type:Date
+        type:Number
     },
     payment:{
         type:Object
