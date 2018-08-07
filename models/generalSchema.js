@@ -75,11 +75,38 @@ let sportSchema=new Schema({
     },{
         timestamps:true
     });
-    const mailMessage=mongoose.model("mailMessage",mailMessageSchema)
+    const mailMessage=mongoose.model("mailMessage",mailMessageSchema);
+
+
+
+    //=========================CHAT SCHEMA ==================================
+    let chatSchema = new Schema({ 
+        organizerId:{
+            type: Schema.Types.ObjectId, ref:'user'
+        },
+        playerId:{
+            type: Schema.Types.ObjectId, ref:'user'
+        },
+        message:[{
+            senderId:{
+                type: Schema.Types.ObjectId, ref:'user'
+            },
+            message:String,
+            createdAt:{
+                type:Date,
+                default:Date.now
+            }
+                     
+        }]
+    });
+    
+    chatSchema.plugin(paginate);
+    var chat = mongoose.model('chat', chatSchema);
     
     module.exports={
         sport:sport,
         period:period,
         division:division,
-        mailMessage:mailMessage
+        mailMessage:mailMessage,
+        chat:chat
     }

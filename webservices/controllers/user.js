@@ -11,7 +11,7 @@ const config = require("../../config/config");
 const jwt = require('jsonwebtoken');
 var Twocheckout = require('2checkout-node');
 var waterfall = require('async-waterfall');
-
+var paymentAmount;
 //var countries   = require('country-data-list').countries;
 var countryCodes = require('country-data');
 
@@ -58,6 +58,7 @@ const signup=(req,res)=>{
 						"event&membershipManagement":"50"
 
 					};
+					req.body.subscriptionAccess=["competition","player&team","media","onlineRegistration","standing&fixture","product","websiteManagement","socialMedia","employeeUserManagement","financialManagement","userNotification"];
 					userServices.addUser(req.body,(err,success)=>{
 						if(err){
 							console.log("err--->>",err)
@@ -107,7 +108,7 @@ const verifyOtp=(req,res)=>{
 				if(err)
 				return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
 				else
-				return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.VERIFICATION_SUCCESSFULLY_DONE,success,token)
+				return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.VERIFICATION_SUCCESSFULLY_DONE,success,"",token)
 			})
 		}
 		else{
@@ -178,7 +179,7 @@ const login=(req,res)=>{
 				//var token =  jwt.sign({_id:result._id,email:result.email,password:result.password},config.secret_key,{ expiresIn: calculatedExpiresIn }
 				var token =  jwt.sign({_id:result._id,email:result.email,password:result.password},config.secret_key);
 				console.log("token----->>",token)
-                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.LOG_SUCCESS,result,token)	
+                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.LOG_SUCCESS,result,"",token)	
 				}
 			})
 		
@@ -674,6 +675,20 @@ const paymentOrder=(req,res)=>{
 	if(!req.body || !req.body.response.token )
 	return Response.sendResponse(res,responseCode.BAD_REQUEST,"Payment not successfull");
 else{
+	User.findById(req.headers.userid,(err,success)=>{
+			if(err)
+				return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+			else if(!success)
+				return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
+				else{	
+					if(req.body.optionalSubsPrices!==false)
+					{
+						for(let data of req.body.optionalSubsPrices)
+						paymentAmount= (success.subscriptionPrice+= success.optionalSubsPrices[data]);
+						console.log("@@@@@@@@@@@@@@@@@@@@>>>>>",paymentAmount);
+					}
+					else
+					paymentAmount=success.subscriptionPrice;
 	var tco = new Twocheckout({
 		sellerId: "901386003",         // Seller ID, required for all non Admin API bindings 
 		privateKey: "CA54E803-AC54-41C3-8677-A36DE6C276A4",     // Payment API private key, required for checkout.authorize binding
@@ -684,7 +699,7 @@ else{
 		"merchantOrderId": "123",
 		"token": req.body.response.token.token,
 		"currency": "USD",
-		"total": req.body.totalAmount,
+		"total":paymentAmount,
 		"billingAddr": {
 			"name": "Testing Tester",
 			"addrLine1": "123 Test St",
@@ -705,21 +720,17 @@ else{
 						if(data.response.responseCode=="APPROVED" && data.response.orderNumber && !data.response.errors){
 	
 	
-			User.findById(req.headers.userid,(err,success)=>{
-				if(err)
-					return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
-				else if(!success)
-					return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
-					else
-					User.findByIdAndUpdate(req.headers.userid,{$set:{paymentStatus:true,payment:data}},{new:true},(err,result)=>{
+			//
+					User.findByIdAndUpdate(req.headers.userid,{$set:{paymentStatus:true,payment:data},$push:{subscriptionAccess:req.body.optionalSubsPrices}},{new:true},(err,result)=>{
 						if(err)
 							return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
 						else if(!result)
 								return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
-							else
-							return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Payment is successfull",result);
+							else{
+								
+							return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Payment is successfull",result);}
 					})
-			})
+			
 		} 
 		else
 		return Response.sendResponse(res,responseCode.BAD_REQUEST,"Payment not successfull");
@@ -728,7 +739,8 @@ else{
 					}
 				});
 			}
-	
+		})
+	}
 
 
 
