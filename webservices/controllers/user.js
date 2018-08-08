@@ -48,19 +48,22 @@ const signup=(req,res)=>{
 					  }
 					 
 				else{
-					let obj={
-						"oneEvent":"50",
-						"yearly":"1000",
-						"monthly":"200"
-					};
-					req.body.subscriptionPrice=obj[req.body.subscription];
-					req.body.optionalSubsPrices={
-						"web&hosting":"50",
-						"event&membershipManagement":"50"
+					if(req.body.role=="ORGANIZER"){
+					
+						let obj={
+							"oneEvent":"50",
+							"yearly":"1000",
+							"monthly":"200"
+						};
+						req.body.subscriptionPrice=obj[req.body.subscription];
+						req.body.optionalSubsPrices={
+							"web&hosting":"50",
+							"event&membershipManagement":"50"
 
-					};
-					req.body.subscriptionAccess=["competition","player&team","media","onlineRegistration","standing&fixture","product","websiteManagement","socialMedia","employeeUserManagement","financialManagement","userNotification"];
-					userServices.addUser(req.body,(err,success)=>{
+						};
+						req.body.subscriptionAccess=["competition","player&team","media","onlineRegistration","standing&fixture","product","websiteManagement","socialMedia","employeeUserManagement","financialManagement","userNotification"];
+					}
+						userServices.addUser(req.body,(err,success)=>{
 						if(err){
 							console.log("err--->>",err)
 						return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
@@ -154,8 +157,8 @@ const resendOtp=(req,res)=>{
 }
 //--------------------------Log In-----------------------------------------------------------
 const login=(req,res)=>{
-	console.log("req.body--->>",req.body)
-	let flag = Validator(req.body, ['email', 'password'])  
+	console.log("LOGIN >>> req.body--->>",req.body)
+	let flag = Validator(req.body, ['email', 'password'],[],["currentDate"])  ;
 	if(flag)
 	Response.sendResponse(res, flag[0],flag[1]) 
 	else{
@@ -174,14 +177,26 @@ const login=(req,res)=>{
 				else if(!success)
 				return Response.sendResponse(res,responseCode.UNAUTHORIZED,responseMsg.WRONG_PASSWORD1)
 				else{
-				console.log("secret key is "+config.secret_key)
-				// var calculatedExpiresIn = (((d.getTime()) + (60 * 60 * 1000)) - (d.getTime() - d.getMilliseconds()) / 1000);
-				// console.log("secret key is "+calculatedExpiresIn)
-				//var token =  jwt.sign({_id:result._id,email:result.email,password:result.password},config.secret_key,{ expiresIn: calculatedExpiresIn }
-				var token =  jwt.sign({_id:result._id,email:result.email,password:result.password},config.secret_key);
-				console.log("token----->>",token)
-                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.LOG_SUCCESS,result,"",token)	
+					//console.log(result.subscriptionEndDate)
+					if(result.role.indexOf("ORGANIZER")!== -1 && result.subscription!="oneEvent"){
+					if(moment(Number(req.body.currentDate)).isSameOrBefore(result.subscriptionEndDate))
+					{
+						console.log("secret key is "+config.secret_key)
+						// var calculatedExpiresIn = (((d.getTime()) + (60 * 60 * 1000)) - (d.getTime() - d.getMilliseconds()) / 1000);
+						// console.log("secret key is "+calculatedExpiresIn)
+						//var token =  jwt.sign({_id:result._id,email:result.email,password:result.password},config.secret_key,{ expiresIn: calculatedExpiresIn }
+						var token =  jwt.sign({_id:result._id,email:result.email,password:result.password},config.secret_key);
+						console.log("token----->>",token)
+							return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.LOG_SUCCESS,result,"",token)	
+					}
+					else
+					return Response.sendResponse(res,responseCode.PAYMENT_REQUIRED,"Your subscription plan has expired! </br> Please renew to continue.")
 				}
+				else{
+				var token =  jwt.sign({_id:result._id,email:result.email,password:result.password},config.secret_key);
+						console.log("token----->>",token)
+							return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.LOG_SUCCESS,result,"",token)	
+				}}
 			})
 		
 			}
@@ -673,6 +688,10 @@ const code=(req,res)=>{
 const paymentOrder=(req,res)=>{
 	console.log("req.body>>>",req.body);
 	//console.log("req.body>>>",req.body.response.token.token);
+	let flag=Validator(req.body,[],[],["optionalSubsPrices","subscription"])
+    if(flag)
+        return Response.sendResponse(res,flag[0],flag[1]);
+    else
 	if(!req.body || !req.body.response.token )
 	return Response.sendResponse(res,responseCode.BAD_REQUEST,"Payment not successfull");
 else{paymentAmount=0;
@@ -722,10 +741,18 @@ else{paymentAmount=0;
 					} else {
 						if(data.response.responseCode=="APPROVED" && data.response.orderNumber && !data.response.errors){
 							let subscriptionOverDate;
-							subscriptionOverDate=(moment(req.body.response.token.dateCreated).add(29, 'd'));
+							if(req.body.subscription =="monthly")
+								subscriptionOverDate=(moment(req.body.response.token.dateCreated).add(29, 'd'));
+							if(req.body.subscription=="yearly")
+								subscriptionOverDate=(moment(req.body.response.token.dateCreated).add(364, 'd'));
+							if(req.body.autoRenewPlan=="false")
+								req.body.autoRenewPlan=false;
+							else
+								req.body.autoRenewPlan=true;
+
 	
 			
-					User.findByIdAndUpdate(req.headers.userid,{$set:{paymentStatus:true,payment:data,subscriptionStartDate:req.body.response.token.dateCreated,subscriptionEndDate:subscriptionOverDate},$push:{subscriptionAccess:req.body.optionalSubsPrices}},{new:true},(err,result)=>{
+					User.findByIdAndUpdate(req.headers.userid,{$set:{subscription:req.body.subscription,paymentStatus:true,payment:data,subscriptionStartDate:req.body.response.token.dateCreated,subscriptionEndDate:subscriptionOverDate,autoRenewPlan:req.body.autoRenewPlan},$push:{subscriptionAccess:req.body.optionalSubsPrices}},{new:true},(err,result)=>{
 						if(err)
 							return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
 						else if(!result)

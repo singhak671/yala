@@ -44,7 +44,7 @@ app.use('/api/v1/chat',require('./routes/chat.js'));
 // var fcm = new FCM(serverKey);
 
 // var message = {
-//     to: 'cObLOr6Y1TE:APA91bEOMRY2_ZhxuZH3pBySfbuQLfd_gZkiUwj9uu7UClOZo6vVr0lUmPxegcrvctLe2AZ9BLZHlgWr-A43TwiAOR8s5rMTVt3xK0_0oTykIHlwmJsCC7FQE7R4pvq1lEwISn2vle_hWGD3_tRavG59D66QS5RB4Q', // required fill with device token or topics
+//     registration_ids: ['fjMeJ7SUTFM:APA91bH7tph6es09PDdbtmbejPSWkvczPuWXudkqfDuQX_g2JFvP8kYKGqvIOcBjDCDaQxLnIYK5qd21wFsZUNPs8Z-AY8ohW86t9yuvDDOtqQbBPS26o81I1N6BZkbNuxCtw_URKw-NTkh7WN_rgedS_jPkEyKuOA'], // required fill with device token or topics
 //     // collapse_key: 'your_collapse_key', 
 //     // data: {
 //     //     your_custom_data_key: 'your_custom_data_value'

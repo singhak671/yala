@@ -15,7 +15,7 @@ const auth = {
                 if(err || !result)
                 {
                     console.log("token not verified--->>",err)
-                    return Response.sendResponse(res,responseCode.UNAUTHORIZED,responseMsg.AUTH_FAIL)
+                    return Response.sendResponse(res,responseCode.UNAUTHORIZED,responseMsg.AUTH_FAIL);
                 }    
                 else{
                     console.log("token verified")

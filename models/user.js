@@ -59,8 +59,7 @@ let userSchema = new Schema({
             max:9999999999999999,
             min:0000000000000001
        },
-        expiryDate:{type:Date,
-        min:Date.now()},
+        expiryDate:{type:String},
         cvv:{type:Number,
             max:999,
             min:1
@@ -148,6 +147,10 @@ let userSchema = new Schema({
     status:{
         type:String,
         default:"ACTIVE"
+    },
+    autoRenewPlan:{
+        type:Boolean,
+        default:false
     }
 
 }, {

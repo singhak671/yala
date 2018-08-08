@@ -135,6 +135,44 @@ module.exports = {
             else
                 cb(true,null)
         })
+    },
+
+    sendPushNotifications:(deviceToken,messageBody)=>{
+        var serverKey = 'AAAAQ0w6JT0:APA91bH6-L7dFYkPFneAiwevxN4rFPaewAylGJitQ4RnHVpsF2fuJpJPJ2gnxMJ2VPavo4PIqO8jcN2pWLuF0WCtQVHUjvlbtBcZAbhkkF5C3R5JMuC5ClfrMdocAaqJntGZ1yYYw5s50I-PCtSBQ4Ylk-m06navCA';
+var fcm = new FCM(serverKey);
+
+var message = {
+    registration_ids:deviceToken,
+    //'cObLOr6Y1TE:APA91bEOMRY2_ZhxuZH3pBySfbuQLfd_gZkiUwj9uu7UClOZo6vVr0lUmPxegcrvctLe2AZ9BLZHlgWr-A43TwiAOR8s5rMTVt3xK0_0oTykIHlwmJsCC7FQE7R4pvq1lEwISn2vle_hWGD3_tRavG59D66QS5RB4Q', // required fill with device token or topics
+    // collapse_key: 'your_collapse_key', 
+    // data: {
+    //     your_custom_data_key: 'your_custom_data_value'
+    // },
+    notification: {
+        title: 'YALA Sports App',
+        body: messageBody
+    }
+};
+
+//callback style
+// fcm.send(message, function(err, response){
+//     if (err) {
+//         console.log("Something has gone wrong!");
+//     } else {
+//         console.log("Successfully sent with response: ", response);
+//     }
+// });
+
+//promise style
+fcm.send(message)
+    .then(function(response){
+        console.log("Successfully sent with response: ", response);
+    })
+    .catch(function(err){
+        console.log("Something has gone wrong!");
+        console.error(err);
+    })
+
     }
 }
 
