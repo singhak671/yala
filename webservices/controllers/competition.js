@@ -179,14 +179,15 @@ const editPrize=(req,res)=>{
      Competition.competition.findOneAndUpdate({"_id":req.body.competitionId,"prize._id":req.body.prizeDetails._id},{$set : {"prize.$" :req.body.prizeDetails}},{new:true},(err,success)=>{
         if(err)
             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
-        if(!success)
+        else if(!success)
             return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
+            else{
         for (let x of success.prize)
             if(x._id==req.body.prizeDetails._id)
                 success=x;
-    return Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,responseMsg.SUCCESSFULLY_DONE,success);
+    return Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,responseMsg.SUCCESSFULLY_DONE,success);}
     }) 
-
+    
 }
 
 // const deletePrize=(req,res)=>{

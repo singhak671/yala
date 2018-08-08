@@ -142,7 +142,7 @@ module.exports = {
 var fcm = new FCM(serverKey);
 
 var message = {
-    registration_ids:deviceToken,
+    registration_ids:deviceToken,   
     //'cObLOr6Y1TE:APA91bEOMRY2_ZhxuZH3pBySfbuQLfd_gZkiUwj9uu7UClOZo6vVr0lUmPxegcrvctLe2AZ9BLZHlgWr-A43TwiAOR8s5rMTVt3xK0_0oTykIHlwmJsCC7FQE7R4pvq1lEwISn2vle_hWGD3_tRavG59D66QS5RB4Q', // required fill with device token or topics
     // collapse_key: 'your_collapse_key', 
     // data: {

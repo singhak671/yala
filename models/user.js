@@ -63,6 +63,10 @@ let userSchema = new Schema({
         cvv:{type:Number,
             max:999,
             min:1
+       },
+       autoRenew:{
+           type:Boolean,
+           default:false
        }
     }],
     image:{

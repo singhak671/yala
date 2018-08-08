@@ -487,35 +487,36 @@ const forgetPassword=(req,res)=>{
 //-----------------------------------changePlan------------------------------------------------------------------------------------
 const changePlan=(req,res)=>{
 	console.log("req.body--->>",req.body)
-	let flag=Validator(req.body,['role','plan'])
-	if(!req.body._id){
-		return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.USER_IS_REQ)
-	}
-	else if(flag){
-	return Response.sendResponse(res,flag[0],flag[1])
+	let flag=Validator(req.body,[],[],["subscription"])
+	 if(flag){
+			return Response.sendResponse(res,flag[0],flag[1])
 	}
 	else{
-		let query={
-			_id:req.body._id,
-			role:req.body.role
-		}
-		var options={
-			new:true,
-			select:{"password":0}
-		}
-		let set={ 
-			subscription:req.body.plan
-		}
-		userServices.updateUser(query,set,options,(err,success)=>{
-			if(err)
-			return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR)
-			else if(!success)
-			return Response.sendResponse(res,responseCode.NOT_MODIFIED,responseMsg.NOT_MODIFIED)
-			else
-			return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.USER_PLAN_UPDATE,success)
-		})
+		User.findById(req.query.userId,(err,success)=>{
+			if(err){
+				return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR)
+			  }
+			  else if(!success){
+				return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS)
+			  }
+			  else {
+				
+
+		
+		let obj={
+			"oneEvent":"50",
+			"yearly":"1000",
+			"monthly":"200"
+		};
+		let price={};
+		price.price=obj[req.body.subscription];
+		price.optionalSubsPrices=success.optionalSubsPrices;
+		return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE,price);
+
 
 	}
+})
+}
 }
 //------------------------LogOut-------------------
 const logOut=(req,res)=>{
@@ -586,7 +587,7 @@ const getCardDetails=(req,res)=>{
 		  else if(!success)
 		  return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS)
 		  else
-		  return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.CARD_DETAIL,success.cardDetails)
+		  return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.CARD_DETAIL,success)
 		})
 	}
 }
@@ -610,7 +611,21 @@ return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.CARD_
 
 }
 
-
+//============================change card for auto renew plan=========================
+const changeCardforAutoRenew=(req,res)=>{
+	console.log("changeCardforAutoRenew req.body--->>",req.body)
+    let flag = Validator(req.body,['userId',"cardDetails"],["_id","cardNumber","cvv","expiryDate"]); 
+		if (flag)
+				return Response.sendResponse(res, flag[0], flag[1]); 
+		User.findOneAndUpdate({"_id":req.body._id,"cardDetails._id":req.body.cardDetails._id },{ $pull: { cardDetails : { _id : req.body.cardDetails._id } } },{ safe: true,new:true},(err,success)=>{
+		if(err)
+		return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
+		else if(!success)
+		return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.CARD_NOT_FOUND); 
+		else
+		return Response.sendResponse(res,responseCode.RESOURCE_DELETED,responseMsg.CARD_DELET);
+})
+}
 //---------------------------Delete Card Details---------------------------------------------------
 const deleteCard=(req,res)=>{
 	console.log("req.body--->>",req.body)
@@ -682,7 +697,7 @@ const code=(req,res)=>{
 
 	//console.log("codeAndCountries===>>",country)
 	console.log("count----->>>",country.length)
-	 Response.sendResponse(res,responseCode.SUCCESSFULLY_DONE,responseMsg.EVERYTHING_IS_OK,country)
+	 Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,country)
 }
 
 const paymentOrder=(req,res)=>{
@@ -745,10 +760,10 @@ else{paymentAmount=0;
 								subscriptionOverDate=(moment(req.body.response.token.dateCreated).add(29, 'd'));
 							if(req.body.subscription=="yearly")
 								subscriptionOverDate=(moment(req.body.response.token.dateCreated).add(364, 'd'));
-							if(req.body.autoRenewPlan=="false")
-								req.body.autoRenewPlan=false;
-							else
-								req.body.autoRenewPlan=true;
+							// if(req.body.autoRenewPlan=="false")
+							// 	req.body.autoRenewPlan=false;
+							// else
+							// 	req.body.autoRenewPlan=true;
 
 	
 			
@@ -882,6 +897,22 @@ else{paymentAmount=0;
 
 	
 }
+
+const changeAutoRenew=(req,res)=>{
+	let flag =Validator(req.body,[],[],[])
+    if(flag)
+		return Response.sendResponse(res,flag[0],flag[1]);
+	User.findByIdAndUpdate(req.query.userId,{$set:{autoRenewPlan:req.body.autoRenewPlan}},{new:true},(err,success)=>{
+		if(err)
+            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
+        else if(!success)
+				return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
+			else
+				return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success); 
+	})
+}
+
+
 
 const addEmployee=(req,res)=>{
 	console.log("req.body--->>",req.body)
@@ -1139,7 +1170,9 @@ module.exports={
 	deleteEmployee,
 	searchUser,
 	setRoleForEmployee,
-	getRoleForEmployee
+	getRoleForEmployee,
+
+	changeAutoRenew
 }
 
 

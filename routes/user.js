@@ -9,7 +9,7 @@ router.post('/updateUser',AUTH.verifyToken,userController.updateUser);
 router.get('/getDetail',AUTH.verifyToken,userController.getDetail);
 router.post('/changePassword',AUTH.verifyToken,userController.changePassword);
 router.post('/forgetPassword',userController.forgetPassword);
-router.post('/changePlan',AUTH.verifyToken,userController.changePlan)
+router.post('/changePlan',userController.changePlan)
 router.get('/logOut',AUTH.verifyToken,userController.logOut)
 router.get('/code',userController.code)
 router.post('/addCard',AUTH.verifyToken,userController.addCard)
@@ -23,4 +23,7 @@ router.get('/deleteEmployee',AUTH.verifyToken,userController.deleteEmployee)
 router.post('/searchUser',AUTH.verifyToken,userController.searchUser)
 router.post('/setRoleForEmployee',AUTH.verifyToken,userController.setRoleForEmployee)
 router.get('/getRoleForEmployee',AUTH.verifyToken,userController.getRoleForEmployee)
+
+
+router.post('/changeAutoRenew',userController.changeAutoRenew);
 module.exports=router;
