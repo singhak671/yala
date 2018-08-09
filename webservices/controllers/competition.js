@@ -47,7 +47,9 @@ const addNewCompetition=(req,res)=>{
                     User.findByIdAndUpdate(req.body.userId,{$push:{organizerCompetition:success._id}},{},(err,success1)=>{
                         if(err || !success1)
                             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,"Unable to create competition _id into the User _id");
-                        return Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,responseMsg.SUCCESSFULLY_DONE,success);
+                        else{
+                            User.find({},)
+                        return Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,responseMsg.SUCCESSFULLY_DONE,success);}
                     })           
                 });        
             });
@@ -692,8 +694,16 @@ const approveCompetition=(req,res)=>{
                          return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err2);
                     else if(!success2)
                              return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND,"data2");
-                        else 
-                            return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success2);
+                        else {
+                            Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success2);
+                            User.findOne({_id:req.body.playerId,role:"PLAYER"},{select:"deviceToken"},(err,success3)=>{
+                                if(success3){
+                                    console.log("&&&&&& anurag &&&&&&",success3)
+                                    message.sendPushNotifications(success3.deviceToken,"You are confirmed by the organizer")
+                                }
+                                    
+                            })
+                        }
                 })
             }
     })

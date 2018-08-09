@@ -60,10 +60,7 @@ let userSchema = new Schema({
             min:0000000000000001
        },
         expiryDate:{type:String},
-        cvv:{type:Number,
-            max:999,
-            min:1
-       },
+       
        autoRenew:{
            type:Boolean,
            default:false

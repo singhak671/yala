@@ -5,7 +5,9 @@ const AUTH=require('../middlewares/auth_handler');
 
 
 
-router.post('/',chatController.sendMessage)
+router.post('/sendMessage',chatController.sendMessage);
+router.post('/getMessages',chatController.getMessages);
+
 
 
 

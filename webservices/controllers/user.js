@@ -613,8 +613,8 @@ return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.CARD_
 
 //===============================================change card for auto renew plan============================================//
 const changeCardforAutoRenew=(req,res)=>{
-	console.log("changeCardforAutoRenew req.body--->>",req.body)
-    let flag = Validator(req.body,['_id',"cardDetails"],["_id","cardNumber","cvv","expiryDate","autoRenew"]); 
+	console.log("changeCardforAutoRenew req.body--->>",req.body);
+    let flag = Validator(req.body,['_id',"cardDetails"],["_id","cardNumber","cvv","expiryDate"]); 
 		if (flag)
 			return Response.sendResponse(res, flag[0], flag[1]); 
 		else{
@@ -622,21 +622,40 @@ const changeCardforAutoRenew=(req,res)=>{
 				if(err)
 					return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
 				else if(!success1){
-							if(success1.autoRenewPlan==true)
+							if(req.body.cardDetails.autoRenew==false)
+								User.findOneAndUpdate({"_id":req.body._id,"cardDetails._id":req.body.cardDetails._id },{$set : {"cardDetails.$" :req.body.cardDetails,autoRenewPlan:req.body.cardDetails.autoRenew}},{ safe: true,new:true},(err,success)=>{
+									if(err)
+										return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
+									else if(!success)
+											return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.CARD_NOT_FOUND); 
+										else{
+											if(req.body.cardDetails.autoRenew==true)
+												return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"You've successfully added a new card for </br> auto renewal of your plan!",success);
+											else
+												return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"You've successfully removed card from auto renewal of your plan!",success);
+											
+								
+											}})
+							else{
+
 								User.findOneAndUpdate({"_id":req.body._id,"cardDetails._id":req.body.cardDetails._id },{$set : {"cardDetails.$" :req.body.cardDetails}},{ safe: true,new:true},(err,success)=>{
 									if(err)
 										return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
 									else if(!success)
 											return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.CARD_NOT_FOUND); 
-										else
-											return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"You've successfully added a new card for </br> auto renewal of your plan!");
-								})
-							else{
-								return Response.sendResponse(res,responseCode.BAD_REQUEST,"Please enable your Auto Renew first!");
+										else{
+											if(req.body.cardDetails.autoRenew==true)
+												return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"You've successfully added a new card for </br> auto renewal of your plan!",success);
+											else
+												return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"You've successfully removed card from auto renewal of your plan!",success);
+											
+								
+											}})
+								
 							}
 				}
 				else{
-					if(success1.autoRenewPlan==true)
+					if(req.body.cardDetails.autoRenew==true)
 						User.findOneAndUpdate({"_id":req.body._id,"cardDetails.autoRenew":true },{$set : {"cardDetails.$.autoRenew" :false}},{ safe: true,new:true},(err,success)=>{
 							if(err)
 								return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
@@ -648,14 +667,38 @@ const changeCardforAutoRenew=(req,res)=>{
 											return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
 										else if(!success)
 												return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.CARD_NOT_FOUND); 
+											else{
+											if(req.body.cardDetails.autoRenew==true)
+												return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"You've successfully added a new card for </br> auto renewal of your plan!",success);
 											else
-												return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"You've successfully added a new card for </br> auto renewal of your plan!");
-									})
+												return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"You've successfully removed card from auto renewal of your plan!",success);
+									}})
 								}
 
 						})
 					else
-						return Response.sendResponse(res,responseCode.BAD_REQUEST,"Please enable your Auto Renew first!");
+						{
+							User.findOneAndUpdate({"_id":req.body._id,"cardDetails.autoRenew":true },{$set : {"cardDetails.$.autoRenew" :false}},{ safe: true,new:true},(err,success)=>{
+								if(err)
+									return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
+								else if(!success)
+										return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.CARD_NOT_FOUND); 
+									else{
+										User.findOneAndUpdate({"_id":req.body._id,"cardDetails._id":req.body.cardDetails._id },{$set : {"cardDetails.$" :req.body.cardDetails,autoRenewPlan:req.body.cardDetails.autoRenew}},{ safe: true,new:true},(err,success)=>{
+											if(err)
+												return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
+											else if(!success)
+													return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.CARD_NOT_FOUND); 
+												else{
+												if(req.body.cardDetails.autoRenew==true)
+													return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"You've successfully added a new card for </br> auto renewal of your plan!",success);
+												else
+													return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"You've successfully removed card from auto renewal of your plan!",success);
+										}})
+									}
+	
+							})
+						}
 			}
 		})
 	}}
@@ -983,7 +1026,7 @@ else{paymentAmount=0;
 }
 
 const changeAutoRenew=(req,res)=>{
-	let flag =Validator(req.body,[],[],[])
+	let flag =Validator(req.body,[],[],[]);
     if(flag)
 		return Response.sendResponse(res,flag[0],flag[1]);
 	User.findById({_id:req.query.userId,role:"ORGANIZER"},(err,success)=>{
@@ -992,15 +1035,29 @@ const changeAutoRenew=(req,res)=>{
         else if(!success)
 				return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
 			else
-				{
-					if(success.cardDetails.length!==0){
-						success.autoRenewPlan==req.body.autoRenewPlan;
+				{ console.log("******************************",success.cardDetails.length)
+					if(success.cardDetails.length!=0){
+						User.findOne({_id:req.query.userId,"cardDetails.autoRenew":true},(err,success1)=>{
+							if(err)
+								return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+								else if(!success1)
+										return Response.sendResponse(res,responseCode.BAD_REQUEST,"Please select card for auto renewal!");
+									else{
+
+						
+						success.autoRenewPlan=req.body.autoRenewPlan;
 						success.save((err,success1)=>{
 							if(err|| !success1)
 								return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);	
-							else						
-								return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE);
+							else{
+								if(req.body.autoRenewPlan==true)						
+									return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"You've successfully enabled your auto renewal plan!");
+								else
+									return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"You've successfully disabled your auto renewal plan!");
+							}
 							})
+						}
+						})
 					}
 					else
 						return Response.sendResponse(res,responseCode.BAD_REQUEST,"Please add card first!");

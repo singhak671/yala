@@ -10,7 +10,7 @@ const userServices=require('../services/userApis');
 const mongoose = require('mongoose');
 const Team=require("../../models/team")
 const followComp=require("../../models/compFollowOrgPlay.js");
-const General=require("../../models/generalSchema.js")
+const General=require("../../models/generalSchema.js");
 const dataServices=require('../services/dataApis');
 
 const addDivision=(req,res)=>{

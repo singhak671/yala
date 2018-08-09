@@ -39,7 +39,7 @@ router.get('/getDetailOfTeam',AUTH.verifyToken,teamController.getDetailOfTeam)
 router.post('/filterTeam',AUTH.verifyToken,teamController.filterTeam)
 router.get('/selectTeam',AUTH.verifyToken,teamController.selectTeam)
 
-router.post('/addPlayer',AUTH.verifyToken,teamController.addPlayer)
+router.post('/addPlayer',teamController.addPlayer)
 router.post('/getListOfPlayer',AUTH.verifyToken,teamController.getListOfPlayer)
 router.get('/getDetailOfPlayer',AUTH.verifyToken,teamController.getDetailOfPlayer)
 
