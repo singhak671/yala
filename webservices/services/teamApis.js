@@ -61,6 +61,26 @@ const findPlayer=(bodyData,callback)=>{
         callback(err,result)
     })
 }
+const updateCompetition=(bodyData,set,option,callback)=>{
+    Competition.competition.findOneAndUpdate(bodyData,set,option,(err,result)=>{
+        callback(err,result)
+    })
+}
+const addCompetitonFollow=(bodyData,callback)=>{
+    Follow.competitionFollow.create(bodyData,(err,result)=>{
+        callback(err,result)
+    })
+}
+const updateTeam=(bodyData,set,option,callback)=>{
+    Team.findOneAndUpdate(bodyData,set,option,(err,result)=>{
+        callback(err,result)
+    })
+}
+const findDivision=(bodyData,callback)=>{
+  General.division.findOne(bodyData,(err,result)=>{
+      callback(err,result)
+  })
+}
 module.exports={
     "selectCompition":selectCompition,
     "selectVenue":selectVenue,
@@ -72,5 +92,9 @@ module.exports={
     "followStatus":followStatus,
     "addPlayer":addPlayer,
     "getListOfPlayer":getListOfPlayer,
-    "findPlayer":findPlayer
+    "findPlayer":findPlayer,
+    "updateCompetition":updateCompetition,
+    "addCompetitonFollow":addCompetitonFollow,
+    "updateTeam":updateTeam,
+    "findDivision":findDivision
 }

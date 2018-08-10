@@ -13,7 +13,7 @@ const General=require("../../models/generalSchema.js")
 const subscriptionValidator = require('../../middlewares/validation').validate_subscription_plan;
 //---------------------------Select competiton----------------------------------------------
 const selectCompition=(req,res)=>{
-    console.log("ghfghdhfh",req.query.userId)
+    //console.log("ghfghdhfh",req.query.userId)
     if(!req.query.userId){
         return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED)
     }
@@ -66,7 +66,7 @@ const selectVenue=(req,res)=>{
 //-----------------------------------Create Team---------------------------------------------------
 const createTeam=(req,res)=>{
     console.log("req.body--->>",req.body)
-        subscriptionValidator(req.query,["Create Team"],(err,flag)=>{
+        subscriptionValidator(req.query,["team&player"],(err,flag)=>{
         if(flag[0]!==200)
         return Response.sendResponse(res,flag[0],flag[1],flag[2]);
         else{
@@ -111,7 +111,7 @@ const createTeam=(req,res)=>{
 }
 //-----------------------------------------Get Detail of Team-----------------------------------------------------
 const getDetailOfTeam=(req,res)=>{
-    subscriptionValidator(req.query,["Create Team"],(err,flag)=>{
+    subscriptionValidator(req.query,["team&player"],(err,flag)=>{
         if(flag[0]!==200)
         return Response.sendResponse(res,flag[0],flag[1],flag[2]);
         else{
@@ -148,9 +148,9 @@ const getDetailOfTeam=(req,res)=>{
     })
     
 }
-//---------------Filter Team---------------------------------------
+//------------------------------Filter Team---------------------------------------//
 const filterTeam=(req,res)=>{
-    subscriptionValidator(req.query,["Create Team"],(err,flag)=>{
+    subscriptionValidator(req.query,["team&player"],(err,flag)=>{
         if(flag[0]!==200)
         return Response.sendResponse(res,flag[0],flag[1],flag[2]);
         else{
@@ -298,8 +298,8 @@ const tryyyy=(req,res)=>{
 }
 //---------------------------Add player-----------------------------------------------
 const addPlayer=(req,res)=>{
-        console.log(req.body.playerDetail)
-        subscriptionValidator(req.query,["player"],(err,flag)=>{
+      console.log(req.body.playerDetail)
+        subscriptionValidator(req.query,["team&player"],(err,flag)=>{
         if(flag[0]!==200)
         return Response.sendResponse(res,flag[0],flag[1],flag[2]);
         if(!req.query.userId)
@@ -325,7 +325,8 @@ const addPlayer=(req,res)=>{
                         if(err||!success)
                         return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
                         else{
-                            console.log(new Date(req.body.playerDetail.dob))
+                            //console.log(new Date(req.body.playerDetail.dob))
+                            console.log("abcde",success.division)
                             General.division.aggregate([ 
                                 {
                                     $match:{
@@ -334,18 +335,18 @@ const addPlayer=(req,res)=>{
                                 },
                                 { $project: { dateDifference: { $divide: [ { $subtract: [ "$date",new Date(req.body.playerDetail.dob) ] }, (60*60*24*1000*366) ] } ,gender:1,minAge:1,maxAge:1,divisionName:1}},
                             ],(err,success)=>{
-                                console.log(success[0])
                                 if(err||!success)
                                 return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
                                 else{
+                                    //console.log("gdfghd",success)
                                     if(success[0].gender=="male"||success[0].gender=="female"||success[0].gender=="co-ed"){
                                         if(req.body.playerDetail.gender!=success[0].gender&&success[0].gender!="co-ed")
-                                        return Response.sendResponse(res,responseCode.BAD_REQUEST,`"${success[0].gender}" are allowed only for division "${success[0].divisionName}" !`)
+                                        return Response.sendResponse(res,responseCode.BAD_REQUEST,`"${success[0].gender}" are only allowed for team "${req.body.teamName}" !`)
                                       else{
-                                          console.log("yieepieee")
-                                          console.log("dsffj",parseInt(success[0].dateDifference))
+                                          //console.log("yieepieee")
+                                          //console.log("dsffj",parseInt(success[0].dateDifference))
                                           if(success[0].dateDifference<success[0].minAge||success[0].dateDifference>success[0].maxAge)
-                                          return Response.sendResponse(res,responseCode.BAD_REQUEST,`"${parseInt(success[0].dateDifference)}" year age players are not allowed for  division "${success[0].divisionName}" !`)
+                                          return Response.sendResponse(res,responseCode.BAD_REQUEST,`"${parseInt(success[0].dateDifference)}" year age players are not allowed for  team "${req.body.teamName}" !`)
                                           else{
                                               console.log("yippieee")
                                               const password=message.genratePassword();
@@ -361,7 +362,7 @@ const addPlayer=(req,res)=>{
                                                           $push:{
                                                               playerFollowStatus:{
                                                               playerId:success._id,
-                                                              status:"APPROVED"
+                                                              followStatus:"APPROVED"
                                                               }
                                                           }
                                                       }
@@ -391,7 +392,7 @@ const addPlayer=(req,res)=>{
                                                                       if(err || !success3)
                                                                       return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
                                                                       else{
-                                                                          message.sendMail(success.email,"login Credentials","Your Login Creadentials are"+"<br/>UserId : "+req.body.playerDetail.email+"<br/>Password : "+ req.body.password,(err,result1)=>{
+                                                                          message.sendMail(success.email,"Login Credentials","Your Login Creadentials are"+"<br/>UserId : "+req.body.playerDetail.email+"<br/>Password : "+ req.body.password,(err,result1)=>{
                                                                               if(err || !result1){
                                                                               return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.EMAIL_NOT_SEND,err);
                                                                               }
@@ -436,8 +437,7 @@ const getListOfPlayer=(req,res)=>{
                 else
                 req.body.organizer=req.query.userId 
                 let query={
-                    organizer:ObjectId(req.body.organizer),
-                    registration:"TRUE"
+                    organizer:ObjectId(req.body.organizer)
                 }
                 if(req.body.teamName)
                 query["Team.teamName"]=req.body.teamName
@@ -458,6 +458,7 @@ const getListOfPlayer=(req,res)=>{
                     sort:{createdAt:-1},
                     allowDiskUse: true 
                 }
+                console.log("hfjjh",query)
                 var aggregate=Follow.competitionFollow.aggregate([ 
                     {
                         $lookup:{
@@ -486,7 +487,7 @@ const getListOfPlayer=(req,res)=>{
                 {
                     $unwind:"$Comp"
                 },
-                {$unwind:"$Team"},
+                // {$unwind:"$Team"},
                 {$unwind:"$Player"},
                 { $match : query },
                 {$sort:{createdAt:-1}}

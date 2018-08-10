@@ -59,7 +59,17 @@ const getMessages=(req,res)=>{
                     limit:req.body.limit ||10,
                     //sort:{"message.createdAt":-1}
                 }
-                General.chat.paginate({$or:[{organizerId:req.body.organizerId,playerId:req.body.playerId},{organizerId:req.body.organizerId},{playerId:req.body.playerId}]},options,(err1,success1)=>{
+                //{$or:[{organizerId:req.body.organizerId,playerId:req.body.playerId},{organizerId:req.body.organizerId},{playerId:req.body.playerId}]
+
+                let query={};
+                if(req.body.organizerId && req.body.playerId)
+                    query={organizerId:req.body.organizerId,playerId:req.body.playerId}
+                else if(req.body.organizerId && !req.body.playerId)
+                    query={organizerId:req.body.organizerId}
+                else if(!req.body.organizerId && req.body.playerId)
+                    query={playerId:req.body.playerId} 
+                
+                General.chat.paginate(query,options,(err1,success1)=>{
                     if (err1)
                         return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
                     else if(!success)
@@ -71,6 +81,10 @@ const getMessages=(req,res)=>{
                 })
             }
     })
+}
+
+const sendMessageToAll=(req,res)=>{
+
 }
 
 module.exports={

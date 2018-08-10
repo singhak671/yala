@@ -603,7 +603,7 @@ const getPlayerFields=(req,res)=>{
 }
 
 const createTeamInCompetition=(req,res)=>{
-    let flag =Validator(req.body,[],[],["competitionId","organizer","teamName","venue","phone","email","category","status","image"]);
+    let flag =Validator(req.body,[],[],["competitionId","organizer","teamName","venue","phone","email","division","status","image"]);
     if(flag)
         return Response.sendResponse(res,flag[0],flag[1]);
     else

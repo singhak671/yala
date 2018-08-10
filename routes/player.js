@@ -7,10 +7,10 @@ const AUTH=require('../middlewares/auth_handler')
 //router.post('/data/team/addTeam',dataController.addTeam);
 
 
-router.post('/competition/getAllCompetitions',AUTH.verifyToken,playerCompetitionController.getAllCompetitions);
+router.post('/competition/getAllCompetitions',playerCompetitionController.getAllCompetitions);
 
 
 router.post('/competition/followCompetition',AUTH.verifyToken,playerCompetitionController.followCompetition);
-router.post('/competition/filterCompetitions',AUTH.verifyToken,playerCompetitionController.filterCompetitions);
+router.post('/competition/filterCompetitions',playerCompetitionController.filterCompetitions);
 router.post('/competition/unFollowCompetition',AUTH.verifyToken,playerCompetitionController.unFollowCompetition);
 module.exports=router;

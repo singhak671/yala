@@ -55,14 +55,8 @@ module.exports = {
     },
     sendMail: (email, subject, text, callback, userId) => {
         
-        if(userId)
-        General.mailMessage.findOne({organizer:userId},(err,success)=>{
-            if(success){
-                usr=success.smtpUsername;
-                pwd=success.smtpPassword
-            }
-           
-        })
+       // if(userId)
+       
         const mailBody = {
             from: "<do_not_reply@gmail.com>",
             to: email,
@@ -70,8 +64,16 @@ module.exports = {
             html: text,
             //  html: "<p>Your verification code is " + otp + "</p>"
         };
-        console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%",pwd,usr);
         if(userId){
+            General.mailMessage.findOne({organizer:userId},(err,success)=>{
+                if(success){    
+                    usr=success.smtpUsername;
+                    pwd=success.smtpPassword
+                }
+               
+            })
+            console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%",pwd,usr);
+
         mailer.createTransport({
             service:'GMAIL',
             auth: {
