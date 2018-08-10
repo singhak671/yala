@@ -15,6 +15,9 @@ let sportSchema=new Schema({
     },
     sportName:{
                  type:String
+    },
+    sportType:{
+        type:String
     }
     },
     {

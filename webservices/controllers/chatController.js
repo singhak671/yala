@@ -9,6 +9,7 @@ const responseCode = require('../../helper/httpResponseCode')
 const responseMsg = require('../../helper/httpResponseMessage')
 const userServices=require('../services/userApis');
 const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 const Team=require("../../models/team")
 const followComp=require("../../models/compFollowOrgPlay.js");
 const General=require("../../models/generalSchema.js")
@@ -24,7 +25,7 @@ const sendMessage=(req,res)=>{
                 return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
             else{
                 General.chat.findOneAndUpdate({organizerId:req.body.organizerId,playerId:req.body.playerId},{$push:{message:req.body.message}},{new:true,upsert:true},(err1,success1)=>{
-                    if (err)
+                    if (err1)
                         return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
                     else if(!success)
                             return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
@@ -84,10 +85,36 @@ const getMessages=(req,res)=>{
 }
 
 const sendMessageToAll=(req,res)=>{
+    // let data=[{playerId:'5b6d2d18ae9a5547795b2b71'},{playerId:'5b6d24c5de2cb346cfa9b939'},{playerId:"5b473f699a937b9f01ccc2bc"}];
+    let data=['5b6d2d18ae9a5547795b2b71','5b6d24c5de2cb346cfa9b939',"5b473f699a937b9f01ccc2bc","5b6d2d18ae9a5547795b2b72"];
 
+
+    // data.forEach(function(obj) {
+    //     General.chat.update({organizerId:req.body.organizerId,playerId: obj.playerId},{$push:{message:req.body.message}},{upsert:true,multi:true},(err,success) =>{
+    //         if (err)
+    //             console.log(err);//return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+    //         else if(!success)
+    //             console.log("not success");//return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
+    //             else{
+    //                 console.log(success);
+    //             }
+    //     });
+    // });
+    
+    General.chat.findAndModify({organizerId:req.body.organizerId,playerId:{$in:data}},{$push:{message:req.body.message}},{upsert:true,multi:true},(err,success1)=>{
+        if (err)
+            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+        else if(!success1)
+                return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
+            else{
+                return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success1);
+            }
+                
+    })
 }
 
 module.exports={
     sendMessage,
-    getMessages
+    getMessages,
+    sendMessageToAll
 }

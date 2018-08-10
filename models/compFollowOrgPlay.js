@@ -11,6 +11,10 @@ let competitionFollowSchema = new Schema({
     competitionId:{
         type: Schema.Types.ObjectId, ref:'competition'
     },
+    registration:{
+        type:Boolean,
+        default:false
+    },
     playerId:{
         type:Schema.Types.ObjectId,ref:"user"
     },
@@ -20,7 +24,7 @@ let competitionFollowSchema = new Schema({
         uppercase:true
     },
     teamId:{
-        type:Schema.Types.ObjectId,ref:"createTeamInCompetitions"
+        type:Schema.Types.ObjectId,ref:"createTeamInCompetition"
     },
     followStatus:{
         type:String,

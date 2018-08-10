@@ -437,7 +437,8 @@ const getListOfPlayer=(req,res)=>{
                 else
                 req.body.organizer=req.query.userId 
                 let query={
-                    organizer:ObjectId(req.body.organizer)
+                    organizer:ObjectId(req.body.organizer),
+                    registration:true
                 }
                 if(req.body.teamName)
                 query["Team.teamName"]=req.body.teamName

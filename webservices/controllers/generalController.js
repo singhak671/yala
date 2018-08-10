@@ -199,7 +199,7 @@ const deletePeriod=(req,res)=>{
 //======================================SPORTS==========================================
 //-------------------Add Sports--------------------------------------
 const addSport=(req,res)=>{
-    let flag=Validator(req.body,['userId'],[],["sportName"])
+    let flag=Validator(req.body,['userId'],[],["sportName","sportType"])
     if(flag)
         return Response.sendResponse(res,flag[0],flag[1]);
     else

@@ -152,7 +152,8 @@ let userSchema = new Schema({
     autoRenewPlan:{
         type:Boolean,
         default:false
-    }
+    },
+    playerDynamicDetails:[]
 
 }, {
     timestamps: true

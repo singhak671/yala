@@ -3,6 +3,7 @@ const message = require("../../global_functions/message");
 const User=require("../../models/user");
 const followComp=require("../../models/compFollowOrgPlay.js");
 const Competition=require("../../models/competition");
+const Follow=require("../../models/compFollowOrgPlay");
 const Validator = require('../../middlewares/validation').validate_all_request;
 const responseCode = require('../../helper/httpResponseCode')
 const responseMsg = require('../../helper/httpResponseMessage')
@@ -404,9 +405,40 @@ const unFollowCompetition=(req,res)=>{
                 })
 
 }
+
+const confirmRegistration=(req,res)=>{
+    let flag =Validator(req.body,[],[],["organizerId","competitionId","playerId"])
+	if(flag)
+        return Response.sendResponse(res,flag[0],flag[1]);       
+    else
+    {
+       Follow.competitionFollow.findOneAndUpdate({competitionId:req.body.competitionId,playerId:req.body.playerId,organizer:req.body.organizerId},{$set:{registration:true}},(err,success)=>{
+            if(err)
+                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err1);
+            else if(!success)
+                    return Response.sendResponse(res,responseCode.NOT_FOUND,"data");
+                else{
+                    User.findOneAndUpdate({_id:req.body.playerId},{$push:{playerDynamicDetails:req.body.playerDynamicDetails}},(err1,success1)=>{
+                        if(err)
+                            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err1);
+                        else if(!success)
+                                return Response.sendResponse(res,responseCode.NOT_FOUND,"Player not found !");
+                            else{
+                                return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"You are successfully registered!");
+
+                            }
+                                
+                    })
+                }
+        })
+    }
+
+}
 module.exports={
     getAllCompetitions,
     filterCompetitions,
     followCompetition,
-    unFollowCompetition
+    unFollowCompetition,
+
+    confirmRegistration
 }
