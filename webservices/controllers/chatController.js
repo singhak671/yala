@@ -13,6 +13,7 @@ const ObjectId = mongoose.Types.ObjectId;
 const Team=require("../../models/team")
 const followComp=require("../../models/compFollowOrgPlay.js");
 const General=require("../../models/generalSchema.js")
+var async = require("async");
 
 const sendMessage=(req,res)=>{
     let flag =Validator(req.body,[],[],["organizerId","playerId","message"])
@@ -100,17 +101,30 @@ const sendMessageToAll=(req,res)=>{
     //             }
     //     });
     // });
+    async.forEach(data, (key,callback) => {
+        General.chat.findOneAndUpdate ({organizerId:req.body.organizerId,playerId:key},{$push:{message:req.body.message}},{upsert:true,multi:true}, (err, success) => {
+        if (err) return res.send(err);
+        if(key==data[(data.length-1)])
+        return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Message successfully send to all!")
+           
+        });  
+}, (err) => {
+    if (err) console.error(err.message);
+
+});
     
-    General.chat.findAndModify({organizerId:req.body.organizerId,playerId:{$in:data}},{$push:{message:req.body.message}},{upsert:true,multi:true},(err,success1)=>{
-        if (err)
-            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
-        else if(!success1)
-                return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
-            else{
-                return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success1);
-            }
+
+
+    // General.chat.findAndModify ({organizerId:req.body.organizerId,playerId:{$in:data}},{$push:{message:req.body.message}},{upsert:true,multi:true},(err,success1)=>{
+    //     if (err)
+    //         return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+    //     else if(!success1)
+    //             return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
+    //         else{
+    //             return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success1);
+    //         }
                 
-    })
+    // })
 }
 
 module.exports={
@@ -118,3 +132,4 @@ module.exports={
     getMessages,
     sendMessageToAll
 }
+

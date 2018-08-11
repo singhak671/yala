@@ -9,6 +9,7 @@ const responseCode = require('../../helper/httpResponseCode')
 const responseMsg = require('../../helper/httpResponseMessage')
 const userServices=require('../services/userApis');
 const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 
 
 const getAllCompetitions=(req,res)=>{
@@ -234,7 +235,7 @@ else{
                     playerFollowStatus: {
                         $first: "$playerFollowStatus"
                     },
-                         
+                              
                 }
             },
 
@@ -245,7 +246,7 @@ else{
                    playerFollowStatus:{
                     $cond: {
                       if: {
-                        $eq: ['$playerFollowStatus.playerId', req.body.userId]
+                        $eq: ['$playerFollowStatus.playerId',req.body.userId]
                       },
                       then:"$playerFollowStatus",
                       else: "NOT FOLLOWED",

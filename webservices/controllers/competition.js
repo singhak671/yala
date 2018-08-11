@@ -709,6 +709,8 @@ const approveCompetition=(req,res)=>{
     })
 }
 
+
+
 module.exports={
     addNewCompetition,
     getACompetition,
@@ -732,5 +734,14 @@ module.exports={
     approveCompetition,
     publishCompetition,
     unPublishCompetition,
-    getRegistrationDetail
+    getRegistrationDetail,
+
+
+    
+
+    
+
+
+
+
 }
