@@ -13,6 +13,7 @@ const ObjectId = mongoose.Types.ObjectId;
 const Team=require("../../models/team")
 const followComp=require("../../models/compFollowOrgPlay.js");
 const General=require("../../models/generalSchema.js")
+const CreateTeamInCompetition=require("../../models/team.js")
 var async = require("async");
 
 const sendMessage=(req,res)=>{
@@ -25,7 +26,8 @@ const sendMessage=(req,res)=>{
          else if(!success)
                 return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
             else{
-                General.chat.findOneAndUpdate({organizerId:req.body.organizerId,playerId:req.body.playerId},{$push:{message:req.body.message}},{new:true,upsert:true},(err1,success1)=>{
+                if(req.body.message.senderId==req.body.organizerId)
+                General.chat.findOneAndUpdate({organizerId:req.body.organizerId,playerId:req.body.playerId},{$push:{message:req.body.message},$set:{playerRead:false,organizerRead:true}},{new:true,upsert:true},(err1,success1)=>{
                     if (err1)
                         return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
                     else if(!success)
@@ -35,6 +37,18 @@ const sendMessage=(req,res)=>{
                         }
                             
                 })
+                else
+                General.chat.findOneAndUpdate({organizerId:req.body.organizerId,playerId:req.body.playerId},{$push:{message:req.body.message},$set:{organizerRead:false,playerRead:true}},{new:true,upsert:true},(err1,success1)=>{
+                    if (err1)
+                        return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+                    else if(!success)
+                            return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
+                        else{
+                            return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success1);
+                        }
+                            
+                })
+
             }
     })
 }
@@ -86,8 +100,41 @@ const getMessages=(req,res)=>{
 }
 
 const sendMessageToAll=(req,res)=>{
+    let flag =Validator(req.body,[],[],["organizerId","message"])
+	if(flag)
+        return Response.sendResponse(res,flag[0],flag[1]);
+    CreateTeamInCompetition.find({organizer:req.body.organizerId},{playerId:1},{lean:true},(err,success)=>{
+        if (err)
+            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+        else if(!success)
+                return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
+            else{
+              // res.send(success);
+                async.forEach(success,(key1,callback)=>{
+
+                
+                async.forEach(key1.playerId, (key,callback) => {
+                    General.chat.findOneAndUpdate ({organizerId:req.body.organizerId,playerId:key},{$push:{message:req.body.message},$set:{playerRead:false}},{upsert:true,multi:true}, (err, success) => {
+                    if (err) return res.send(err);
+           
+                       
+                    });  
+                }, (err) => {
+                    if (err) console.error(err.message);
+                
+                });
+                if(key1==success[(success.length-1)])
+                return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Message successfully send to all!")
+            })
+                
+            }
+
+    })
+
+
+
     // let data=[{playerId:'5b6d2d18ae9a5547795b2b71'},{playerId:'5b6d24c5de2cb346cfa9b939'},{playerId:"5b473f699a937b9f01ccc2bc"}];
-    let data=['5b6d2d18ae9a5547795b2b71','5b6d24c5de2cb346cfa9b939',"5b473f699a937b9f01ccc2bc","5b6d2d18ae9a5547795b2b72"];
+    //let data=['5b6d2d18ae9a5547795b2b71','5b6d24c5de2cb346cfa9b939',"5b473f699a937b9f01ccc2bc","5b6d2d18ae9a5547795b2b72"];
 
 
     // data.forEach(function(obj) {
@@ -101,17 +148,17 @@ const sendMessageToAll=(req,res)=>{
     //             }
     //     });
     // });
-    async.forEach(data, (key,callback) => {
-        General.chat.findOneAndUpdate ({organizerId:req.body.organizerId,playerId:key},{$push:{message:req.body.message}},{upsert:true,multi:true}, (err, success) => {
-        if (err) return res.send(err);
-        if(key==data[(data.length-1)])
-        return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Message successfully send to all!")
+//     async.forEach(data, (key,callback) => {
+//         General.chat.findOneAndUpdate ({organizerId:req.body.organizerId,playerId:key},{$push:{message:req.body.message}},{upsert:true,multi:true}, (err, success) => {
+//         if (err) return res.send(err);
+//         if(key==data[(data.length-1)])
+//         return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Message successfully send to all!")
            
-        });  
-}, (err) => {
-    if (err) console.error(err.message);
+//         });  
+// }, (err) => {
+//     if (err) console.error(err.message);
 
-});
+// });
     
 
 

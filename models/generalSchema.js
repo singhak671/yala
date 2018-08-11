@@ -87,6 +87,14 @@ let sportSchema=new Schema({
         organizerId:{
             type: Schema.Types.ObjectId, ref:'user'
         },
+        organizerRead:{
+            type:Boolean,
+            default:false
+        },
+        playerRead:{
+            type:Boolean,
+            default:false
+        },
         playerId:{
             type: Schema.Types.ObjectId, ref:'user'
         },

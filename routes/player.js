@@ -14,4 +14,5 @@ router.post('/competition/followCompetition',AUTH.verifyToken,playerCompetitionC
 router.post('/competition/filterCompetitions',playerCompetitionController.filterCompetitions);
 router.post('/competition/unFollowCompetition',AUTH.verifyToken,playerCompetitionController.unFollowCompetition);
 router.post('/competition/confirmRegistration',playerCompetitionController.confirmRegistration);
+router.post('/competition/competitionNotification',playerCompetitionController.competitionNotification);
 module.exports=router;

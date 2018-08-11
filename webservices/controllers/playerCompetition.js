@@ -64,36 +64,76 @@ const filterCompetitions=(req,res)=>{
             else if(obj.status && obj.sports){
             query2={$and:[{sports:{$in:obj.sports}},{status:obj.status}]}
             console.log("222query>>>>>",query2)};
-            
-        followComp.competitionFollow.find({playerId:req.body.userId,followStatus:obj.followStatus}).populate(
-            // here array is for our memory. 
-            // because may need to populate multiple things
-            {
-                path: 'competitionId',              
-               select:"competitionName _id createdAt organizer division period sports status venue",
-               
-               match:query2
+            let option={
+                populate:[{
+                    path:"competitionId",
+                    select:"competitionName _id createdAt organizer division period sports status venue",
+                    
+                    match:query2
+                },
+                {
+                    path: 'organizer',
+                
+                select:"firstName lastName"}],
+                sort:{createdAt:-1},
+                lean:false
+                
             }
-        ).
-        populate({
-            path: 'organizer',
-          
-           select:"firstName lastName"}).
-        sort({createdAt:-1}).
-            skip((query.page-1)*query.limit).
-            limit(query.limit).
-        lean().
-        exec((err,result)=>{
-            if(err)
-                   return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
-               else if(!result)
-                       return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
+            followComp.competitionFollow.paginate({playerId:req.body.userId,followStatus:obj.followStatus},option,(err,success)=>{
+            
+                    if(err)
+                        return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+                    else if(!success)
+                            return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
 
-                       else
-                                      {
-                                          return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,result,query);
-                                      }
-        })
+                            else
+                                            {
+                                                return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success);
+                                            }
+                })
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+                                                                // followComp.competitionFollow.find({playerId:req.body.userId,followStatus:obj.followStatus}).populate(
+                                                                //     // here array is for our memory. 
+                                                                //     // because may need to populate multiple things
+                                                                //     {
+                                                                //         path: 'competitionId',              
+                                                                //     select:"competitionName _id createdAt organizer division period sports status venue",
+                                                                    
+                                                                //     match:query2
+                                                                //     }
+                                                                // ).
+                                                                // populate({
+                                                                //     path: 'organizer',
+                                                                
+                                                                // select:"firstName lastName"}).
+                                                                // sort({createdAt:-1}).
+                                                                //     skip((query.page-1)*query.limit).
+                                                                //     limit(query.limit).
+                                                                // lean().
+                                                                // exec((err,result)=>{
+                                                                //     if(err)
+                                                                //         return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+                                                                //     else if(!result)
+                                                                //             return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
+
+                                                                //             else
+                                                                //                             {
+                                                                //                                 return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,result,query);
+                                                                //                             }
+                                                                // })
     //    console.log("i am object>2",obj);
     //    if(obj.followStatus && !obj.status && !obj.sports)
     //    {
@@ -435,11 +475,41 @@ const confirmRegistration=(req,res)=>{
     }
 
 }
+const competitionNotification=(req,res)=>{
+    let flag =Validator(req.body,[],[],["userId"])
+	if(flag)
+        return Response.sendResponse(res,flag[0],flag[1]);
+    let query={};
+    if(req.body.compEmailNotify && !req.body.compMobileNotify)
+        query={$set:{"competitionNotify.email":req.body.compEmailNotify}}
+    else if(!req.body.compEmailNotify && req.body.compMobileNotify)
+            query={$set:{"competitionNotify.mobile":req.body.compMobileNotify}}
+        else if(req.body.compEmailNotify && req.body.compMobileNotify)
+                query={$set:{"competitionNotify.mobile":req.body.compMobileNotify,"competitionNotify.email":req.body.compEmailNotify}};
+            
+
+
+
+
+
+        User.findByIdAndUpdate(req.body.userId,query,{new:true,safe:true},(err,success)=>{
+            if(err)
+                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err1);
+            else if(!success)
+                    return Response.sendResponse(res,responseCode.NOT_FOUND,"Player not found !");
+                else{
+                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Success!",success);
+                }
+        })
+
+
+}
 module.exports={
     getAllCompetitions,
     filterCompetitions,
     followCompetition,
     unFollowCompetition,
 
-    confirmRegistration
+    confirmRegistration,
+    competitionNotification
 }
