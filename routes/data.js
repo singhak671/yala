@@ -2,7 +2,7 @@ const router=require('express').Router()
 const dataController = require('../webservices/controllers/data');
 const teamController=require('../webservices/controllers/team')
 const AUTH=require('../middlewares/auth_handler')
-
+//router.post('/addClub',dataController.addClub);
 router.post('/addClub',AUTH.verifyToken,dataController.addClub);
 router.get("/getListOfClub",AUTH.verifyToken,dataController.getListOfClub);
 router.get('/findClub',AUTH.verifyToken,dataController.findClub)
@@ -18,7 +18,7 @@ router.get("/deleteSponsor",AUTH.verifyToken,dataController.deleteSponsor)
 router.get("/selectClub",AUTH.verifyToken,dataController.selectClub)
 router.post("/searchSponsor",AUTH.verifyToken,dataController.searchSponsor)
 
-router.post("/addVenue",AUTH.verifyToken,dataController.addVenue)
+router.post("/addVenue",AUTH.verifyToken,dataController.addVenue);
 router.post('/getListOfVenue',AUTH.verifyToken,dataController.getListOfVenue)
 router.get('/getEditDetailOfVenue',AUTH.verifyToken,dataController.getEditDetailOfVenue)
 router.post('/editVenue',AUTH.verifyToken,dataController.editVenue)

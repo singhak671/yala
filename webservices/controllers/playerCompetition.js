@@ -67,7 +67,7 @@ const filterCompetitions=(req,res)=>{
             let option={
                 populate:[{
                     path:"competitionId",
-                    select:"competitionName _id createdAt organizer division period sports status venue imageURL",
+                    select:"competitionName _id createdAt organizer division period sports status venue imageURL sportType",
                     
                     match:query2
                 },
@@ -273,6 +273,7 @@ else{
                     "organizer":{ "$first":"$organizer"},
                     "createdAt":{"$first":"$createdAt"},
                     "imageURL":{"$first":"$imageURL"},
+                    "sportType":{"$first":"$sportType"},
                     playerFollowStatus: {
                         $first: "$playerFollowStatus"
                     },
@@ -298,6 +299,7 @@ else{
                   sports:1,
                   status:1,
                   venue:1,
+                  sportType:1,
                   competitionName:1,
                   organizer:1,
                   createdAt:1,
@@ -461,10 +463,10 @@ const confirmRegistration=(req,res)=>{
             else if(!success)
                     return Response.sendResponse(res,responseCode.NOT_FOUND,"data");
                 else{
-                    User.findOneAndUpdate({_id:req.body.playerId},{$push:{playerDynamicDetails:req.body.playerDynamicDetails}},(err1,success1)=>{
+                    User.findOneAndUpdate({_id:req.body.playerId},{$set:{playerDynamicDetails:req.body.playerDynamicDetails}},(err1,success1)=>{
                         if(err)
                             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err1);
-                        else if(!success)
+                        else if(!success1)
                                 return Response.sendResponse(res,responseCode.NOT_FOUND,"Player not found !");
                             else{
                                 return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"You are successfully registered!");

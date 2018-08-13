@@ -70,10 +70,10 @@ module.exports = {
                     usr=success.smtpUsername;
                     pwd=success.smtpPassword
                 }
-               
-            })
-            console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%",pwd,usr);
+                console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%",pwd,usr);
 
+            
+           
         mailer.createTransport({
             service:'GMAIL',
             auth: {
@@ -84,7 +84,9 @@ module.exports = {
             host: 'smtp.gmail.com'
 
         }).sendMail(mailBody, callback)
+    })
     }
+    
     else{
         mailer.createTransport({
             service:'GMAIL',

@@ -50,7 +50,7 @@ const getDivision=(req,res)=>{
         else if(result==false)
                 return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
             else
-                return Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,responseMsg.SUCCESSFULLY_DONE,result);
+                return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,result);
     })
 }
 
@@ -143,7 +143,7 @@ const getPeriod=(req,res)=>{
         else if(result==false)
                 return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
             else
-                return Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,responseMsg.SUCCESSFULLY_DONE,result);
+                return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,result);
     })
 }
 
@@ -236,7 +236,22 @@ const getSport=(req,res)=>{
         else if(result==false)
                 return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
             else
-                return Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,responseMsg.SUCCESSFULLY_DONE,result);
+                return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,result);
+    })
+}
+//========================select sport======================
+const selectSport=(req,res)=>{
+    let flag=Validator(req.body,[],[],[]);
+    if(flag)
+        return Response.sendResponse(res,flag[0],flag[1]);
+    else
+    General.sport.find({organizer:req.query.userId},null,{sort:{createdAt:-1}},(err,result)=>{
+        if(err)
+            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+        else if(result==false)
+                return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
+            else
+                return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,result);
     })
 }
 //-------------------Get detail of particular Sports--------------------------------------
@@ -302,8 +317,7 @@ const addSMTPDetails=(req,res)=>{
         else if(!success)
                 return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
             else
-                return Response.sendResponse(res,responseCode.RESOURCE_DELETED,responseMsg.SUCCESSFULLY_DONE,success)
-        
+                return Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,responseMsg.SUCCESSFULLY_DONE,success);        
     })
     
 }
@@ -318,7 +332,7 @@ const getMailMessageDetails=(req,res)=>{
         else if(!success)
                 return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
             else
-                return Response.sendResponse(res,responseCode.RESOURCE_DELETED,responseMsg.SUCCESSFULLY_DONE,success);
+                return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success);
     })
 
 }
@@ -339,6 +353,7 @@ module.exports={
     deletePeriod,
 
     addSport,
+    selectSport,
     getSport,
     getASport,
     editSport,

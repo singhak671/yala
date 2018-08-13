@@ -153,7 +153,9 @@ let userSchema = new Schema({
         type:Boolean,
         default:false
     },
-    playerDynamicDetails:[]
+    playerDynamicDetails:{
+        type:Array
+    }
 
 }, {
     timestamps: true

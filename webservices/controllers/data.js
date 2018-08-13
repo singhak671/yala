@@ -10,7 +10,7 @@ const media = require("../../global_functions/uploadMedia");
 const addClub=(req,res)=>{
     console.log("req.body------>>>>",req.body)
     if(!req.query.userId)
-    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED)
+        return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED);
     // else if(!req.body)
     // return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.PROVIDE_DATA)
     else{
@@ -20,9 +20,9 @@ const addClub=(req,res)=>{
            }
            userServices.findUser(query,(err,success)=>{
                if(err)
-               return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+                    return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
                else if(!success)
-               return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.ORGANIZER_NOT_FOUND)
+                    return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.ORGANIZER_NOT_FOUND);
                else{
                    let query={
                        $and:[{clubName:req.body.clubName},{userId:req.query.userId}]
@@ -499,7 +499,7 @@ const selectClub=(req,res)=>{
             if(err){
                 return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
             }
-            else if(!success)
+            else if(success==false)
             return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.CLUB_NOT_FOUND)
             else{
                 return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.CLUB_LIST,success)

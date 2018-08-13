@@ -70,7 +70,7 @@ const getACompetition=(req,res)=>{
         else if(!success)
             return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
             else{
-                    return Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,responseMsg.SUCCESSFULLY_DONE,success);
+                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success);
                 }     
     });
 }
@@ -447,7 +447,7 @@ const getRegistrationDetail=(req,res)=>{
         return Response.sendResponse(res,flag[0],flag[1]);
     else
         Competition.competitionReg.findOne({competitionId:ObjectId(req.body.competitionId),organizer:ObjectId(req.body.userId)})
-        .populate("competitionId","_id published competitionName organizer")
+        .populate("competitionId","_id published competitionName organizer sportType")
         .exec((err,success)=>{
             if(err)
                 return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);

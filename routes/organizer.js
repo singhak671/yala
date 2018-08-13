@@ -67,6 +67,7 @@ router.post('/deletePeriod',generalController.deletePeriod);
 router.post('/addSport',generalController.addSport);
 router.post('/getSport',generalController.getSport);
 router.post('/getASport',generalController.getASport);
+router.get('/selectSport',generalController.selectSport);
 router.post('/editSport',generalController.editSport);
 router.post('/deleteSport',generalController.deleteSport);
 

@@ -5,6 +5,7 @@ const Chat=require("../../models/chat");
 const  Competition=require("../../models/competition");
 const Validator = require('../../middlewares/validation').validate_all_request;
 const subscriptionValidator = require('../../middlewares/validation').validate_subscription_plan;
+const communicationValidator = require('../../middlewares/validation').validate_communication_credentials;
 const responseCode = require('../../helper/httpResponseCode')
 const responseMsg = require('../../helper/httpResponseMessage')
 const userServices=require('../services/userApis');
@@ -103,16 +104,21 @@ const sendMessageToAll=(req,res)=>{
     let flag =Validator(req.body,[],[],["organizerId","message"])
 	if(flag)
         return Response.sendResponse(res,flag[0],flag[1]);
-    CreateTeamInCompetition.find({organizer:req.body.organizerId},{playerId:1},{lean:true},(err,success)=>{
+    
+        communicationValidator(req.body.organizerId,["mail"],(err,flag)=>{
+            if(flag[0]!==200)
+            return Response.sendResponse(res,flag[0],flag[1],flag[2]);
+       else{
+    CreateTeamInCompetition.find({organizer:req.body.organizerId},{playerId:1},{lean:true})
+    .populate("playerId")
+    .exec((err,success)=>{
         if (err)
             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
         else if(!success)
                 return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
             else{
-              // res.send(success);
-                async.forEach(success,(key1,callback)=>{
-
-                
+               res.send(success);
+                async.forEach(success,(key1,callback)=>{                
                 async.forEach(key1.playerId, (key,callback) => {
                     General.chat.findOneAndUpdate ({organizerId:req.body.organizerId,playerId:key},{$push:{message:req.body.message},$set:{playerRead:false}},{upsert:true,multi:true}, (err, success) => {
                     if (err) return res.send(err);
@@ -126,6 +132,10 @@ const sendMessageToAll=(req,res)=>{
                 if(key1==success[(success.length-1)])
                 return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Message successfully send to all!")
             })
+            message.sendMail(["anuragcoolm@gmail.com"],"DON","I am anurag",(err,success)=>{
+                if(success)
+                console.log("message sent SUCCESSFULLY_DONE");
+            },req.body.organizerId);
                 
             }
 
@@ -172,6 +182,8 @@ const sendMessageToAll=(req,res)=>{
     //         }
                 
     // })
+}
+})
 }
 
 module.exports={
