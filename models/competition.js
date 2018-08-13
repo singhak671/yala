@@ -124,6 +124,9 @@ let competitionSchema = new Schema({
     deviceToken: {
         type: String
     },
+    sportType:{
+        type:String
+    }
 }, {
     timestamps: true
 });
@@ -146,7 +149,7 @@ let registrationSchema = new Schema({
         trim:true,
         enum:["free","paid"]
     },
-    resistrationFee:{
+    registrationFee:{
         type:Number,
     },
     paymentInHandDetails:{

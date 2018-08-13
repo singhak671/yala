@@ -67,7 +67,7 @@ const filterCompetitions=(req,res)=>{
             let option={
                 populate:[{
                     path:"competitionId",
-                    select:"competitionName _id createdAt organizer division period sports status venue",
+                    select:"competitionName _id createdAt organizer division period sports status venue imageURL",
                     
                     match:query2
                 },
@@ -272,6 +272,7 @@ else{
                     "competitionName":{ "$first":"$competitionName"},
                     "organizer":{ "$first":"$organizer"},
                     "createdAt":{"$first":"$createdAt"},
+                    "imageURL":{"$first":"$imageURL"},
                     playerFollowStatus: {
                         $first: "$playerFollowStatus"
                     },
@@ -299,7 +300,8 @@ else{
                   venue:1,
                   competitionName:1,
                   organizer:1,
-                  createdAt:1
+                  createdAt:1,
+                  imageURL:1
                 }},
                 { '$sort'     : { 'createdAt' : -1 } },
 
@@ -498,7 +500,7 @@ const competitionNotification=(req,res)=>{
             else if(!success)
                     return Response.sendResponse(res,responseCode.NOT_FOUND,"Player not found !");
                 else{
-                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Success!",success);
+                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Success!");
                 }
         })
 

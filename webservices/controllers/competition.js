@@ -11,6 +11,8 @@ const mongoose = require('mongoose');
 const Team=require("../../models/team")
 const followComp=require("../../models/compFollowOrgPlay.js");
 
+const ObjectId = mongoose.Types.ObjectId;
+
 
 const addNewCompetition=(req,res)=>{
     let flag=Validator(req.body,['userId'],[],[])
@@ -352,7 +354,7 @@ const competitionRegistration=(req,res)=>{
         if(err)
             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
         else if(!success2)
-            return Response.sendResponse(res,responseCode.NOT_FOUND,"competitionId not found");
+            return Response.sendResponse(res,responseCode.NOT_FOUND,"competitionId not found or registration has already done!");
             else
                 if(success2.organizer==req.body.userId){
                     req.body.organizer=req.body.userId;
@@ -439,11 +441,12 @@ const unPublishCompetition=(req,res)=>{
 }
 
 const getRegistrationDetail=(req,res)=>{
+    console.log(req.body)
     let flag =Validator(req.body,[],[],["competitionId","userId",]);
     if(flag)
         return Response.sendResponse(res,flag[0],flag[1]);
     else
-        Competition.competitionReg.findOne({competitionId:req.body.competitionId,organizer:req.body.userId})
+        Competition.competitionReg.findOne({competitionId:ObjectId(req.body.competitionId),organizer:ObjectId(req.body.userId)})
         .populate("competitionId","_id published competitionName organizer")
         .exec((err,success)=>{
             if(err)
