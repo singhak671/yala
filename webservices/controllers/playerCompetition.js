@@ -470,15 +470,37 @@ const confirmRegistration=(req,res)=>{
                                 return Response.sendResponse(res,responseCode.NOT_FOUND,"Player not found !");
                             else{
                                 return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"You are successfully registered!");
-
                             }
                                 
                     })
                 }
         })
     }
-
 }
+
+
+
+
+//==================================get register form or not=========================
+const getRegisterFormOrNot=(req,res)=>{
+    let flag =Validator(req.body,[],[],["organizerId","competitionId","playerId"])
+	if(flag)
+        return Response.sendResponse(res,flag[0],flag[1]);       
+    else
+    {
+       Follow.competitionFollow.findOne({competitionId:req.body.competitionId,playerId:req.body.playerId,organizer:req.body.organizerId},(err,success)=>{
+            if(err)
+                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+            else if(!success)
+                    return Response.sendResponse(res,responseCode.NOT_FOUND,"data");
+                else{
+                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success);
+                     
+                }
+        })
+    }
+}
+//========================
 const competitionNotification=(req,res)=>{
     let flag =Validator(req.body,[],[],["userId"])
 	if(flag)
@@ -515,5 +537,6 @@ module.exports={
     unFollowCompetition,
 
     confirmRegistration,
-    competitionNotification
+    competitionNotification,
+    getRegisterFormOrNot
 }
