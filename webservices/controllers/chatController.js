@@ -110,7 +110,7 @@ const getMessages = (req, res) => {
     })
 }
 
-const sendMessageToAll = (req, res) => {
+const sendMessageToAllTeam = (req, res) => {
     let flag = Validator(req.body, [], [], ["organizerId", "message"])
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
@@ -144,7 +144,7 @@ const sendMessageToAll = (req, res) => {
 
                             });
                             if (key1 == success[(success.length - 1)])
-                                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Message successfully send to all!", arr)
+                                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Message successfully send to all!")
                             console.log(arr)
                         })
                         message.sendMail(["anuragcoolm@gmail.com"], "DON", "I am anurag", (err, success) => {
@@ -221,23 +221,26 @@ const sendMessageToAllPlayers = (req, res) => {
                     else if (!success)
                         return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
                     else {
-                        async.forEach(success, (key, callback) => {
-                            console.log(">>>>>>>>>>>>>>>",key.playerId._id)
-                            General.chat.findOneAndUpdate({ organizerId: req.body.organizerId, playerId: key.playerId._id }, { $push: { message: req.body.message }, $set: { playerRead: false } }, { upsert: true, multi: true }, (err1, success1) => {
-                                if (err1) return res.send(err1);
-                                // console.log("^^^^^^^^^^^^^success>", key);
-                                // if (key.competitionNotify.email.indexOf("email") !== -1)
-                                //     arr.push(key.email)
-                                if(success.indexOf(key)==(success.length-1))
-                                    return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Message successfully send to all!")
+                        General.chat.find({ organizer: req.body.organizerId, registration: true }).distinct("playerId",(err,success)=>{
+                            if(success)
+                            res.send(success)
+                        })
+                        // async.forEach(success, (key, callback) => {
+                        //     console.log(">>>>>>>>>>>>>>>",key.playerId._id)
+                        //     General.chat.findOneAndUpdate({ organizerId: req.body.organizerId, playerId: key.playerId._id }, { $push: { message: req.body.message }, $set: { playerRead: false } }, { upsert: true, multi: true }, (err1, success1) => {
+                        //         if (err1) return res.send(err1);
+                        //         // console.log("^^^^^^^^^^^^^success>", key);
+                        //         // if (key.competitionNotify.email.indexOf("email") !== -1)
+                        //         //     arr.push(key.email) if(success.indexOf(key)==(success.length-1))
+                        //             return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Message successfully send to all!")
 
                                 
 
-                            });
-                        }, (err) => {
-                            if (err) console.error(err.message);
+                        //     });
+                        // }, (err) => {
+                        //     if (err) console.error(err.message);
 
-                        });
+                        // });
 
 
 
@@ -353,7 +356,7 @@ const getMessage = (req, res) => {
 module.exports = {
     sendMessage,
     getMessages,
-    sendMessageToAll,
+    sendMessageToAllTeam,
     sendMessageToAllPlayers,
     getListOfMessageForPlayer
 }
