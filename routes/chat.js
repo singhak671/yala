@@ -10,6 +10,7 @@ router.post('/getMessages',chatController.getMessages);
 router.post('/sendMessageToAllTeam',chatController.sendMessageToAllTeam);
 router.post('/sendMessageToAllPlayers',chatController.sendMessageToAllPlayers);
 router.get('/getListOfMessageForPlayer',chatController.getListOfMessageForPlayer);
+router.post('/sendMsgToAllPlayersOfATeam',chatController.sendMsgToAllPlayersOfATeam);
 
 
 

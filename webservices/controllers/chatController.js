@@ -204,6 +204,115 @@ const sendMessageToAllTeam = (req, res) => {
     })
 }
 
+
+
+
+
+
+
+const sendMsgToAllPlayersOfATeam = (req, res) => {
+    let flag = Validator(req.body, [], [], ["organizerId", "message","teamId"])
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
+
+    communicationValidator(req.body.organizerId, ["mail"], (err, flag) => {
+        if (flag[0] !== 200)
+            return Response.sendResponse(res, flag[0], flag[1], flag[2]);
+        else {
+            let arr = [];
+            CreateTeamInCompetition.findById({ _id:req.body.teamId})             
+                .exec((err, success) => {
+                    if (err)
+                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+                    else if (!success)
+                        return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
+                    else {
+
+                        //res.send(success);
+                       
+                            async.forEach(success.playerId, (key, callback) => {
+                                General.chat.findOneAndUpdate({ organizerId: req.body.organizerId, playerId: key }, { $push: { message: req.body.message }, $set: { playerRead: false } }, { upsert: true, multi: true }, (err1, success1) => {
+                                    if (err1) 
+                                        return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err1);
+                                    //console.log("^^^^^^^^^^^^^success>", key);
+                                    // if (key.competitionNotify.email.indexOf("email") !== -1)
+                                    //     arr.push(key.email)
+                                    if (success.playerId.indexOf(key) == success.playerId.length-1)
+                                        return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Message successfully send to all!")
+
+                                });
+                            }, (err) => {
+                                if (err) console.error(err.message);
+
+                            });
+                            // if (key1 == success[(success.length - 1)])
+                            //     return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Message successfully send to all!")
+                           // console.log(arr)
+                        
+                        message.sendMail(["anuragcoolm@gmail.com"], "DON", "I am anurag", (err, success) => {
+                            if (success) {
+                                console.log("array&&&&&", arr)
+                                console.log("message sent SUCCESSFULLY_DONE");
+                            }
+                        }, req.body.organizerId);
+
+
+                    }
+
+                })
+
+
+
+            // let data=[{playerId:'5b6d2d18ae9a5547795b2b71'},{playerId:'5b6d24c5de2cb346cfa9b939'},{playerId:"5b473f699a937b9f01ccc2bc"}];
+            //let data=['5b6d2d18ae9a5547795b2b71','5b6d24c5de2cb346cfa9b939',"5b473f699a937b9f01ccc2bc","5b6d2d18ae9a5547795b2b72"];
+
+
+            // data.forEach(function(obj) {
+            //     General.chat.update({organizerId:req.body.organizerId,playerId: obj.playerId},{$push:{message:req.body.message}},{upsert:true,multi:true},(err,success) =>{
+            //         if (err)
+            //             console.log(err);//return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+            //         else if(!success)
+            //             console.log("not success");//return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
+            //             else{
+            //                 console.log(success);
+            //             }
+            //     });
+            // });
+            //     async.forEach(data, (key,callback) => {
+            //         General.chat.findOneAndUpdate ({organizerId:req.body.organizerId,playerId:key},{$push:{message:req.body.message}},{upsert:true,multi:true}, (err, success) => {
+            //         if (err) return res.send(err);
+            //         if(key==data[(data.length-1)])
+            //         return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Message successfully send to all!")
+
+            //         });  
+            // }, (err) => {
+            //     if (err) console.error(err.message);
+
+            // });
+
+
+
+            // General.chat.findAndModify ({organizerId:req.body.organizerId,playerId:{$in:data}},{$push:{message:req.body.message}},{upsert:true,multi:true},(err,success1)=>{
+            //     if (err)
+            //         return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+            //     else if(!success1)
+            //             return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
+            //         else{
+            //             return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success1);
+            //         }
+
+            // })
+        }
+    })
+}
+
+
+
+
+
+
+
+
 const sendMessageToAllPlayers = (req, res) => {
     let flag = Validator(req.body, [], [], ["organizerId", "message"])
     if (flag)
@@ -213,34 +322,42 @@ const sendMessageToAllPlayers = (req, res) => {
         if (flag[0] !== 200)
             return Response.sendResponse(res, flag[0], flag[1], flag[2]);
         else {
-            followComp.competitionFollow.find({ organizer: req.body.organizerId, registration: true })
-                .populate("playerId")
+            followComp.competitionFollow.distinct("playerId",{ organizer: req.body.organizerId, registration: true })
+           
+                
                 .exec((err, success) => {
                     if (err)
                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
                     else if (!success)
                         return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
                     else {
-                        General.chat.find({ organizer: req.body.organizerId, registration: true }).distinct("playerId",(err,success)=>{
-                            if(success)
-                            res.send(success)
-                        })
-                        // async.forEach(success, (key, callback) => {
-                        //     console.log(">>>>>>>>>>>>>>>",key.playerId._id)
-                        //     General.chat.findOneAndUpdate({ organizerId: req.body.organizerId, playerId: key.playerId._id }, { $push: { message: req.body.message }, $set: { playerRead: false } }, { upsert: true, multi: true }, (err1, success1) => {
-                        //         if (err1) return res.send(err1);
-                        //         // console.log("^^^^^^^^^^^^^success>", key);
-                        //         // if (key.competitionNotify.email.indexOf("email") !== -1)
-                        //         //     arr.push(key.email) if(success.indexOf(key)==(success.length-1))
-                        //             return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Message successfully send to all!")
+                        console.log("success>>>>>",success);
+                                        // followComp.competitionFollow.find({organizer: req.body.organizerId, registration: true,playerId:{$in:success}},{"playerId": 1 },(err2,success2)=>{
+                                        //     if(err2)
+                                        //     console.log(err2)
+                                        //     if(success2)
+                                        //     console.log("success2>>>>>",success2);
+                                        // })
+                        //console.log(success)
+                        // General.chat.distinct("playerId",(err,success1)=>{
+                        //     if(success1)
+                        //         res.send(success1)
+                        // })
+                        async.forEach(success, (key, callback) => {
+                          //  console.log(">>>>>>>>>>>>>>>",key)
+                            General.chat.findOneAndUpdate({ organizerId: req.body.organizerId, playerId: key }, { $push: { message: req.body.message }, $set: { playerRead: false } }, { upsert: true, multi: true }, (err1, success1) => {
+                                if (err1) return res.send(err1);
+                                // console.log("^^^^^^^^^^^^^success>", key);
+                                // if (key.competitionNotify.email.indexOf("email") !== -1)
+                                //     arr.push(key.email) 
+                                if(success.indexOf(key)==(success.length-1))
+                                    return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Message successfully send to all!")                                
 
-                                
+                            });
+                        }, (err) => {
+                            if (err) console.error(err.message);
 
-                        //     });
-                        // }, (err) => {
-                        //     if (err) console.error(err.message);
-
-                        // });
+                        });
 
 
 
@@ -358,6 +475,7 @@ module.exports = {
     getMessages,
     sendMessageToAllTeam,
     sendMessageToAllPlayers,
-    getListOfMessageForPlayer
+    getListOfMessageForPlayer,
+    sendMsgToAllPlayersOfATeam
 }
 

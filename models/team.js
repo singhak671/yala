@@ -22,10 +22,10 @@ let createTeamInComp = new Schema({
     imageURL:{
     type:String
     },
-    playerId:{
+    playerId:[{
         type:Schema.Types.ObjectId, 
         ref:'user'
-    },
+    }],
     teamName:{
     type:String
     },
