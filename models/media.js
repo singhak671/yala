@@ -11,19 +11,37 @@ let mediaSchema = new Schema({
      },
      typeOfMedia:{
           type:String,
-          uppercase:true
+          uppercase:true,
+          enum:["NEWS","VIDEO","ALBUM"]
      },
      competitionId:{type:Schema.Types.ObjectId,ref:'competition'},
      competitionName:String,
      title:String,
      description:String,
      like:[{
-         type:Schema.Types.ObjectId
+        type:Schema.Types.ObjectId,ref:"user"
      }],
+     noOfLike:{
+         type:Number,
+         default:0
+     },
      comments:[{
          commentId:{type:Schema.Types.ObjectId,ref:"user"},
-         text:String
+         text:String,
+         commentImage:String,
+         commentFirstName:String,
+         commentLastName:String
      }],
+     noOfComment:{
+        type:Number,
+        default:0
+    },
+    date:{
+        type:String
+    },
+    time:{
+        type:String
+    },
      mediaUrls:[{public_id:String,url:String}],
      youtubeUrls:{
          type:String

@@ -6,9 +6,11 @@ const responseCode = require('../../helper/httpResponseCode')
 const responseMsg = require('../../helper/httpResponseMessage')
 const userServices=require('../services/userApis');
 const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 const bcrypt=require('bcryptjs');
 const config = require("../../config/config");
 const moment=require("moment")
+const Notification=require('../../models/notification.js')
 const jwt = require('jsonwebtoken');
 var Twocheckout = require('2checkout-node');
 var waterfall = require('async-waterfall');
@@ -1301,6 +1303,123 @@ const getRoleForEmployee=(req,res)=>{
 		 })
 	 }
 }
+
+
+//--------------------Control Notification--------------------------------------------
+const controlNotification=(req,res)=>{
+	console.log("req.body--->>",req.body)
+	if(!req.query.userId){
+		return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.USER_IS_REQ)
+	}
+	else{
+		userServices.findUser({_id:req.query.userId},(err,success)=>{
+			if(err)
+			return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+			else if(!success)
+			return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS,err)
+			else{
+				let set={
+					competitionNotify:req.body.competitionNotify,
+					membershipNotify:req.body.membershipNotify,
+					venueNotify:req.body.venueNotify
+				}
+				userServices.updateUser({_id:req.query.userId},set,{new:true},(err,success)=>{
+					if(err)
+					return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+					else if(!success)
+					return Response.sendResponse(res,responseCode.NOT_MODIFIED,responseMsg.MODIFICATION_FAILED)
+					else
+					return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.NOTIFICATION,success)
+				})
+			}
+		})
+	}
+}
+
+//-------------------------Get List of Notificaton Settings----------------
+const getControlNotification=(req,res)=>{
+	if(!req.query.userId)
+	return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.USER_IS_REQ)
+	else{
+		userServices.findUserDetail({_id:req.query.userId,role:"PLAYER"},{competitionNotify:1,membershipNotify:1,venueNotify:1,_id:0},(err,success)=>{
+		  if(err)
+		  return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+		  else if(!success)
+		  return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS)
+		  else
+		  return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.NOTIFICATION_SETTING,success)
+		})
+	}
+}
+
+//--------Notification list -------------------
+const getnotificationList=(req,res)=>{
+  if(!req.query.userId)
+  return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.USER_IS_REQ)
+  
+  else{
+      User.findOne({_id:req.query.userId},(err,success)=>{
+          if(err)
+          return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+          else {
+              let query={
+				userId:ObjectId(req.query.userId)
+			  }
+            var aggregate=  Notification.aggregate([{
+                  $match:query
+              },{
+                  $unwind:"$notification"
+              },{
+                  $sort:{"notification.createdAt":-1}
+              },{
+                $project:{message:"$notification",_id:0}
+              }
+            ])
+            let option={
+                page:req.body.page||1,
+                limit:req.body.limit||10,
+            }
+            Notification.aggregatePaginate(aggregate,option,(err,result, pages, total)=>{
+                if(!err){
+                    const success={
+                        "docs":result,
+                        "total":total,
+                        "limit":option.limit,
+                        "page":option.page,
+                        "pages":pages,
+                  }
+                  console.log(success)
+                   if(success.docs.length)
+                   return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.NOTIFICATION_LIST,success)
+                   else 
+                   return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND)
+                }            
+                else{
+                    return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+                 } 
+            })
+          }
+      })
+    }
+}
+//------------------Delete Notification For player------------
+const deleteNotification=(req,res)=>{
+	console.log("anurag&&&&&&&&&&&&&&&&&&&&&&&&&&&&& <<",req.query.notificationId);
+	if(!req.query.userId)
+	return Response.sendResponse(res,reponseCode.BAD_REQUEST,responseMsg.USER_IS_REQ)
+	else if(!req.query.notificationId)
+	return Response.sendResponse(res,reponseCode.BAD_REQUEST,responseMsg.NOTIFICATION_IS_REQ)
+	else{
+		Notification.findOneAndUpdate({userId:req.query.userId,"notification._id":req.query.notificationId},{$pull:{notification:{_id:req.query.notificationId}}},{new:true,safe:true},(err,success)=>{
+			if(err)
+			return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+			else if(!success)
+			return Response.sendResponse(res,responseCode.NOT_FOUND,"Notification not found!")
+			else
+			return Response.sendResponse(res,responseCode.RESOURCE_DELETED,"Successfully deleted!")
+		})
+	}
+}
 module.exports={
 	signup,
 	verifyOtp,
@@ -1327,7 +1446,11 @@ module.exports={
 	getRoleForEmployee,
 
 	changeAutoRenew,
-	changeCardforAutoRenew
+	changeCardforAutoRenew,
+	controlNotification,
+	getControlNotification,
+	getnotificationList,
+	deleteNotification
 }
 
 

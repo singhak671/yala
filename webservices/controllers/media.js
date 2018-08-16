@@ -5,7 +5,15 @@ const responseMsg = require('../../helper/httpResponseMessage')
 const media = require("../../global_functions/uploadMedia");
 const userServices=require('../services/userApis');
 const each = require('async-each-series');
-//-------------------------Create Album Apis------------------------
+const Media=require("../../models/media");
+const  Competition=require("../../models/competition");
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
+const teamServices=require('../services/teamApis');
+const subscriptionValidator = require('../../middlewares/validation').validate_subscription_plan;
+const message = require("../../global_functions/message");
+const Follow=require("../../models/compFollowOrgPlay");
+const User=require("../../models/user")
 const accessPlanMedia=(req,res)=>{
     subscriptionValidator(req.query,["media"],(err,flag)=>{
     if(flag[0]!==200)
@@ -32,7 +40,7 @@ const accessPlanMedia=(req,res)=>{
                 return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,"ALL")
             }
         })
-    }
+      }
   })
 }
 const createTry=(req,res)=>{
@@ -54,9 +62,112 @@ const createTry=(req,res)=>{
 }
 //-------------------------Create Album Apis------------------------
 const createAlbum=(req,res)=>{
-    console.log("req.body--->>",req.body)
+        console.log("req.body--->>",req.body,req.query)
+        subscriptionValidator(req.query,["media"],(err,flag)=>{
+        if(flag[0]!==200)
+        return Response.sendResponse(res,flag[0],flag[1],flag[2]);
+        else{
+            if(!req.query.userId)
+            return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED)
+            else{
+                req.body.organizer=req.query.userId
+                userServices.findUser({_id:req.query.userId},(err,success)=>{
+                    if(err)
+                    return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+                    else if(!success)
+                    return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.ORGANIZER_NOT_FOUND)
+                    else{
+                        if(success.employeeRole=='COORDINATOR'||success.employeeRole=="ADMINSTRATOR")
+                        req.body.organizer=success.employeerId
+                        else
+                        req.body.organizer=req.query.userId
+                        console.log("fhfhhfhjg",req.body.organizer)
+                        if(req.body.image){
+                            var imageArray = [], counter = 0;
+                            each(req.body.image, (item, next) => {
+                            counter++;
+                            media.uploadMedia(item, (err, result) => {
+                                imageArray[imageArray.length] = {public_id:result.public_id,url:result. secure_url}
+                                if(err)
+                                    console.log("wronggggggg")
+                                else if (req.body.image.length == counter) {
+                                     console.log("hhjjjjh",imageArray)
+                                     req.body.mediaUrls=imageArray
+                                     mediaServices.addMedia(req.body,(err,success)=>{
+                                      if(err)
+                                      return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+                                      else{
+                                      Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,responseMsg.MEDIA_CREATED,success)
+                                      Follow.competitionFollow.find({organizer:req.body.organizer,competitionId:req.body.competitionId},{_id:0,playerId:1},{populate:{path:"playerId",model:User,select:{"email":1,"competitionNotify":1,_id:1}}},(err,success)=>{
+                                        console.log("success---->>>",success)
+                                        if(success){
+                                           let arr=[],arr1=[],arr2=[];
+                                            for(let data in success){
+                                                if((success[data].playerId.competitionNotify.email).indexOf("media")!=-1)
+                                                arr1.push(success[data].playerId.email)
+                                                //  arr.push(success[data].playerId.deviceToken)
+                                                arr2.push(success[data].playerId._id)
+                                            }
+                                            console.log(arr1)
+                                            arr=['ddMQdHYWfB4:APA91bHmiaJtIJAlonDRDEKSlZFi3-6tvvMJ9qRIs_IBRbZakJG1HUgmOZRkHQJ54uVwvcuPXhGHk-cc3AmZL0Cvnnklx5wC7-nQQXQtAiB5D5ttAOR-RkBZI6ZrjLeOD9uh6SttStoN2g2dmETfBpRqTpqUUhtXqQ']
+                                            message.sendMailToAll(arr1,"A new Media is added successfully..",(err,success)=>{
+                                               console.log(success)
+                                           },req.body.organizer)
+                                           message.sendNotificationToAll('Media is added !',arr)
+                                           message.saveNotification(arr2,"Media Added successfully")
+                                        }
+                                      })
+                                     }
+                                   })
+                                } else {
+                                    next();
+                                }
+                            })
+                            }, (finalResult) => {
+                            console.log("ggggggg",finalResult)
+                          })  
+                        }
+                        else{
+                            mediaServices.addMedia(req.body,(err,success)=>{
+                                if(err)
+                                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+                                else
+                                 Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,responseMsg.MEDIA_CREATED,success)
+                                 Follow.competitionFollow.find({organizer:req.body.organizer,competitionId:req.body.competitionId},{_id:0,playerId:1},{populate:{path:"playerId",model:User,select:{"email":1,"competitionNotify":1,_id:1}}},(err,success)=>{
+                                     console.log("success---->>>",success)
+                                     if(success){
+                                        let arr=[],arr1=[],arr2=[];
+                                         for(let data in success){
+                                             if((success[data].playerId.competitionNotify.email).indexOf("media")!=-1)
+                                             arr1.push(success[data].playerId.email)
+                                             //  arr.push(success[data].playerId.deviceToken)
+                                               arr2.push(success[data].playerId._id)
+                                         }
+                                         console.log(arr1)
+                                         console.log("xxxxxxxx--->>>",arr2)
+                                         arr=['ddMQdHYWfB4:APA91bHmiaJtIJAlonDRDEKSlZFi3-6tvvMJ9qRIs_IBRbZakJG1HUgmOZRkHQJ54uVwvcuPXhGHk-cc3AmZL0Cvnnklx5wC7-nQQXQtAiB5D5ttAOR-RkBZI6ZrjLeOD9uh6SttStoN2g2dmETfBpRqTpqUUhtXqQ']
+                                         message.sendMailToAll(arr1,"A new Media is added successfully..",(err,success)=>{
+                                            console.log(success)
+                                        },req.body.organizer)
+                                        message.sendNotificationToAll('Media is added !',arr)
+                                        message.saveNotification(arr2,"Media Added successfully")
+                                     }
+                                 })
+                             })
+                        }
+                    }
+                })
+            }
+        }
+    })
+}
+//--------------------Edit media------------------------------
+const editMedia=(req,res)=>{
+    console.log("req.body--->>",req.body,req.query)
     if(!req.query.userId)
     return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED)
+    if(!req.query.mediaId)
+    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.MEDIA_IS_REQUIRED)
     else{
         req.body.organizer=req.query.userId
         userServices.findUser({_id:req.query.userId},(err,success)=>{
@@ -66,10 +177,9 @@ const createAlbum=(req,res)=>{
             return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.ORGANIZER_NOT_FOUND)
             else{
                 if(success.employeeRole=='COORDINATOR'||success.employeeRole=="ADMINSTRATOR")
-                req.body.organizer=success.employeerId
+                req.query.organizer=success.employeerId
                 else
-                req.body.organizer=req.query.userId
-                console.log("fhfhhfhjg",req.body.organizer)
+                req.query.organizer=req.query.userId
                 if(req.body.image){
                     var imageArray = [], counter = 0;
                     each(req.body.image, (item, next) => {
@@ -80,12 +190,18 @@ const createAlbum=(req,res)=>{
                             console.log("wronggggggg")
                         else if (req.body.image.length == counter) {
                              console.log("hhjjjjh",imageArray)
-                             req.body.mediaUrls=imageArray
-                             mediaServices.addMedia(req.body,(err,success)=>{
+                                 let set={
+                                     title:req.body.title,
+                                     description:req.body.description,
+                                     competitionName:req.body.competitionName,
+                                     competitionId:req.body.competitionId,
+                                     $push:{mediaUrls:imageArray}
+                                 }
+                             mediaServices.updateMedia({organizer:req.query.organizer,_id:req.query.mediaId},set,{new:true},(err,success)=>{
                               if(err)
                               return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
                               else
-                              return Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,responseMsg.MEDIA_CREATED,success)
+                              return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.MEDIA_UPDATED,success)
                            })
                         } else {
                             next();
@@ -96,60 +212,64 @@ const createAlbum=(req,res)=>{
                   })
                 }
                 else{
-                    mediaServices.addMedia(req.body,(err,success)=>{
+                    mediaServices.updateMedia({organizer:req.query.organizer,_id:req.query.mediaId},req.body,{new:true},(err,success)=>{
                         if(err)
                         return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
                         else
-                        return Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,responseMsg.MEDIA_CREATED,success)
+                        return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.MEDIA_UPDATED,success)
                      })
                 }
-              
             }
         })
     }
 }
 //----------------------------Get List of Media for organizer-------------------------------------------
 const getListOfMedia=(req,res)=>{
-    if(!req.query.userId)
-    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED)
-    else{
-        userServices.findUser({_id:req.query.userId},(err,successs)=>{
-            if(err)
-            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-            else if(!successs)
-            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+         subscriptionValidator(req.query,["media"],(err,flag)=>{
+        if(flag[0]!==200)
+        return Response.sendResponse(res,flag[0],flag[1],flag[2]);
+        else{
+            if(!req.query.userId)
+            return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED)
             else{
-                if(successs.employeeRole=='COORDINATOR'||successs.employeeRole=="ADMINSTRATOR")
-                req.query.userId=successs.employeerId
-                let option={
-                    page:req.body.page||1,
-                    limit:req.body.limit||5,
-                    sort:{createdAt:-1},
-                    populate:{path:"competitionId",model:Competition.competition,select:'imageURL'},
-                    lean:true
-                }
-                mediaServices.getListOfMedia({organizer:req.query.userId},option,(err,success)=>{
+                userServices.findUser({_id:req.query.userId},(err,successs)=>{
                     if(err)
                     return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-                    else if(!success.docs.length)
-                    return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.MEDIA_NOT_FOUND)
+                    else if(!successs)
+                    return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
                     else{
-                        for(i=0;i<success.docs.length;i++){
-                          // console.log(((success.docs[1].like).toString())+" "+((success.docs[i].like).toString()).indexOf(req.query.userId))
-                           if(((success.docs[i].like).toString()).indexOf(successs._id)!=-1){
-                               success.docs[i].likeStatus="True"
-                           }
-                           else{
-                            success.docs[i].likeStatus="False"
-                           }
+                        if(successs.employeeRole=='COORDINATOR'||successs.employeeRole=="ADMINSTRATOR")
+                        req.query.userId=successs.employeerId
+                        let option={
+                            page:req.body.page||1,
+                            limit:req.body.limit||5,
+                            sort:{createdAt:-1},
+                            populate:{path:"competitionId",model:Competition.competition,select:'imageURL'},
+                            lean:true
                         }
-                        return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.LIST_OF_MEDIA,success)
-                    }  
-                })                     
+                        mediaServices.getListOfMedia({organizer:req.query.userId},option,(err,success)=>{
+                            if(err)
+                            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+                            else if(!success.docs.length)
+                            return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.MEDIA_NOT_FOUND)
+                            else{
+                                for(i=0;i<success.docs.length;i++){
+                                  // console.log(((success.docs[1].like).toString())+" "+((success.docs[i].like).toString()).indexOf(req.query.userId))
+                                   if(((success.docs[i].like).toString()).indexOf(successs._id)!=-1){
+                                       success.docs[i].likeStatus="True"
+                                   }
+                                   else{
+                                    success.docs[i].likeStatus="False"
+                                   }
+                                }
+                                return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.LIST_OF_MEDIA,success)
+                            }  
+                        })                     
+                    }
+                })                    
             }
-        })
-        
-    }
+          }
+     }) 
 }
 //------------------------------Get list of media for Player---------------------------------------------
 const getListOfMediaPlayer=(req,res)=>{
@@ -158,7 +278,7 @@ const getListOfMediaPlayer=(req,res)=>{
     else{
         let query={
             playerId:req.query.userId,
-            "followStatus" : "TRUE"
+            "followStatus" : "APPROVED"
         }
         let select={
             _id:0,
@@ -167,12 +287,10 @@ const getListOfMediaPlayer=(req,res)=>{
         teamServices.followStatus(query,select,(err,success)=>{
             if(err)
             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-            else if(!success)
-            return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NO_DATA_FOUND,err)
+            else if(!success.length)
+            return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.MEDIA_NOT_FOUND)
             else{
-                let query={
-                    $and:success
-                }
+                let query={$or:success}
                 console.log(query)
                 let option={
                     page:req.body.page||1,
@@ -203,6 +321,56 @@ const getListOfMediaPlayer=(req,res)=>{
             }
         }) 
     }
+}
+//-------------------------------Media List for competition--------------------------
+const mediaList=(req,res)=>{
+    if(!req.query.userId)
+    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.PLAYER_IS_REQUIRED)
+    else{
+        let query={
+            playerId:req.query.userId,
+            "followStatus" : "APPROVED"
+        }
+        teamServices.follow(query,(err,success)=>{
+            if(err)
+            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+            else if(!success)
+            return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS)
+            else{
+              let query={
+               competitionId:req.query.competitionId
+           }
+        if(req.body.typeOfMedia)
+        query.typeOfMedia=req.body.typeOfMedia
+        console.log(query)
+        let option={
+            page:req.body.page||1,
+            limit:req.body.limit||5,
+            sort:{createdAt:-1},
+            populate:{path:"competitionId",model:Competition.competition,select:'imageURL'},
+            lean:true
+        } 
+        mediaServices.getListOfMedia(query,option,(err,success)=>{
+            if(err)
+            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+            else if(!success.docs.length)
+            return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.MEDIA_NOT_FOUND)
+            else{
+                for(i=0;i<success.docs.length;i++){
+                    console.log(((success.docs[i].like).toString()).indexOf(req.query.userId))
+                     if(((success.docs[i].like).toString()).indexOf(req.query.userId)!=-1){
+                         success.docs[i].likeStatus="True"
+                     }
+                     else{
+                      success.docs[i].likeStatus="False"
+                     }
+                  }
+                  return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.LIST_OF_MEDIA,success)
+            }
+        })
+      }
+   })
+ }
 }
 //------------------------------------------Get Detail of Media-------------------------------------------
 const getDetailofMedia=(req,res)=>{
@@ -316,7 +484,9 @@ const commentMedia=(req,res)=>{
                                     let comment={
                                       commentId:req.query.userId,
                                       text:req.body.text,
-                                      commentImage:success.image
+                                      commentImage:success.image,
+                                      commentFirstName:success.firstName,
+                                      commentLastName:success.lastName
                                     }
                                     let set={
                                       $push:{comments:comment},
@@ -335,7 +505,9 @@ const commentMedia=(req,res)=>{
                                 else{
                                   let comment={
                                       commentId:req.query.userId,
-                                      text:req.body.text
+                                      text:req.body.text,
+                                      commentFirstName:success.firstName,
+                                      commentLastName:success.lastName
                                     }
                                     let set={
                                        $push:{comments:comment},
@@ -380,6 +552,88 @@ const getCommnet=(req,res)=>{
         })
     }
 }
+//------------------Delete particular image of media-------------------------------------
+const deleteMedia=(req,res)=>{
+    if(!req.query.mediaId)
+    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.MEDIA_IS_REQUIERED)
+    else if(!req.query.imageId)
+    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.IMAGE_IS_REQUIERED)
+    else{
+         mediaServices.findMediaUrl({_id:req.query.mediaId,"mediaUrls._id":req.query.imageId},{'mediaUrls.$._id':1},(err,success)=>{
+             if(err)
+             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+             else if(!success)
+             return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.MEDIA_NOT_FOUND);
+             else{
+                console.log(success.mediaUrls[0])
+                        mediaServices.updateMedia({_id:req.query.mediaId,"mediaUrls._id":req.query.imageId },{$pull:{mediaUrls:{ _id : req.query.imageId }}},{new:true},(err,success1)=>{
+                           if(err)
+                           return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+                           else{
+                            message.deleteUploadedFile(success.mediaUrls[0].public_id,(err,success2)=>{
+                                   console.log(success2.result)   
+                            });
+                            return Response.sendResponse(res,responseCode.RESOURCE_DELETED,responseMsg.MEDIA_DELETED,success1);
+                           }
+                    })           
+             }
+         })
+    }
+}
+//-------------------Edit News------------------
+const editMediaNews=(req,res)=>{
+    if(!req.query.mediaId)
+    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.MEDIA_NOT_FOUND)
+    else{
+        mediaServices.findMedia({_id:req.query.mediaId,typeOfMedia:"NEWS",},(err,success1)=>{
+            if(err)
+            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+            else{
+               message.editUploadedFile(req.body.mediaUrls[0].url,req.body.mediaUrls[0].public_id,(err,success)=>{
+                  if(err)
+                  return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+                  else if(!success)
+                  return Response.sendResponse(res,responseCode.NOT_MODIFIED,responseMsg.EDITING_NOT_SUCCESS)
+                  else{
+                    console.log( "urlllll--->>>",success1.mediaUrls[0]._id)
+                    req.body.mediaUrls={_id:req.body.mediaUrls[0]._id,public_id:success.public_id,url:success. secure_url}
+                    mediaServices.updateMedia({_id:req.query.mediaId},req.body,{new:true},(err,success)=>{
+                        if(err)
+                        return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+                        else if(!success)
+                        return Response.sendResponse(res,responseCode.NOT_MODIFIED,responseMsg.EDITING_NOT_SUCCESS,err)
+                        else
+                        return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.MEDIA_UPDATED,success)
+                      })
+                    }
+                  })
+               }
+            })
+        }
+    }
+//------------------------------Delete Media----------------------------
+const mediaDelete=(req,res)=>{
+    if(!req.query.userId)
+    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED)
+    else if(!req.query.mediaId)
+    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.MEDIA_IS_REQUIERED)
+    else{
+        let query={
+            _id:req.query.mediaId,
+            organizer:req.query.userId
+        }
+        mediaServices.deleteMedia(query,(err,success)=>{
+            if(err||!success)
+            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+            else{
+              if(success.mediaUrls){
+                  console.log(success.mediaUrls)
+              }
+              return Response.sendResponse(res,responseCode.RESOURCE_DELETED,responseMsg.MEDIA_DELETED)
+            }
+        })
+    }
+}
   module.exports={
       accessPlanMedia,
       createTry,
@@ -389,5 +643,23 @@ const getCommnet=(req,res)=>{
       likeMedia,
       getListOfMediaPlayer,
       commentMedia,
-      getCommnet
+      getCommnet,
+      mediaList,
+      editMedia,
+      deleteMedia,
+      editMediaNews,
+      mediaDelete
   }
+
+
+
+
+
+
+  
+  
+
+
+
+
+

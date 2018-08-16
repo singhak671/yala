@@ -37,6 +37,7 @@ app.use('/api/v1/organizer',require('./routes/organizer'));
 app.use('/api/v1/player',require('./routes/player.js'));
 app.use('/api/v1/data',require('./routes/data.js'));
 app.use('/api/v1/chat',require('./routes/chat.js'));
+app.use('/api/v1/media',require('./routes/media'));
 
 
 

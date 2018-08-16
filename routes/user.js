@@ -28,4 +28,10 @@ router.get('/getRoleForEmployee',AUTH.verifyToken,userController.getRoleForEmplo
 router.post('/changeAutoRenew',userController.changeAutoRenew);
 router.post('/changeCardforAutoRenew',userController.changeCardforAutoRenew);
 
+router.post('/controlNotification',AUTH.verifyToken,userController.controlNotification)
+router.get('/getControlNotification',AUTH.verifyToken,userController.getControlNotification)
+router.post('/getnotificationList',AUTH.verifyToken,userController.getnotificationList)
+// router.post('/saveNotification',userController.saveNotification)
+router.get('/deleteNotification',AUTH.verifyToken,userController.deleteNotification)
+
 module.exports=router;

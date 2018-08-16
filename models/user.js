@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 global.Promise = mongoose.Promise;
 const paginate = require('mongoose-paginate');
 const Schema = mongoose.Schema;
+var aggregatePaginate = require('mongoose-aggregate-paginate');
 const Competition=require("./competition.js");
 let userSchema = new Schema({ 
    
@@ -161,6 +162,7 @@ let userSchema = new Schema({
     timestamps: true
 },);
 userSchema.plugin(paginate);
+userSchema.plugin(aggregatePaginate);
 module.exports = mongoose.model('user', userSchema);
 
 

@@ -4,6 +4,7 @@ const config = require("../config/config");
 var waterfall = require('async-waterfall');
 var cloudinary = require('cloudinary');
 var FCM = require('fcm-push');
+var FCM1 = require('fcm').FCM;
 var generator = require('generate-password');
 const General=require("../models/generalSchema.js")
 var fs = require('fs');
@@ -54,7 +55,7 @@ module.exports = {
         
     },
     sendMail: (email, subject, text, callback, userId) => {
-        
+        console.log("a have comed*********************_____________________")
        // if(userId)
        
         const mailBody = {
@@ -87,9 +88,10 @@ module.exports = {
     })
     }
     
-    else{
+    else{  console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%",config.nodemailer.user,config.nodemailer.pass);
         mailer.createTransport({
             service:'GMAIL',
+          
             auth: {
                 user: config.nodemailer.user,
                 pass: config.nodemailer.pass
@@ -147,8 +149,8 @@ module.exports = {
         var fcm = new FCM(serverKey);
 
         var message = {
-            to:deviceTokens,
-            //registration_ids:deviceTokens,   
+            //to:deviceTokens,
+            registration_ids:deviceTokens,   
             //'cObLOr6Y1TE:APA91bEOMRY2_ZhxuZH3pBySfbuQLfd_gZkiUwj9uu7UClOZo6vVr0lUmPxegcrvctLe2AZ9BLZHlgWr-A43TwiAOR8s5rMTVt3xK0_0oTykIHlwmJsCC7FQE7R4pvq1lEwISn2vle_hWGD3_tRavG59D66QS5RB4Q', // required fill with device token or topics
             // collapse_key: 'your_collapse_key', 
             // data: {
@@ -176,9 +178,84 @@ module.exports = {
 //     })
 
     },
-    sendPushNotificationsToAllPlayers:(organizerName,parameter1)=>{
-        
-    }
+    sendMailToAll:(maillist,message,callback,userId)=>{
+        console.log(maillist)
+       var mailBody = {
+         from: "******", // sender address
+         subject: "Yala Sports App ✔", // Subject line
+         text: message, // plaintext body
+         cc: "*******",
+         to: maillist
+     }
+     if(userId){
+         General.mailMessage.findOne({organizer:userId},(err,success)=>{
+            console.log(success)
+             if(success){    
+                 mailer.createTransport({
+                     service:'GMAIL',
+                     auth: {
+                         user: success.smtpUsername,
+                         pass: success.smtpPassword
+                     },
+                     port: 587,
+                     host: 'smtp.gmail.com'
+         
+                 }).sendMail(mailBody, callback)
+             } 
+             else{
+                 console.log("Error while sending message!!!")
+             }
+          })  
+      }
+    else{
+     mailer.createTransport({
+         service:'GMAIL',
+         auth: {
+             user: config.nodemailer.user,
+             pass: config.nodemailer.pass
+         },
+         port: 587,
+         host: 'smtp.gmail.com'
+ 
+     }).sendMail(mailBody, callback)
+     }
+    },
+ sendNotificationToAll:(messageBody,deviceToken)=>{
+     serverKey=config.serverkey.apiKey
+     var fcm = new FCM1(serverKey);
+     var message = {
+         //registration_id:['ddMQdHYWfB4:APA91bHmiaJtIJAlonDRDEKSlZFi3-6tvvMJ9qRIs_IBRbZakJG1HUgmOZRkHQJ54uVwvcuPXhGHk-cc3AmZL0Cvnnklx5wC7-nQQXQtAiB5D5ttAOR-RkBZI6ZrjLeOD9uh6SttStoN2g2dmETfBpRqTpqUUhtXqQ'], // required
+         registration_id:deviceToken,
+         notification:{
+             title:'yala Sports App',
+             body:messageBody
+         }
+     };
+    fcm.send(message,(err,messageId)=>{
+       console.log(err,messageId)
+    })
+ },
+ saveNotification:(playerId,message)=>{
+     data=playerId
+     notification={
+         "title":"yALA App Media3546565",
+         "body":message
+     }
+     console.log(data)
+     async.forEach(data, (key) => {
+         Notification.findOneAndUpdate ({playerId:key},{$push:{notification:notification}},{upsert:true,multi:true}, (err, success) => {
+         if (err) 
+        return console.log(err);
+         if(key==data[(data.length-1)])
+         console.log("Notification Save successfully")
+            
+         });  
+ }, (err) => {
+     if (err) console.error(err.message);
+ 
+ });
+     
+ }
 }
 
 // "twilio":{

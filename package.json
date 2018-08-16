@@ -11,6 +11,7 @@
   "dependencies": {
     "2checkout-node": "0.0.1",
     "async": "^2.6.1",
+    "async-each-series": "^1.1.0",
     "async-waterfall": "^0.1.5",
     "bcrypt": "^2.0.1",
     "bcryptjs": "^2.4.3",
