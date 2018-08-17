@@ -60,6 +60,7 @@ const addNewCompetition=(req,res)=>{
     })
 }
 
+
 const getACompetition=(req,res)=>{
     let flag =Validator(req.body,['userId'],[],["competitionId"])
 	if(flag)
@@ -125,6 +126,27 @@ const filterCompetition=(req,res)=>{
                 return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,result);
         })   
     }
+}
+
+const searchCompetition=(req,res)=>{
+    let search=new RegExp("^"+req.body.search)
+       let query={
+           clubName:search,
+           userId:req.query.userId
+        }
+            var options={
+                page:req.body.page||1,
+                limit:req.body.limit||10,
+                sort:{ createdAt: -1 }
+            }
+            dataServices.getListOfClub(query,options,(err,success)=>{
+                if(err)
+                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
+                else if(!success.docs.length)
+                return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NO_DATA_FOUND);
+                else
+                return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.LIST_OF_SPONSERS,success)
+         })
 }
 
 

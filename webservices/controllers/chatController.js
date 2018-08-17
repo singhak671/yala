@@ -36,53 +36,96 @@ const sendMessage = (req, res) => {
 
             }
             
-            if (req.body.message.senderId == req.body.organizerId)
+            if (req.body.message.senderId == req.body.organizerId){
                 General.chat.findOneAndUpdate({ organizerId: req.body.organizerId, playerId: req.body.playerId }, { $push: { message: req.body.message }, $set: { playerRead: false, organizerRead: true } }, { new: true, upsert: true })
                 .populate("playerId")
+                .populate({path:"organizerId",
+                    select:"_id firstName lastName" })
                 .exec((err1, success1) => {
-                    console.log("}}}}}}}}}}}}}77}}}}}")
+                   //
+                   // console.log("}}}}}}}}}}}}}77}}}}}",success1)
                     if (err1)
                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
                     else if (!success)
                         return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
-                    else {  console.log("}}}}}}}}}}}}}77}}}}}",success1.organizerId.email)
-                        return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success1);
+                    else {  console.log("}}}}}}}}}}}}}77}}}}}",success1.playerId.email)
+                       Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success1);
+
+                       //================save notifications============== 
+                       obj.message=`You have a new message from ${success1.organizerId.firstName+" "+success1.organizerId.lastName} in your YALA account`;
                         Notification.findOneAndUpdate({userId:req.body.playerId},{$push:{notification:obj}},{new:true,multi:true,upsert:true},(err,success)=>{});
-                       if(success1.playerId.competitionNotify.email.indexOf("message")!=-1)
-                        message.sendMail(success1.playerId.email, "YALA Sports", "Hi! you have a new message.", (err, success) => {
-                            if (success) {
-                                console.log("array&&&&&", arr)
-                                console.log("message sent SUCCESSFULLY_DONE");
-                            }
-                        });
+                       console.log("data of player",success1.playerId.competitionNotify.email.indexOf("message"))
+                        if(success1.playerId.competitionNotify.email.indexOf("message")!=-1)
+                            message.sendMail(success1.playerId.email, "YALA Sports", `You have a new message from ${success1.organizerId.firstName+" "+success1.organizerId.lastName} in your YALA account`, (err, success) => {
+                                if (err)
+                                console.log("error in message sent!");
+                                else
+                                 {
+                                    // console.log("array&&&&&", arr)
+                                    console.log("message sent SUCCESSFULLY_DONE");
+                                }
+                            });
+                       
+                        //===================sent message to phone number==================
+                        if(success1.playerId.competitionNotify.mobile.indexOf("message")!=-1)
+                            message.sendSMS(`You have a new message from ${success1.organizerId.firstName+" "+success1.organizerId.lastName} in your YALA account`,success1.playerId.countryCode,success1.playerId.mobileNumber,(err,sent)=>{
+                                if (err)
+                                console.log("error in message sent!");
+                                else{
+                                    console.log("message sent SUCCESSFULLY_DONE");
+                                }
+                                
+                            })
+                        //==============sent push notifications=========================
+
                         message.sendPushNotifications(success1.playerId.deviceToken,`Hi! you have a new message .`,(err,success)=>{})
                     }
 
-                })
+                })}
             else
-                General.chat.findOneAndUpdate({ organizerId: req.body.organizerId, playerId: req.body.playerId }, { $push: { message: req.body.message }, $set: { organizerRead: false, playerRead: true } }, { new: true, upsert: true })
+               { General.chat.findOneAndUpdate({ organizerId: req.body.organizerId, playerId: req.body.playerId }, { $push: { message: req.body.message }, $set: { organizerRead: false, playerRead: true } }, { new: true, upsert: true })
                 .populate("organizerId")
+                .populate({path:"playerId",
+                    select:"_id firstName lastName" })
                 .exec((err1, success1) => {
+                   
                     if (err1)
                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
-                    else if (!success)
+                    else if (!success1)
                         return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
                     else {
-                        return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success1);
+                        //console.log("anurag")
+                        Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success1);
+                        obj.message=`You have a new message from ${success1.playerId.firstName+" "+success1.playerId.lastName} in your YALA account`;
                         Notification.findOneAndUpdate({userId:req.body.organizerId},{$push:{notification:obj}},{new:true,multi:true,upsert:true},(err,success)=>{});
                         console.log("}}}}}}}}}}}}}}}}}}",success1.organizerId.email)
-                        message.sendMail(success1.organizerId.email, "YALA Sports", "Hi! you have a new message.", (err, success) => {
-                            if(err)
-                            console.log("error occured in sending email",err);
-                            else if (success) {
-                                console.log("array&&&&&", arr);
-                                console.log("message sent SUCCESSFULLY_DONE");
+
+
+                        //==========send mail==================
+                        message.sendMail(success1.organizerId.email, `You have a new message from ${success1.playerId.firstName+" "+success1.playerId.lastName} in your YALA account`, (err,result) => {
+                          //console.log(err,result)
+                          if (err)
+                            console.log("error in mail sent!");
+                          else{
+                                //console.log("array&&&&&", arr);
+                                console.log("mail sent SUCCESSFULLY_DONE");
                             }
                         });
-                        message.sendPushNotifications(success1.organizerId.deviceToken,`Hi! you have a new message .`,(err,success)=>{})
+                        //===================sent message to phone number==================
+                        message.sendSMS(`You have a new message from ${success1.playerId.firstName+" "+success1.playerId.lastName} in your YALA account`,success1.organizerId.countryCode,success1.organizerId.mobileNumber,(err,sent)=>{
+                            if (err)
+                            console.log("error in message sent!");
+                            else{
+                                console.log("message sent SUCCESSFULLY_DONE");
+                            }
+                            
+                        })
+                        //==============sent push notifications=========================
+                        message.sendPushNotifications(success1.organizerId.deviceToken,`You have a new message from ${success1.playerId.firstName+" "+success1.playerId.lastName} in your YALA account`,(err,success)=>{})
                     }
 
                 })
+            }
         }
     })
 }
@@ -167,7 +210,7 @@ const sendMessageToAllTeam = (req, res) => {
                     else if (!success)
                         return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
                     else {
-                        // res.send(success)
+                        //res.send(success)
                         let obj={
                             message:(`You have a new message !`),//from ${success.organizer.firstName} ${success.organizer.lastName}
                             title:"YALA Sports App"
@@ -180,27 +223,35 @@ const sendMessageToAllTeam = (req, res) => {
                                 Notification.findOneAndUpdate({userId:key._id},{$push:{notification:obj}},{new:true,multi:true,upsert:true},(err,success)=>{});
                                 General.chat.findOneAndUpdate({ organizerId: req.body.organizerId, playerId: key }, { $push: { message: req.body.message }, $set: { playerRead: false } }, { upsert: true, multi: true }, (err1, success1) => {
                                     if (err1) return res.send(err1);
-                                    console.log("^^^^^^^^^^^^^success>", key);
+                                    console.log("^^^^^^^^^^^^^success>",key.competitionNotify.email.indexOf("message"),key.email);
                                     if (key.competitionNotify.email.indexOf("message") != -1)
-                                        mailArray.push(key.email)
-                                    pushArray.push(key.deviceToken)  // push notification array
-                                    mobileArray.push((key.countryCode+key.mobileNumber)) // mobile number array to send message
-
+                                        mailArray.push(key.email);
+                                    pushArray.push(key.deviceToken) ;
+                                    if (key.competitionNotify.mobile.indexOf("message") != -1) // push notification array
+                                         mobileArray.push((key.countryCode+key.mobileNumber)) ;// mobile number array to send message
+                                         //console.log("ARRAY>>>",mailArray,mobileArray)
+                                         callback()
                                 });
-                            }, (err) => {
-                                if (err) console.error(err.message);
-
-                            });
-                            if (key1 == success[(success.length - 1)]){
-                                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Message successfully send to all!")
-                            console.log(arr)}
-                        })
-                        message.sendMail(mailArray, "YALA Sports", "Hi! you have a new message.", (err, success) => {
-                            if (success) {
-                                console.log("array&&&&&", arr)
-                                console.log("message sent SUCCESSFULLY_DONE");
-                            }
-                        }, req.body.organizerId);
+                            })
+                            callback()
+                           
+                        },(err,data)=> {
+                            
+                            console.log('$$$$$$$$$$$$$$$$done')
+                          })
+                    
+                      
+                            Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Message successfully send to all!");
+                            console.log("NAME>>>",success[0].organizer.firstName)
+                            message.sendMail(mailArray, "YALA Sports", `Hi! you have a new message from ${success[0].organizer.firstName+" "+success[0].organizer.lastName}`, (err, success) => {
+                                if (success) {
+                                    
+                                    console.log("message sent SUCCESSFULLY_DONE");
+                                }
+                            }, req.body.organizerId);
+                      
+                        console.log("pushArray",pushArray,"mailArray",mailArray,"mobileArray",mobileArray)
+                      
                          //==================send push notifications to all players=============//
                          message.sendPushNotifications(pushArray,`Hi! you have a new message .`,(err,success)=>{})
 

@@ -74,7 +74,7 @@ const signup=(req,res)=>{
 						return Response.sendResponse(res.responseCode.BAD_REQUEST,responseMsg.CORRECT_EMAIL_ID);
 						else{
 						  console.log("successfully sent")
-					   return Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,responseMsg.SIGNUP_SUCCESS,success)
+					   return Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,"Signed up successfully",success)
 				}
 				
 			})
@@ -114,7 +114,7 @@ const verifyOtp=(req,res)=>{
 				if(err)
 				return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
 				else
-				return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.VERIFICATION_SUCCESSFULLY_DONE,success,"",token)
+				return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"OTP verified successfully",success,"",token)
 			})
 		}
 		else{
@@ -837,7 +837,7 @@ const paymentOrder=(req,res)=>{
         return Response.sendResponse(res,flag[0],flag[1]);
     else
 	if(!req.body || !req.body.response.token )
-	return Response.sendResponse(res,responseCode.BAD_REQUEST,"Payment not successfull");
+	return Response.sendResponse(res,responseCode.BAD_REQUEST,"Payment failed");
 else{paymentAmount=0;
 	User.findById(req.headers.userid,(err,success)=>{
 			if(err)
@@ -903,7 +903,7 @@ else{paymentAmount=0;
 								return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
 							else{
 								
-							return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Payment is successfull",result);}
+							return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Payment done successfully",result);}
 					})
 			
 		} 

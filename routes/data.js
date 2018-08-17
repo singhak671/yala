@@ -4,7 +4,7 @@ const teamController=require('../webservices/controllers/team')
 const AUTH=require('../middlewares/auth_handler')
 //router.post('/addClub',dataController.addClub);
 router.post('/addClub',AUTH.verifyToken,dataController.addClub);
-router.get("/getListOfClub",AUTH.verifyToken,dataController.getListOfClub);
+router.post("/getListOfClub",AUTH.verifyToken,dataController.getListOfClub);
 router.get('/findClub',AUTH.verifyToken,dataController.findClub)
 router.post('/editClub',AUTH.verifyToken,dataController.editClub)
 router.get('/deleteClub',AUTH.verifyToken,dataController.deleteClub)
@@ -43,11 +43,11 @@ router.post('/addPlayer',teamController.addPlayer)
 router.post('/getListOfPlayer',teamController.getListOfPlayer)
 router.get('/getDetailOfPlayer',teamController.getDetailOfPlayer)
 
-router.post('/addSport',AUTH.verifyToken,dataController.addSport)
-router.post("/getListOfSport",AUTH.verifyToken,dataController.getListOfSport)
-router.get('/findSport',AUTH.verifyToken,dataController.findSport)
-router.post('/editSport',AUTH.verifyToken,dataController.editSport)
-router.get('/deleteSport',AUTH.verifyToken,dataController.deleteSport)
-router.post('/searchSport',AUTH.verifyToken,dataController.searchSport)
-router.get('/selectSport',AUTH.verifyToken,dataController.selectSport)
+// router.post('/addSport',AUTH.verifyToken,dataController.addSport)
+// router.post("/getListOfSport",AUTH.verifyToken,dataController.getListOfSport)
+// router.get('/findSport',AUTH.verifyToken,dataController.findSport)
+// router.post('/editSport',AUTH.verifyToken,dataController.editSport)
+// router.get('/deleteSport',AUTH.verifyToken,dataController.deleteSport)
+// router.post('/searchSport',AUTH.verifyToken,dataController.searchSport)
+// router.get('/selectSport',AUTH.verifyToken,dataController.selectSport)
 module.exports=router 

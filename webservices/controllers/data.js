@@ -4,13 +4,61 @@ const responseCode = require('../../helper/httpResponseCode')
 const responseMsg = require('../../helper/httpResponseMessage')
 const userServices=require('../services/userApis');
 const media = require("../../global_functions/uploadMedia");
-
-
+//const Notification = require("../../global_functions/notification")
+const subscriptionValidator = require('../../middlewares/validation').validate_subscription_plan;
+const message = require("../../global_functions/message");
+const tryyyy=(req,res)=>{
+    // deviceToken=['ddMQdHYWfB4:APA91bHmiaJtIJAlonDRDEKSlZFi3-6tvvMJ9qRIs_IBRbZakJG1HUgmOZRkHQJ54uVwvcuPXhGHk-cc3AmZL0Cvnnklx5wC7-nQQXQtAiB5D5ttAOR-RkBZI6ZrjLeOD9uh6SttStoN2g2dmETfBpRqTpqUUhtXqQ']
+    // notify={
+    //     title: 'YALA App',
+	// 		body: 'Media is added !'
+    // }
+    // message.sendNotificationToAll('Media is added !',deviceToken)
+        // ,(err,success)=>{
+        // if(err)
+        // return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+        // else
+        // return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.EVERYTHING_IS_OK,success)
+    // })
+    var mailList=["shrivastavaankita21sept@gmail.com","anny71014.shrivastava@gmail.com","anny71014.shrivastav@gmail.com"]
+   message.sendMailToAll(mailList,"hIIIII",(err,success)=>{
+       console.log(success)
+   },"5b55721fd6e47a46a4516f87")
+}
+const accessPlanData=(req,res)=>{
+    subscriptionValidator(req.query,["data"],(err,flag)=>{
+        if(flag[0]!==200)
+        return Response.sendResponse(res,flag[0],flag[1],flag[2]);
+        else if(!req.query.userId){
+         return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_NOT_FOUND)
+        }
+        else{
+            userServices.findUser({_id:req.query.userId},(err,success)=>{
+                if(err)
+                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+                else if(!success)
+                    return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.ORGANIZER_NOT_FOUND)
+                else{
+                    if(success.employeeRole=='COORDINATOR'){
+                        console.log("dhfgfgjjhg")
+                        return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success.employeePermissionForCoordinator.dataBase)
+                    } 
+                    else if(success.employeeRole=="ADMINSTRATOR"){
+                        console.log("qqqqqqqq")
+                        return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success.employeePermissionForAdminstartor.dataBase)
+                    }  
+                    else
+                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,"ALL")
+                }
+            })
+        }
+     })
+}
 //--------------------------Add Club---------------------------------------------------------
 const addClub=(req,res)=>{
     console.log("req.body------>>>>",req.body)
     if(!req.query.userId)
-        return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED);
+    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED)
     // else if(!req.body)
     // return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.PROVIDE_DATA)
     else{
@@ -20,10 +68,14 @@ const addClub=(req,res)=>{
            }
            userServices.findUser(query,(err,success)=>{
                if(err)
-                    return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+               return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
                else if(!success)
-                    return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.ORGANIZER_NOT_FOUND);
+               return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.ORGANIZER_NOT_FOUND)
                else{
+                if(success.employeeRole=='COORDINATOR'||success.employeeRole=="ADMINSTRATOR")
+                  req.body.userId=success.employeerId
+                  else
+                  req.body.userId=req.query.userId
                    let query={
                        $and:[{clubName:req.body.clubName},{userId:req.query.userId}]
                    }
@@ -33,7 +85,7 @@ const addClub=(req,res)=>{
                        else if(success)
                        return Response.sendResponse(res,responseCode.ALREADY_EXIST,responseMsg.CLUB_EXISTS)
                        else{
-                           req.body.userId=req.query.userId
+                          
                            if(req.body.image){
                                 media.uploadImg(req.body.image,(err,success)=>{
                                     if(err){
@@ -67,29 +119,35 @@ const addClub=(req,res)=>{
            })
     }
 }
-
 //--------------------------Get Detail of Club-------------------------------------------------------
 const getListOfClub=(req,res)=>{
-    console.log(req.body);
     if(!req.query.userId){
         Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED)
     }
    else{
-       let query={
-             userId:req.query.userId
-       }
-       let options = {
-        // page:req.body.page || 1,
-        // limit:req.body.limit || 4,
-         createdAt: -1 
-     }
-       dataServices.getListOfClub(query,options,(err,success)=>{
-           if(err)
+       userServices.findUser({_id:req.query.userId},(err,success)=>{
+           if(err||!success)
            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-           else if(!success)
-           return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.CLUB_NOT_FOUND)
-           else return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.CLUB_LIST,success)
-           
+           else{
+            if(success.employeeRole=='COORDINATOR'||success.employeeRole=="ADMINSTRATOR")
+            req.query.userId=success.employeerId
+            let query={
+                userId:req.query.userId
+             }
+          let options = {
+           page:req.body.page || 1,
+           limit:req.body.limit || 4,
+           sort:{ createdAt: -1 }
+        }
+          dataServices.getListOfClub(query,options,(err,success)=>{
+              if(err)
+              return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+              else if(!success.docs.length)
+              return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.CLUB_NOT_FOUND)
+              else return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.CLUB_LIST,success)
+              
+           })
+         }
        })
    }
 }
@@ -101,8 +159,7 @@ const getListOfClub=(req,res)=>{
       return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.CLUB_IS_REQ)
       else{
           let query={
-              userId:req.query.userId,
-              _id:req.query.clubId
+              _id:req.query.clubId,
           }
           dataServices.findClub(query,(err,success)=>{
               if(err)
@@ -123,8 +180,7 @@ const editClub=(req,res)=>{
     return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.CLUB_IS_REQ)
     else{
         let query={
-            _id:req.query.clubId,
-            userId:req.query.userId
+            _id:req.query.clubId
         }
         dataServices.findClub(query,(err,success)=>{
             if(err)
@@ -141,8 +197,7 @@ const editClub=(req,res)=>{
                                console.log("image.url",success)
                                 req.body.image=success
                                 let query={
-                                    _id:req.query.clubId,
-                                    userId:req.query.userId
+                                    _id:req.query.clubId
                                 }
                                   let options={
                                       new:true
@@ -162,8 +217,7 @@ const editClub=(req,res)=>{
                 else{
                     req.body.image=req.body.imageURL
                     let query={
-                        _id:req.query.clubId,
-                        userId:req.query.userId
+                        _id:req.query.clubId
                     }
                       let options={
                           new:true
@@ -190,10 +244,8 @@ const deleteClub=(req,res)=>{
         return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.CLUB_IS_REQ)
     else{
         let query={
-            _id:req.query.clubId,
-            userId:req.query.userId
+            _id:req.query.clubId
         }
-
                dataServices.deleteClub(query,(err,success)=>{
                    if(err)
                    return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
@@ -202,7 +254,6 @@ const deleteClub=(req,res)=>{
                    else{
                     let query={
                       "club.clubId":req.query.clubId,
-                      userId:req.query.userId
                     }
                     dataServices.deleteVenue(query,(err,success)=>{
                         if(err)
@@ -211,10 +262,8 @@ const deleteClub=(req,res)=>{
                         return Response.sendResponse(res,responseCode.RESOURCE_DELETED,responseMsg.CLUB_DELETE)
                     })
                  
-                   }
-                   
-               })
-          
+                }   
+        })
     }
 }
 //
@@ -223,7 +272,7 @@ const searchClub=(req,res)=>{
        let query={
            clubName:search,
            userId:req.query.userId
-       }
+        }
             var options={
                 page:req.body.page||1,
                 limit:req.body.limit||10,
@@ -236,11 +285,9 @@ const searchClub=(req,res)=>{
                 return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NO_DATA_FOUND);
                 else
                 return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.LIST_OF_SPONSERS,success)
-            })
+         })
 }
-
 //--------------------------Add Sponsers-------------------------------------------------------
-
 const addSponsors=(req,res)=>{
     console.log("req.body--->>",req.body)
     if(!req.query.userId){
@@ -260,8 +307,12 @@ const addSponsors=(req,res)=>{
                return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.ORGANIZER_NOT_FOUND)
            }
            else{
+             if(success.employeeRole=='COORDINATOR'||success.employeeRole=="ADMINSTRATOR")
+             req.body.userId=success.employeerId
+             else
+             req.body.userId=req.query.userId
                let query={
-                   $and:[{userId:req.query.userId},{sponsorName:req.body.sponsorName}]
+                   $and:[{userId:req.body.userId},{sponsorName:req.body.sponsorName}]
                }
                dataServices.findSponser(query,(err,success)=>{
                    if(err)
@@ -269,7 +320,6 @@ const addSponsors=(req,res)=>{
                    else if(success)
                    return Response.sendResponse(res,responseCode.ALREADY_EXIST,responseMsg.SPONSER_EXISTS)
                    else{
-                       req.body.userId=req.query.userId
                     if(req.body.image){
                     
                             media.uploadImg(req.body.image,(err,success)=>{
@@ -308,7 +358,6 @@ const addSponsors=(req,res)=>{
     }
 }
 //--------------Get List of Sponser-----------------------------
-
 const getListOfSponsor=(req,res)=>{
     console.log("req.body---->>",req.body)
     if(!req.query.userId){
@@ -324,8 +373,12 @@ const getListOfSponsor=(req,res)=>{
             else if(!success)
             return Response.sendResponse(re,responseCode.NOT_FOUND,responseMsg.ORGANIZER_NOT_FOUND)
             else{
+                if(success.employeeRole=='COORDINATOR'||success.employeeRole=="ADMINSTRATOR")
+                req.body.userId=success.employeerId
+                else
+                req.body.userId=req.query.userId
                 let query={
-                    userId:req.query.userId
+                    userId:req.body.userId
                 }
                 let options = {
                     page:req.body.page || 1,
@@ -344,9 +397,7 @@ const getListOfSponsor=(req,res)=>{
         })
     }
 }
-
 // ------------------------- Get Edit Sponsers------------------------------------------------
-
 const getEditDetailOfSponsor=(req,res)=>{
     if(!req.query.userId)
     return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED)
@@ -354,8 +405,7 @@ const getEditDetailOfSponsor=(req,res)=>{
     return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.SPONSER_IS_REQUIRED)
     else{
         let query={
-            _id:req.query.sponsorId,
-            userId:req.query.userId
+            _id:req.query.sponsorId
         }
        dataServices.findSponser(query,(err,success)=>{
            if(err)
@@ -368,7 +418,6 @@ const getEditDetailOfSponsor=(req,res)=>{
     }
 }
 //------------------------Edit Sponsers----------------------------------
-
 const editSponsor=(req,res)=>{
     console.log("req.body---->>",req.body)
     if(!req.query.userId)
@@ -377,8 +426,7 @@ const editSponsor=(req,res)=>{
     return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.SPONSER_IS_REQUIRED)
     else{
         let query={
-            _id:req.query.sponsorId,
-            userId:req.query.userId
+            _id:req.query.sponsorId
         }
         dataServices.findSponser(query,(err,success)=>{
             if(err)
@@ -395,7 +443,6 @@ const editSponsor=(req,res)=>{
                                req.body.image=success
                                let query={
                                 _id:req.query.sponsorId,
-                                userId:req.query.userId
                               }
                               let options={
                                   new:true
@@ -416,8 +463,7 @@ const editSponsor=(req,res)=>{
                   else{
                       req.body.image=req.body.imageURL
                       let query={
-                        _id:req.query.sponsorId,
-                        userId:req.query.userId
+                        _id:req.query.sponsorId
                       }
                       let options={
                           new:true
@@ -445,10 +491,8 @@ const deleteSponsor=(req,res)=>{
     return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.SPONSER_IS_REQUIRED)
     else{
         let query={
-            _id:req.query.sponsorId,
-            userId:req.query.userId
+            _id:req.query.sponsorId
         }
-
                dataServices.deleteSponser(query,(err,success)=>{
                    if(err)
                    return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
@@ -488,23 +532,35 @@ const selectClub=(req,res)=>{
         return Reponse.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_NOT_FOUND)
     }
     else{
-        let query={
-            userId:req.query.userId
-        }
-        select={
-            clubName:1,
-            _id:0
-        }
-        dataServices.selectClub(query,select,(err,success)=>{
-            if(err){
-                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-            }
-            else if(success==false)
-            return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.CLUB_NOT_FOUND)
+        userServices.findUser({_id:req.query.userId},(err,success)=>{
+            if(err)
+            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+            else if(!success)
+            return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.ORGANIZER_NOT_FOUND)
             else{
-                return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.CLUB_LIST,success)
+                if(success.employeeRole=='COORDINATOR'||success.employeeRole=="ADMINSTRATOR")
+                req.body.userId=success.employeerId
+                else
+                req.body.userId=req.query.userId
+                let query={
+                    userId:req.body.userId
+                }
+                select={
+                    clubName:1,
+                    _id:0
+                }
+                dataServices.selectClub(query,select,(err,success)=>{
+                    if(err){
+                        return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+                    }
+                    else if(!success.length)
+                    return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.CLUB_NOT_FOUND)
+                    else{
+                        return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.CLUB_LIST,success)
+                    }
+                })
             }
-        })
+        })    
     }
 }
 //------------------------------Add Venue----------------------------------
@@ -525,8 +581,12 @@ const addVenue=(req,res)=>{
                else if(!success)
                return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.ORGANIZER_NOT_FOUND)
                else{
+                if(success.employeeRole=='COORDINATOR'||success.employeeRole=="ADMINSTRATOR")
+                req.body.userId=success.employeerId
+                else
+                req.body.userId=req.query.userId
                    let query={
-                       $and:[{venue:req.body.venue},{userId:req.query.userId}]
+                       $and:[{venue:req.body.venue},{userId:req.body.userId}]
                    }
                    dataServices.findVenue(query,(err,success)=>{
                        if(err)
@@ -534,7 +594,6 @@ const addVenue=(req,res)=>{
                        else if(success)
                        return Response.sendResponse(res,responseCode.ALREADY_EXIST,responseMsg.VENUE_EXISTS)
                        else{
-                           req.body.userId=req.query.userId
                                let query={
                                    clubName:req.body.club
                                }
@@ -578,8 +637,12 @@ const getListOfVenue=(req,res)=>{
                 else if(!success)
                 return Response.sendResponse(re,responseCode.NOT_FOUND,responseMsg.ORGANIZER_NOT_FOUND)
                 else{
+                    if(success.employeeRole=='COORDINATOR'||success.employeeRole=="ADMINSTRATOR")
+                    req.body.userId=success.employeerId
+                    else
+                    req.body.userId=req.query.userId
                     let query={
-                        userId:req.query.userId
+                        userId:req.body.userId
                     }
                     let options = {
                         page:req.body.page || 1,
@@ -607,7 +670,6 @@ const getEditDetailOfVenue=(req,res)=>{
     return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.VENUE_NOT_FOUND)
     else{
         let query={
-            userId:req.query.userId,
             _id:req.query.venueId
         }
         dataServices.findVenue(query,(err,success)=>{
@@ -632,7 +694,6 @@ const editVenue=(req,res)=>{
     else{
         let query={
             _id:req.query.venueId,
-            userId:req.query.userId
         }
         dataServices.findVenue(query,(err,success)=>{
             if(err)
@@ -655,7 +716,6 @@ const editVenue=(req,res)=>{
                    }
                    let query={
                     _id:req.query.venueId,
-                    userId:req.query.userId
                 }
                    dataServices.updateVenue(query,req.body,{new:true},(err,success)=>{
                      if(err)
@@ -677,8 +737,7 @@ const deleteVenue=(req,res)=>{
     return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.VENUE_NOT_FOUND)
     else{
         let query={
-            _id:req.query.venueId,
-            userId:req.query.userId
+            _id:req.query.venueId
         }
         dataServices.deleteVenue(query,(err,success)=>{
             if(err)
@@ -726,8 +785,12 @@ const addReferee=(req,res)=>{
            else if(!success)
            return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.ORGANIZER_NOT_FOUND)
            else{
+            if(success.employeeRole=='COORDINATOR'||success.employeeRole=="ADMINSTRATOR")
+            req.body.userId=success.employeerId
+            else
+            req.body.userId=req.query.userId
               let query={
-                  $and:[{userId:req.query.userId},{email:req.body.email}]  
+                  $and:[{userId:req.body.userId},{email:req.body.email}]  
               }
               dataServices.findRefree(query,(err,success)=>{
                 if(err)
@@ -743,7 +806,6 @@ const addReferee=(req,res)=>{
                                 else{
                                    console.log("image.url",success)
                                    req.body.image=success
-                                   req.body.userId=req.query.userId;
                                    dataServices.addRefree(req.body,(err,success)=>{
                                        if(err)
                                        return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR)
@@ -754,7 +816,6 @@ const addReferee=(req,res)=>{
                                })
                      }
                      else{
-                         req.body.userId=req.query.userId;
                          req.body.image=req.body.imageURL
                          console.log("HDSFGJJFDG",req.body)
                          dataServices.addRefree(req.body,(err,success)=>{
@@ -785,8 +846,12 @@ const getListOfReferee=(req,res)=>{
             else if(!success)
             return Response.sendResponse(re,responseCode.NOT_FOUND,responseMsg.ORGANIZER_NOT_FOUND)
             else{
+                if(success.employeeRole=='COORDINATOR'||success.employeeRole=="ADMINSTRATOR")
+                 req.body.userId=success.employeerId
+                 else
+                 req.body.userId=req.query.userId
                 let query={
-                    userId:req.query.userId
+                    userId:req.body.userId
                 }
                 let options = {
                     page:req.body.page || 1,
@@ -814,7 +879,6 @@ const getEditDetailOfReferee=(req,res)=>{
     return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.REFREE_NOT_FOUND)
     else{
         let query={
-            userId:req.query.userId,
             _id:req.query.refereeId
         }
         dataServices.findRefree(query,(err,success)=>{
@@ -835,7 +899,6 @@ const editReferee=(req,res)=>{
     return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.REFREE_IS_REQUIRED)
     else{
         let query={
-            userId:req.query.userId,
             _id:req.query.refereeId
         }
         dataServices.findRefree(query,(err,success)=>{
@@ -853,7 +916,6 @@ const editReferee=(req,res)=>{
                                console.log("image.url",success)
                                req.body.image=success
                                let query={
-                                userId:req.query.userId,
                                 _id:req.query.refereeId
                               }
                               dataServices.updateRefree(query,req.body,{new:true},(err,success)=>{
@@ -868,7 +930,6 @@ const editReferee=(req,res)=>{
                   else{
                     req.body.image=req.body.imageURL
                       let query={
-                        userId:req.query.userId,
                         _id:req.query.refereeId
                       }
                       dataServices.updateRefree(query,req.body,{new:true},(err,success)=>{
@@ -890,7 +951,6 @@ const deleteReferee=(req,res)=>{
     return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.REFREE_IS_REQUIRED)
     else{
         let query={
-            userId:req.query.userId,
             _id:req.query.refereeId
         }
         dataServices.deleteRefree(query,(err,success)=>{
@@ -922,166 +982,9 @@ const searchReferee=(req,res)=>{
                 return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.REFREE_LIST,success)
             })
 }
-
-//-------------------Add Sports--------------------------------------
-const addSport=(req,res)=>{
-    console.log("req.body--->>>",req.body)
-    if(!req.query.userId)
-    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED)
-    else{
-        let query={
-            $and:[{sportName:req.body.sponserName},{organizer:req.query.userId},{status:"ACTIVE"}]
-        }
-        dataServices.findSport(query,(err,success)=>{
-            if(err)
-            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-            else if(success)
-            return Response.sendResponse(res,responseCode.ALREADY_EXIST,responseMsg.SPORT_ALREADY_EXISTS)
-            else{
-                req.body.organizer=req.query.userId
-                dataServices.addSport(req.body,(err,success)=>{
-                if(err)
-                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-                else 
-                return Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,responseMsg.SPORT_ADDED,success)
-            })
-         }   
-      })
-    }
-}
-//---------------------------Get list of Sport----------------------------
-const getListOfSport=(req,res)=>{
-    if(!req.query.userId)
-    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED)
-    else{
-        let query={
-            organizer:req.query.organizer,
-            status:"ACTIVE"
-        }
-        let option={
-            limit:req.body.limit||5,
-            page:req.body.page||1,
-            sort:{createdAt:-1}
-        }
-        dataServices.getListOfSport(query,option,(err,success)=>{
-            if(err)
-            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-            else if(!success.docs.length)
-            return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.SPORT_NOT_FOUND)
-            else
-            return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SPORT_LIST,success)
-        })
-    }
-}
-//------------------------Get Detail of Sport----------------------------------
-const findSport=(req,res)=>{
-    if(!req.query.userId)
-    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED)
-    if(!req.query.sportId)
-    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.SPORT_IS_REQUIRED)
-    else{
-        let query={
-            _id:req.query.sportId,
-            organizer:req.query.userId,
-            status:"ACTIVE"
-        }
-       dataServices.findSport(query,(err,success)=>{
-        if(err)
-        return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-        else if(!success)
-        return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.SPORT_NOT_FOUND)
-        else
-        return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SPORT_DETAIL,success)
-       })
-    }
-}
-//------------------------Edit sports------------------------------
-const editSport=(req,res)=>{
-    console.log("req.body--->>",req.body)
-    if(!req.query.userId)
-    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED)
-    if(!req.query.sportId)
-    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.SPORT_IS_REQUIRED)
-    else{
-        let query={
-            _id:req.query.sportId,
-            organizer:req.query.userId,
-            status:"ACTIVE"
-        }
-        dataServices.editSport(query,req.body,{new:true},(err,success)=>{
-            if(err)
-            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR)
-            else if(!success)
-            return Response.sendResponse(res,responseCode.NOT_MODIFIED,responseMsg.NOT_MODIFIED)
-            else
-            return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SPORT_EDIT,suucess)
-        })
-    }
-}
-//--------------------Delete sports------------------------------
-const deleteSport=(req,res)=>{
-    if(!req.query.userId)
-    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED)
-    if(!req.query.sportId)
-    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.SPORT_IS_REQUIRED)
-    else{
-        let query={
-            _id:req.query.sportId,
-            organizer:req.query.userId,
-            status:"ACTIVE"
-        }
-        let set={
-            status:"INACTIVE"
-        }
-        let option={
-           new:true
-        }
-        dataServices.editSport(query,set,option,(err,success)=>{
-            if(err)
-            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR)
-            else
-            return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SPORT_DELETE)
-        })
-    }
-}
-//------------------------Search Sport----------------------------------------
-const searchSport=(req,res)=>{
-    let search=new RegExp("^"+req.body.search)
-       let query={
-           sportName:search,
-           organizer:req.query.userId
-       }
-            var options={
-                page:req.body.page||1,
-                limit:req.body.limit||10,
-                sort:{ createdAt: -1 }
-            }
-            dataServices.getListOfSport(query,options,(err,success)=>{
-                if(err)
-                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
-                else if(!success.docs.length)
-                return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NO_DATA_FOUND);
-                else
-                return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SPORT_LIST,success)
-            })
-}
-//----------------------------Select sport--------------------------------
-const selectSport=(req,res)=>{
-    if(!req.query.userId)
-    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED)
-    else{
-        dataServices.selectSport({organizer:req.query.userId,status:"ACTIVE"},(err,success)=>{
-            if(err)
-            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
-            else if(!success)
-            return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NO_DATA_FOUND);
-            else
-            return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SPORT_LIST,success)
-        })
-    }
-}
 module.exports={
-    
+    accessPlanData,
+    tryyyy,
     addClub,
     getListOfClub,
     findClub,
@@ -1106,23 +1009,5 @@ module.exports={
     getEditDetailOfReferee,
     editReferee,
     deleteReferee,
-    searchReferee,
-    addSport,
-    getListOfSport,
-    findSport,
-    editSport,
-    deleteSport,
-    searchSport,
-    searchSport,
-    selectSport
+    searchReferee
 }
-
-
-
-
-
-
-
-
-
-

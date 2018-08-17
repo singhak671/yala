@@ -418,7 +418,31 @@ const followCompetition=(req,res)=>{
         })
 }
 
-
+const searchCompetition=(req,res)=>{
+    let search=new RegExp("^"+req.body.search)
+       let query={
+           competitionName:search,
+           period:search,
+           sports:search,
+           status:search,
+           venue:search,
+        //    organi
+        //    userId:req.query.userId
+        }
+            var options={
+                page:req.body.page||1,
+                limit:req.body.limit||10,
+                sort:{ createdAt: -1 }
+            }
+            Competition.competition.getListOfClub(query,options,(err,success)=>{
+                if(err)
+                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
+                else if(!success.docs.length)
+                return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NO_DATA_FOUND);
+                else
+                return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.LIST_OF_SPONSERS,success)
+         })
+}
 
 const unFollowCompetition=(req,res)=>{
     let flag =Validator(req.body,[],[],["userId","competitionId"])

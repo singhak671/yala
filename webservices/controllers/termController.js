@@ -5,6 +5,7 @@ const userServices=require('../services/userApis');
 const TermsAndPolicy=require("../../models/termsAndPrivacyModel")
 
 const getTermsAndConditions=(req,res)=>{
+    console.log(req.body.role)
     if(!req.body.role){
         return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ROLE_IS_REQ)
     }

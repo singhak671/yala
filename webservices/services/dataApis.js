@@ -15,7 +15,10 @@ const findClub=(bodyData,callback)=>{
     })
 }
 const getListOfClub=(bodyData,options,callback)=>{
-    Data.club.find(bodyData).sort(options).exec((err,result)=>{
+    // Data.club.find(bodyData).sort(options).exec((err,result)=>{
+    //     callback(err,result)
+    // })
+    Data.club.paginate(bodyData,options,(err,result)=>{
         callback(err,result)
     })
 }

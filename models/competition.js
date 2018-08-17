@@ -132,6 +132,8 @@ let competitionSchema = new Schema({
 });
 
 competitionSchema.plugin(paginate);
+//competitionSchema.index({'$**': 'text'});
+//competitionSchema.index({competitionName: 'text', sportType: 'text'});
 var competition = mongoose.model('competition', competitionSchema);
 
 let registrationSchema = new Schema({

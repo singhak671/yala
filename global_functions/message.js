@@ -9,7 +9,8 @@ var generator = require('generate-password');
 const General=require("../models/generalSchema.js")
 var fs = require('fs');
 let pwd,usr;
-
+const Notification=require('../models/notification.js')
+var async = require("async");
 cloudinary.config({ 
     cloud_name: config.cloudinary.cloud_name, 
     api_key: config.cloudinary.api_key, 
@@ -33,6 +34,7 @@ module.exports = {
     //             })
     // },
     sendSMS: (message,code,number, callback) => {
+        console.log("Mobile number",code+number)
         var a=52;
                     let client = new twilio(config.twilio.sid, config.twilio.auth_token);
                     client.messages.create({
@@ -41,7 +43,7 @@ module.exports = {
                             from: config.twilio.number // From a valid Twilio number
                         })
                         .then((message) => {
-                            console.log("@@@@@@@@@@@@@@@@@@",message);
+                            //console.log("@@@@@@@@@@@@@@@@@@",message);
                             callback(null, message.sid);
                         })
                         .catch((response) => {
@@ -55,7 +57,7 @@ module.exports = {
         
     },
     sendMail: (email, subject, text, callback, userId) => {
-        console.log("a have comed*********************_____________________")
+        console.log("I have comed for email*********************_____________________",email)
        // if(userId)
        
         const mailBody = {
@@ -88,7 +90,8 @@ module.exports = {
     })
     }
     
-    else{  console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%",config.nodemailer.user,config.nodemailer.pass);
+    else{ 
+        console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%",config.nodemailer.user,config.nodemailer.pass);
         mailer.createTransport({
             service:'GMAIL',
           

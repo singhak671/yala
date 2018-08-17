@@ -59,7 +59,7 @@ CORRECT_EMAIL_ID
 "Please Enter Correct Email Id",
 CORRECT_OTP
 :
-"Enter valid Otp",
+"Invalid OTP",
 CORRECT_PASS
 :
 "Enter valid Password",
@@ -389,8 +389,14 @@ EMPLOYEE_ROLE:"Employee role set.",
 EMPLOYEE_IS_REQUIRED:"Employee is required.",
 EMPLOYEE_DELETE:"Employee dleted successfully.",
 ROLE_MATRIX:"Role Matrix for employees",
-COMMENT_DISABLE:"Comment is disabled."
-
+COMMENT_DISABLE:"Comment is disabled.",
+MEDIA_UPDATED:"Media updated successfully",
+MODIFICATION_FAILED:"Notification setting failed.",
+NOTIFICATION:"Notification setting successfull.",
+NOTIFICATION_SETTING:"List of Notification.",
+NOTIFICATION_LIST:"List of Notification",
+NOTIFICATION_NOT_FOUND:"Notification not found.",
+NOTIFICATION_DELTED:"Notification deleted successfully."
     // INTERNAL_SERVER_ERROR: 'Internal server error.',
     // REQUIRED_DATA: 'Please fill all required data.',
     // SUCCESSFULLY_DONE: 'SUCCESS.',

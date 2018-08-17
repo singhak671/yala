@@ -13,7 +13,7 @@ const General=require("../../models/generalSchema.js")
 const subscriptionValidator = require('../../middlewares/validation').validate_subscription_plan;
 //---------------------------Select competiton----------------------------------------------
 const selectCompition=(req,res)=>{
-    //console.log("ghfghdhfh",req.query.userId)
+    console.log("ghfghdhfh",req.query.userId)
     if(!req.query.userId){
         return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED)
     }
@@ -66,7 +66,7 @@ const selectVenue=(req,res)=>{
 //-----------------------------------Create Team---------------------------------------------------
 const createTeam=(req,res)=>{
     console.log("req.body--->>",req.body)
-        subscriptionValidator(req.query,["team&player"],(err,flag)=>{
+        subscriptionValidator(req.query,["Create Team"],(err,flag)=>{
         if(flag[0]!==200)
         return Response.sendResponse(res,flag[0],flag[1],flag[2]);
         else{
@@ -87,7 +87,7 @@ const createTeam=(req,res)=>{
                       req.body.organizer=req.query.userId
                         let query={
                           organizer:req.body.organizer,
-                          teamName:req.body.teamName
+                          email:req.body.email
                         }
                        teamServices.findTeam(query,(err,success)=>{
                            if(err)
@@ -111,7 +111,7 @@ const createTeam=(req,res)=>{
 }
 //-----------------------------------------Get Detail of Team-----------------------------------------------------
 const getDetailOfTeam=(req,res)=>{
-    subscriptionValidator(req.query,["team&player"],(err,flag)=>{
+    subscriptionValidator(req.query,["Create Team"],(err,flag)=>{
         if(flag[0]!==200)
         return Response.sendResponse(res,flag[0],flag[1],flag[2]);
         else{
@@ -148,9 +148,9 @@ const getDetailOfTeam=(req,res)=>{
     })
     
 }
-//------------------------------Filter Team---------------------------------------//
+//---------------Filter Team---------------------------------------
 const filterTeam=(req,res)=>{
-    subscriptionValidator(req.query,["team&player"],(err,flag)=>{
+    subscriptionValidator(req.query,["Create Team"],(err,flag)=>{
         if(flag[0]!==200)
         return Response.sendResponse(res,flag[0],flag[1],flag[2]);
         else{
@@ -298,7 +298,7 @@ const tryyyy=(req,res)=>{
 }
 //---------------------------Add player-----------------------------------------------
 const addPlayer=(req,res)=>{
-      console.log(req.body.playerDetail)
+        console.log(req.body.playerDetail)
         subscriptionValidator(req.query,["team&player"],(err,flag)=>{
         if(flag[0]!==200)
         return Response.sendResponse(res,flag[0],flag[1],flag[2]);
@@ -321,12 +321,11 @@ const addPlayer=(req,res)=>{
                    else if(success)
                    return Response.sendResponse(res,responseCode.ALREADY_EXIST,responseMsg.PLAYER_EXISTS)
                    else{
-                    teamServices.findTeam({_id:req.body.teamId},(err,success)=>{
+                    teamServices.findCompition({_id:req.body.competitionId},(err,success)=>{
                         if(err||!success)
                         return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
                         else{
-                            //console.log(new Date(req.body.playerDetail.dob))
-                            console.log("abcde",success.division)
+                            console.log(new Date(req.body.playerDetail.dob))
                             General.division.aggregate([ 
                                 {
                                     $match:{
@@ -335,16 +334,16 @@ const addPlayer=(req,res)=>{
                                 },
                                 { $project: { dateDifference: { $divide: [ { $subtract: [ "$date",new Date(req.body.playerDetail.dob) ] }, (60*60*24*1000*366) ] } ,gender:1,minAge:1,maxAge:1,divisionName:1}},
                             ],(err,success)=>{
+                                console.log(success[0])
                                 if(err||!success)
                                 return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
                                 else{
-                                    //console.log("gdfghd",success)
                                     if(success[0].gender=="male"||success[0].gender=="female"||success[0].gender=="co-ed"){
                                         if(req.body.playerDetail.gender!=success[0].gender&&success[0].gender!="co-ed")
-                                        return Response.sendResponse(res,responseCode.BAD_REQUEST,`"${success[0].gender}" are only allowed for team "${req.body.teamName}" !`)
+                                        return Response.sendResponse(res,responseCode.BAD_REQUEST,`"${success[0].gender}" are allowed only for division "${success[0].divisionName}" !`)
                                       else{
-                                          //console.log("yieepieee")
-                                          //console.log("dsffj",parseInt(success[0].dateDifference))
+                                          console.log("yieepieee")
+                                          console.log("dsffj",parseInt(success[0].dateDifference))
                                           if(success[0].dateDifference<success[0].minAge||success[0].dateDifference>success[0].maxAge)
                                           return Response.sendResponse(res,responseCode.BAD_REQUEST,`"${parseInt(success[0].dateDifference)}" year age players are not allowed for  team "${req.body.teamName}" !`)
                                           else{
@@ -354,6 +353,7 @@ const addPlayer=(req,res)=>{
                                               req.body.password=password
                                               let salt = bcrypt.genSaltSync(10);
                                               req.body.playerDetail.password = bcrypt.hashSync(req.body.password, salt)
+                                              req.body.playerDetail.role = ["PLAYER"]
                                               userServices.addUser(req.body.playerDetail,(err,success)=>{
                                                   if(err)
                                                   return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
@@ -373,37 +373,40 @@ const addPlayer=(req,res)=>{
                                                               let obj={
                                                                     organizer:req.body.organizer,
                                                                     competitionId:req.body.competitionId,
-                                                                    registration:"TRUE",
                                                                     playerId:success._id,
+                                                                    registration:true,
                                                                     status:req.body.status,
-                                                                    followStatus:"TRUE",
-                                                                    teamId:req.body.teamId
+                                                                    followStatus:"APPROVED",
+                                                                    teamName:req.body.teamName
                                                               }
                                                            teamServices.addCompetitonFollow(obj,(err,success2)=>{
                                                                if(err || !success2)
                                                                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
                                                                else{
-                                                                   let set={
-                                                                       $push:{
-                                                                           playerId:success._id
+                                                                if(req.body.teamName){
+                                                                    let set={
+                                                                        $push:{
+                                                                            playerId:success._id
+                                                                        }
+                                                                    }
+                                                                    teamServices.updateTeam({_id:req.body.teamId},set,{new:true},(err,success3)=>{
+                                                                       if(err || !success3)
+                                                                       return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+                                                                       else{
+                                                                         console.log("success")
                                                                        }
-                                                                   }
-                                                                   teamServices.updateTeam({_id:req.body.teamId},set,{new:true},(err,success3)=>{
-                                                                      if(err || !success3)
-                                                                      return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-                                                                      else{
-                                                                          message.sendMail(success.email,"Login Credentials","Your Login Creadentials are"+"<br/>UserId : "+req.body.playerDetail.email+"<br/>Password : "+ req.body.password,(err,result1)=>{
-                                                                              if(err || !result1){
-                                                                              return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.EMAIL_NOT_SEND,err);
-                                                                              }
-                                                                              else{
-                                                                              return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, responseMsg.PLAYER_ADDED,success);
-                                                                              }
-                                                                          })
-                                                                      }
-                                                                   })
-                                                               }
-                                                           })
+                                                                    })
+                                                                  }
+                                                                message.sendMail(success.email,"login Credentials","Your Login Creadentials are"+"<br/>UserId : "+req.body.playerDetail.email+"<br/>Password : "+ req.body.password,(err,result1)=>{
+                                                                    if(err || !result1){
+                                                                    return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.EMAIL_NOT_SEND,err);
+                                                                    }
+                                                                    else{
+                                                                    return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, responseMsg.PLAYER_ADDED,success);
+                                                                    }
+                                                                   },req.body.organizer)
+                                                                 }
+                                                              })
                                                           }
                                                       })
                                                     }
@@ -423,6 +426,7 @@ const addPlayer=(req,res)=>{
     }
   }) 
 }
+
 //------------------get list of Player------------------------------------------------
 const getListOfPlayer=(req,res)=>{
     if(!req.query.userId)
@@ -438,10 +442,10 @@ const getListOfPlayer=(req,res)=>{
                 req.body.organizer=req.query.userId 
                 let query={
                     organizer:ObjectId(req.body.organizer),
-                    registration:true
+                    "registration" : true,
                 }
                 if(req.body.teamName)
-                query["Team.teamName"]=req.body.teamName
+                query["teamName"]=req.body.teamName
                 if(req.body.status)
                 query["status"]=req.body.status
                 if(req.body.competitionName)
@@ -451,7 +455,7 @@ const getListOfPlayer=(req,res)=>{
                 if(req.body.competitionStatus)
                 query["Comp.status"]=req.body.competitionStatus
                 if(req.body.division)
-                query["Team.division"]={$in:req.body.division}
+                query["Comp.division"]={$in:req.body.division}
                 console.log("query-->>",query)
                 let option={
                     limit:req.body.limit||10,
@@ -459,7 +463,6 @@ const getListOfPlayer=(req,res)=>{
                     sort:{createdAt:-1},
                     allowDiskUse: true 
                 }
-                console.log("hfjjh",query)
                 var aggregate=Follow.competitionFollow.aggregate([ 
                     {
                         $lookup:{
@@ -478,17 +481,8 @@ const getListOfPlayer=(req,res)=>{
                     }
                 },
                 {
-                    $lookup:{
-                        from: "createteamincompetitions",
-                        localField: "teamId",
-                        foreignField: "_id",
-                        as: "Team"
-                    }
-                },
-                {
                     $unwind:"$Comp"
                 },
-                // {$unwind:"$Team"},
                 {$unwind:"$Player"},
                 { $match : query },
                 {$sort:{createdAt:-1}}
@@ -517,6 +511,7 @@ const getListOfPlayer=(req,res)=>{
         
     }
 }
+
 
 //--------------------------Get Details of Player---------------------------
 const getDetailOfPlayer=(req,res)=>{
@@ -554,19 +549,10 @@ const getDetailOfPlayer=(req,res)=>{
                             as: "Comp"
                         }
                     },
-                    {
-                        $lookup:{
-                            from: "createteamincompetitions",
-                            localField: "teamId",
-                            foreignField: "_id",
-                            as: "Team"
-                        }
-                    },
-                   
+                    
                     {
                         $unwind:"$Comp"
                     },
-                    {$unwind:"$Team"},
                     {$unwind:"$Player"},
                    
                     { $match : query },
@@ -593,7 +579,7 @@ module.exports={
     selectTeam,
     addPlayer,
     getListOfPlayer,
-    getDetailOfPlayer
+    getDetailOfPlayer,
 }
 
 

@@ -11,7 +11,7 @@ const findUser=(bodyData,callback)=>{
 		callback(err,result);
 	})
 }
-const findUserDetail=(bodyData,seelct,callback)=>{
+const findUserDetail=(bodyData,select,callback)=>{
 	User.findOne(bodyData,select,(err,result)=>{
 		callback(err,result)
 	})
