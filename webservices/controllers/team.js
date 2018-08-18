@@ -66,7 +66,7 @@ const selectVenue=(req,res)=>{
 //-----------------------------------Create Team---------------------------------------------------
 const createTeam=(req,res)=>{
     console.log("req.body--->>",req.body)
-        subscriptionValidator(req.query,["Create Team"],(err,flag)=>{
+        subscriptionValidator(req.query,["team&player"],(err,flag)=>{
         if(flag[0]!==200)
         return Response.sendResponse(res,flag[0],flag[1],flag[2]);
         else{

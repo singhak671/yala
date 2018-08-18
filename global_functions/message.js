@@ -242,7 +242,7 @@ module.exports = {
      data=userId;
      notification={
          "title":"yALA App Media3546565",
-         "body":message
+         "message":message
      }
      console.log(data)
      async.forEach(data, (key) => {
@@ -258,7 +258,25 @@ module.exports = {
  
  });
      
- }
+ },
+ sendSmsToAll: (mobileNumber, body) => {
+    let client = new twilio(config.twilio.sid, config.twilio.auth_token)
+    const numbers = mobileNumber
+    console.log(numbers)
+    Promise.all(
+        numbers.map(number => {
+            return client.messages.create({
+                body: body,
+                to: number, // Text this number
+                from: config.twilio.number // From a valid Twilio number
+            });
+        })
+    )
+        .then(messages => {
+            console.log('Messages sent!', messages);
+        })
+        .catch(err => console.error(err));
+},
 }
 
 // "twilio":{

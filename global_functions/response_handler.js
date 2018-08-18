@@ -11,7 +11,7 @@ module.exports={
      if(token){
         if(responseMessage=="Successfully Logged In")
         return responseObj.send({'responseCode':responseCode,'responseMessage':responseMessage,result:data,token:token});
-        else if(responseMessage=="Otp successfully Verified.")
+        else if(responseMessage=="OTP verified successfully")
         return responseObj.send({'responseCode':responseCode,'responseMessage':responseMessage,result:data,token:token});
         else
         return responseObj.send({responseCode:responseCode,responseMessage:responseMessage,result:data})

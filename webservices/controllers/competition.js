@@ -113,12 +113,24 @@ const filterCompetition = (req, res) => {
             }
         }
         obj.organizer = req.body.userId;
-        console.log(obj)
+        if(req.body.filterFields.search)
+        {
+        obj.$or=[
+            { competitionName: {$regex:req.body.filterFields.search, $options: 'i'}},
+            { period: {$regex:req.body.filterFields.search, $options: 'i'} },
+            { sports: {$regex:req.body.filterFields.search, $options: 'i'} },
+            { status: {$regex:req.body.filterFields.search, $options: 'i'} },
+            { venue: {$regex:req.body.filterFields.search, $options: 'i'} },
+            { division: {$regex:req.body.filterFields.search, $options: 'i'} }
+        ]
+    };
+        console.log("i am objetc",obj);
         let query = {
             page: req.body.page || 1,
             limit: req.body.limit || 4,
             sort: { "createdAt": -1 }
         }
+
         Competition.competition.paginate(obj, query, (err, result) => {
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
@@ -736,10 +748,17 @@ const approveCompetition = (req, res) => {
                                 Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success2);
                                 User.findOne({ _id: req.body.playerId }, { "deviceToken": 1, email: 1, competitionNotify: 1, countryCode: 1, mobileNumber: 1 }, (err, success3) => {
                                     if (success3) {
+                                        if ((success3.competitionNotify.mobile).indexOf("message") != -1)
+                                        message.sendSMS("You are confirmed by the organizer " + organizerName,success3.countryCode,success3.mobileNumber,(error,result)=>{
+                                            if(err)
+                                            console.log("error in sending SMS")
+                                            else if(result)
+                                            console.log("SMS sent successfully to the organizer!")
+                                        })
                                        // console.log("&&&&&& anurag &&&&&&", success3)
                                         message.sendPushNotifications(success3.deviceToken, "You are confirmed by the organizer " + organizerName,(err,suc)=>{})
                                         if ((success3.competitionNotify.email).indexOf("message") != -1)
-                                            message.sendMail(success3.email, "Yala Sports App ✔", "You are confirmed by the " + organizerName, (err, result) => {
+                                            message.sendMail(success3.email, "Yala Sports App ✔", "You are confirmed by the organizer " + organizerName, (err, result) => {
                                                 console.log("send1--->>", result1)
                                             })
                                         message.saveNotification([req.body.playerId], "You are confirmed by the " + organizerName)

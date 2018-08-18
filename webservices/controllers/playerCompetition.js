@@ -422,12 +422,24 @@ const followCompetition = (req, res) => {
                                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err2);
                                     else
                                         Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success2);
-                                    User.findOne({ _id: success2.organizer }, { _id: 1, deviceToken: 1 }, (err, success) => {
-                                        console.log("successssssss------>>>>>.", success2.organizer);
+                                    User.findOne({ _id: success2.organizer },(err, success) => {
+                                      //  console.log("successssssss------>>>>>.", success2.organizer);
                                         
-                                        console.log(success.deviceToken)
-                                        message.sendNotificationToAll(firstName + " " + lastName + " has followed your competion " + competitionName, [success.deviceToken])
-                                        message.saveNotification([success2.organizer], firstName + " " + lastName + " has followed your competion " + competitionName)
+                                       // console.log(success.deviceToken)
+                                       //===================
+                                       if ((success.competitionNotify.mobile).indexOf("registration") != -1){
+                                        message.sendSMS(firstName + " " + lastName + " has followed your competition " + competitionName,success.countryCode,success.phoneNumber,(error,result)=>{
+                                            if(err)
+                                            console.log("error in sending SMS")
+                                            else if(result)
+                                            console.log("SMS sent successfully to the organizer!")
+                                        })
+                                       
+                                            message.sendMail(success3.email, "Yala Sports App ✔", "You are confirmed by the organizer " + organizerName, (err, result) => {
+                                                console.log("send1--->>", result1)
+                                            })}
+                                        message.sendNotificationToAll(firstName + " " + lastName + " has followed your competition " + competitionName, [success.deviceToken])
+                                        message.saveNotification([success2.organizer], firstName + " " + lastName + " has followed your competition " + competitionName)
                                     })
                                 })
                             }
@@ -528,7 +540,7 @@ const unFollowCompetition = (req, res) => {
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else
-        User.findOne({ _id: req.body.userId, role: "PLAYER" }, (err, success) => {
+        User.findOne({ _id: req.body.userId }, (err, success) => {
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
             else if (!success)
@@ -559,7 +571,9 @@ const confirmRegistration = (req, res) => {
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else {
-        Follow.competitionFollow.findOneAndUpdate({ competitionId: req.body.competitionId, playerId: req.body.playerId, organizer: req.body.organizerId }, { $set: { registration: true } }, (err, success) => {
+        Follow.competitionFollow.findOneAndUpdate({ competitionId: req.body.competitionId, playerId: req.body.playerId, organizer: req.body.organizerId }, { $set: { registration: true } })
+        .populate("organizer"," _id competitionNotify email deviceToken countryCode mobileNumber firstName lastName")
+        .exec((err, success) => {
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err1);
             else if (!success)
@@ -571,7 +585,22 @@ const confirmRegistration = (req, res) => {
                     else if (!success1)
                         return Response.sendResponse(res, responseCode.NOT_FOUND, "Player not found !");
                     else {
-                        return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "You are successfully registered!");
+                         Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "You are successfully registered!");
+                         //============sending notification to the organizer//
+                        //  if ((success.organizer.competitionNotify.mobile).indexOf("registration") != -1){
+                        //     message.sendSMS(firstName + " " + lastName + " has followed your competition " + competitionName,success.countryCode,success.phoneNumber,(error,result)=>{
+                        //         if(err)
+                        //         console.log("error in sending SMS")
+                        //         else if(result)
+                        //         console.log("SMS sent successfully to the organizer!")
+                        //     })
+                           
+                        //         message.sendMail(success3.email, "Yala Sports App ✔", "You are confirmed by the organizer " + organizerName, (err, result) => {
+                        //             console.log("send1--->>", result1)
+                        //         })}
+                                //=====================
+                            message.sendNotificationToAll(firstName + " " + lastName + " has followed your competition " + competitionName, [success.deviceToken])
+                            message.saveNotification([success2.organizer], firstName + " " + lastName + " has followed your competition " + competitionName)
                     }
 
                 })

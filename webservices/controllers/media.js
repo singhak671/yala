@@ -109,17 +109,17 @@ const createAlbum = (req, res) => {
                                                                 arrEmail.push(success[data].playerId.email)
                                                             if ((success[data].playerId.competitionNotify.mobile).indexOf("media") != -1)
                                                                 arrMobile.push(success[data].playerId.countryCode + success[data].playerId.mobileNumber)
-                                                            // arr.push(success[data].playerId.deviceToken)
+                                                            //  arr.push(success[data].playerId.deviceToken)
                                                             arrId.push(success[data].playerId._id)
                                                         }
                                                         console.log("I am email mobile Id deviceToken", arrEmail, arrMobile, arrId, arr)
                                                         arr = ['ddMQdHYWfB4:APA91bHmiaJtIJAlonDRDEKSlZFi3-6tvvMJ9qRIs_IBRbZakJG1HUgmOZRkHQJ54uVwvcuPXhGHk-cc3AmZL0Cvnnklx5wC7-nQQXQtAiB5D5ttAOR-RkBZI6ZrjLeOD9uh6SttStoN2g2dmETfBpRqTpqUUhtXqQ']
-                                                        message.sendMailToAll(arrEmail, "A new " + req.body.typeOfMedia + "is added by : " + firstName + " " + lastName, (err, success) => {
+                                                        message.sendMailToAll(arrEmail, firstName + " " + lastName + " added a new " + req.body.typeOfMedia, (err, success) => {
                                                             console.log(success)
                                                         }, req.body.organizer)
-                                                        //message.sendSMSToAll(arrMobile, "A new " + req.body.typeOfMedia + "is added by :" + firstName + " " + lastName)
-                                                        message.sendNotificationToAll("A new " + req.body.typeOfMedia + "is added by :" + firstName + " " + lastName, arr)
-                                                        message.saveNotification(arrId, "A new " + req.body.typeOfMedia + "is added by : " + firstName + " " + lastName)
+                                                        message.sendSmsToAll(arrMobile, firstName + " " + lastName + " added a new " + req.body.typeOfMedia)
+                                                        message.sendNotificationToAll(firstName + " " + lastName + " added a new " + req.body.typeOfMedia, arr)
+                                                        message.saveNotification(arrId, firstName + " " + lastName + " added a new " + req.body.typeOfMedia)
                                                     }
                                                 })
                                             }
@@ -147,17 +147,17 @@ const createAlbum = (req, res) => {
                                                 arrEmail.push(success[data].playerId.email)
                                             if ((success[data].playerId.competitionNotify.mobile).indexOf("media") != -1)
                                                 arrMobile.push(success[data].playerId.countryCode + success[data].playerId.mobileNumber)
-                                            // arr.push(success[data].playerId.deviceToken)
+                                            //  arr.push(success[data].playerId.deviceToken)
                                             arrId.push(success[data].playerId._id)
                                         }
                                         console.log("I am email mobile Id deviceToken", arrEmail, arrMobile, arrId, arr)
                                         arr = ['ddMQdHYWfB4:APA91bHmiaJtIJAlonDRDEKSlZFi3-6tvvMJ9qRIs_IBRbZakJG1HUgmOZRkHQJ54uVwvcuPXhGHk-cc3AmZL0Cvnnklx5wC7-nQQXQtAiB5D5ttAOR-RkBZI6ZrjLeOD9uh6SttStoN2g2dmETfBpRqTpqUUhtXqQ']
-                                        message.sendMailToAll(arrEmail, "A new " + req.body.typeOfMedia + "is added by : " + firstName + " " + lastName, (err, success) => {
+                                        message.sendMailToAll(arrEmail, firstName + " " + lastName + " added a new " + req.body.typeOfMedia, (err, success) => {
                                             console.log(success)
                                         }, req.body.organizer)
-                                        //message.sendSmsToAll(arrMobile, "A new " + req.body.typeOfMedia + "is added by :" + firstName + " " + lastName)
-                                        message.sendNotificationToAll("A new " + req.body.typeOfMedia + "is added by : " + firstName + " " + lastName, arr)
-                                        message.saveNotification(arrId, "A new " + req.body.typeOfMedia + "is added by : " + firstName + " " + lastName)
+                                        message.sendSmsToAll(arrMobile, firstName + " " + lastName + " added a new " + req.body.typeOfMedia)
+                                        message.sendNotificationToAll(firstName + " " + lastName + " added a new " + req.body.typeOfMedia, arr)
+                                        message.saveNotification(arrId, firstName + " " + lastName + " added a new " + req.body.typeOfMedia)
                                     }
                                 })
                             })
@@ -168,7 +168,6 @@ const createAlbum = (req, res) => {
         }
     })
 }
-
 //--------------------Edit media------------------------------
 const editMedia = (req, res) => {
     console.log("req.body--->>", req.body, req.query)
@@ -418,6 +417,7 @@ const likeMedia = (req, res) => {
             else if (!success)
                 return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.MEDIA_NOT_FOUND)
             else {
+                let organizer = success.organizer
                 let query = {
                     "_id": success._id,
                     "like": req.query.userId
@@ -452,8 +452,26 @@ const likeMedia = (req, res) => {
                         mediaServices.updateMedia({ _id: req.query.mediaId }, set, option, (err, success) => {
                             if (err)
                                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
-                            else
-                                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.MEDIA_LIKE)
+                            else {
+                                Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.MEDIA_LIKE)
+                                console.log("org--->>>", organizer)
+                                if (req.query.userId != organizer) {
+                                    User.findOne({ _id: req.query.userId }, { firstName: 1, lastName: 1 }, (err, success1) => {
+                                        if (success1) {
+                                            var name = success1.firstName + " " + success1.lastName
+                                            User.findOne({ _id: organizer }, { deviceToken: 1, organizerNotification: 1 }, (err, success) => {
+                                                if (success) {
+                                                    console.log("name--->>>", success)
+                                                    if ((success.organizerNotification).indexOf("media") != -1) {
+                                                        message.sendNotificationToAll(name + " likes your post", success.deviceToken)
+                                                        message.saveNotification([organizer], name + " likes your post")
+                                                    }
+                                                }
+                                            })
+                                        }
+                                    })
+                                }
+                            }
                         })
                     }
                 })
@@ -472,20 +490,19 @@ const commentMedia = (req, res) => {
             if (err || !success)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
             else {
-                console.log("gdghghfghdghfhgh", success)
+                //console.log("gdghghfghdghfhgh", success)
                 mediaServices.findMedia({ _id: req.query.mediaId }, (err, success1) => {
                     if (err)
                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
                     else {
-                        console.log("bfndnfndsn", success1.competitionId._id)
+                        let organizer = success1.organizer
+                        //console.log("bfndnfndsn", success1.competitionId._id)
                         mediaServices.findCommentStatus({ _id: success1.competitionId._id }, (err, success2) => {
                             if (err || !success2)
                                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
                             else {
-
                                 console.log(success2.allowComment)
                                 if (success2.allowComment) {
-
                                     if (success.image) {
                                         let comment = {
                                             commentId: req.query.userId,
@@ -505,7 +522,23 @@ const commentMedia = (req, res) => {
                                             if (err)
                                                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
                                             else
-                                                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.COMMENT_ADDED, success)
+                                                Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.COMMENT_ADDED, success)
+                                            if (req.query.userId != organizer) {
+                                                User.findOne({ _id: req.query.userId }, { firstName: 1, lastName: 1 }, (err, success1) => {
+                                                    if (success1) {
+                                                        var name = success1.firstName + " " + success1.lastName
+                                                        User.findOne({ _id: organizer }, (err, success) => {
+                                                            if (success) {
+                                                                console.log("$$$$$$$$$$--->>", success.organizerNotification)
+                                                                if ((success.organizerNotification).indexOf("media") != -1) {
+                                                                    message.sendNotificationToAll(name + " commented on your post", [success.deviceToken])
+                                                                    message.saveNotification([organizer], name + " commented on your post")
+                                                                }
+                                                            }
+                                                        })
+                                                    }
+                                                })
+                                            }
                                         })
                                     }
                                     else {
@@ -526,7 +559,24 @@ const commentMedia = (req, res) => {
                                             if (err)
                                                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
                                             else
-                                                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.COMMENT_ADDED, success)
+                                                Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.COMMENT_ADDED, success)
+                                            console.log("org----->>", organizer)
+                                            if (req.query.userId != organizer) {
+                                                User.findOne({ _id: req.query.userId }, { firstName: 1, lastName: 1 }, (err, success1) => {
+                                                    if (success1) {
+                                                        var name = success1.firstName + " " + success1.lastName
+                                                        User.findOne({ _id: organizer }, { deviceToken: 1, organizerNotification: 1 }, (err, success) => {
+                                                            if (success) {
+                                                                console.log("name--->>", (success.organizerNotification))
+                                                                if ((success.organizerNotification).indexOf("media") != -1) {
+                                                                    message.sendNotificationToAll(name + " commented on your post", success.deviceToken)
+                                                                    message.saveNotification([organizer], name + " commented on your post")
+                                                                }
+                                                            }
+                                                        })
+                                                    }
+                                                })
+                                            }
                                         })
                                     }
                                 }
@@ -655,5 +705,3 @@ module.exports = {
     editMediaNews,
     mediaDelete
 }
-
-

@@ -714,6 +714,7 @@ const changeCardforAutoRenew=(req,res)=>{
 // })
 // }
 //---------------------------Delete Card Details---------------------------------------------------
+
 const deleteCard=(req,res)=>{
 	console.log("req.body--->>",req.body)
     let flag = Validator(req.body,['_id',"cardDetails"],["_id"]); 
@@ -736,7 +737,7 @@ User.findOne({"_id":req.body._id,"cardDetails._id":req.body.cardDetails._id,"car
 		else{
 			console.log("I am success)))))))))))))))))***************",success1)
 			
-				User.findOneAndUpdate({_id:req.body._id,role:"ORGANIZER"},{$set:{autoRenewPlan:false}},{new:true,safe:true},(err,success2)=>{
+				User.findOneAndUpdate({_id:req.body._id},{$set:{autoRenewPlan:false}},{new:true,safe:true},(err,success2)=>{
 					if(err)
 						return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
 					else if(!success2)
@@ -1031,7 +1032,7 @@ const changeAutoRenew=(req,res)=>{
 	let flag =Validator(req.body,[],[],[]);
     if(flag)
 		return Response.sendResponse(res,flag[0],flag[1]);
-	User.findById({_id:req.query.userId,role:"ORGANIZER"},(err,success)=>{
+	User.findById({_id:req.query.userId},(err,success)=>{
 		if(err)
             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
         else if(!success)
@@ -1080,8 +1081,7 @@ const addEmployee=(req,res)=>{
         return Response.sendResponse(res,flag[0],flag[1],flag[2]);
    else{
 	   let query={
-		   _id:req.query.userId,
-		   role:"ORGANIZER"
+		   _id:req.query.userId
 	   }
 	   userServices.findUser(query,(err,success)=>{
 		   if(err)
@@ -1245,7 +1245,7 @@ const setRoleForEmployee=(req,res)=>{
 		query["employeePermissionForAdminstartor.media"]=req.body.employeePermissionForAdminstartor.media
 		if(req.body.employeePermissionForAdminstartor.myMembership)
 		query["employeePermissionForAdminstartor.myMembership"]=req.body.employeePermissionForAdminstartor.myMembership
-		userServices.findUser({_id:req.query.userId,role:"ORGANIZER"},(err,success)=>{
+		userServices.findUser({_id:req.query.userId},(err,success)=>{
 			if(err)
 			return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED)
 			else if(!success)
@@ -1255,7 +1255,7 @@ const setRoleForEmployee=(req,res)=>{
 				let option={
 					new:true
 				};
-				userServices.updateUser({_id:req.query.userId,role:"ORGANIZER"},set,option,(err,success)=>{
+				userServices.updateUser({_id:req.query.userId},set,option,(err,success)=>{
 					if(err)
 					return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
 			        else{
@@ -1293,7 +1293,7 @@ const getRoleForEmployee=(req,res)=>{
 			employeePermissionForAdminstartor:1,
 			_id:0
 		 }
-		 userServices.findUserRole({_id:req.query.userId,role:"ORGANIZER"},select,(err,success)=>{
+		 userServices.findUserRole({_id:req.query.userId},select,(err,success)=>{
 		  if(err)
 		  return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
 		  else if(!success)
