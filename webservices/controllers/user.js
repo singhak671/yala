@@ -546,7 +546,7 @@ const logOut=(req,res)=>{
 //---------------------------------Add Card Details-------------------------------------
 const addCard=(req,res)=>{
 	console.log("req.body--->>",req.body)
-	let flag = Validator(req.body,["cardDetails"],["cardNumber","cvv","expiryDate"]); 
+	let flag = Validator(req.body,["cardDetails"],["cardNumber","expiryDate"]); 
 	if(!req.body._id)
 	return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.USER_IS_REQ)
      else if (flag)
@@ -596,7 +596,7 @@ const getCardDetails=(req,res)=>{
 //------------------------Edit Card Details---------------------------------------------------
 const editCardDetails=(req,res)=>{
 	console.log("req.body--->>",req.body)
-	let flag = Validator(req.body,["cardDetails"],["_id","cardNumber","cvv","expiryDate"],["_id"]); 
+	let flag = Validator(req.body,["cardDetails"],["_id","cardNumber","expiryDate"],["_id"]); 
 
 if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
@@ -616,7 +616,7 @@ return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.CARD_
 //===============================================change card for auto renew plan============================================//
 const changeCardforAutoRenew=(req,res)=>{
 	console.log("changeCardforAutoRenew req.body--->>",req.body);
-    let flag = Validator(req.body,['_id',"cardDetails"],["_id","cardNumber","cvv","expiryDate"]); 
+    let flag = Validator(req.body,['_id',"cardDetails"],["_id","cardNumber","expiryDate"]); 
 		if (flag)
 			return Response.sendResponse(res, flag[0], flag[1]); 
 		else{
@@ -1341,7 +1341,7 @@ const getControlNotification=(req,res)=>{
 	if(!req.query.userId)
 	return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.USER_IS_REQ)
 	else{
-		userServices.findUserDetail({_id:req.query.userId,role:"PLAYER"},{competitionNotify:1,membershipNotify:1,venueNotify:1,_id:0},(err,success)=>{
+		userServices.findUserDetail({_id:req.query.userId},{competitionNotify:1,membershipNotify:1,venueNotify:1,_id:0,organizerNotification:1},(err,success)=>{
 		  if(err)
 		  return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
 		  else if(!success)
@@ -1420,6 +1420,31 @@ const deleteNotification=(req,res)=>{
 		})
 	}
 }
+
+const orgNotification=(req,res)=>{
+	console.log("xxxxxxxx-->>",req.body)
+	if(!req.query.userId)
+	return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORG_IS_REQ)
+	else{
+		userServices.findUser({_id:req.query.userId},(err,success)=>{
+			if(err)
+			return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR)
+			else if(!success)
+			return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS)
+			else{
+				let set={
+					organizerNotification:req.body.organizerNotification
+				}
+				userServices.updateUser({_id:req.query.userId},set,{new:true},(err,success)=>{
+					if(err)
+					return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR)
+					else
+					return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.NOTIFICATION,success)
+				})
+			}
+		})
+	}
+}
 module.exports={
 	signup,
 	verifyOtp,
@@ -1450,7 +1475,8 @@ module.exports={
 	controlNotification,
 	getControlNotification,
 	getnotificationList,
-	deleteNotification
+	deleteNotification,
+	orgNotification
 }
 
 

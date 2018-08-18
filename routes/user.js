@@ -33,5 +33,5 @@ router.get('/getControlNotification',AUTH.verifyToken,userController.getControlN
 router.post('/getnotificationList',AUTH.verifyToken,userController.getnotificationList)
 // router.post('/saveNotification',userController.saveNotification)
 router.get('/deleteNotification',AUTH.verifyToken,userController.deleteNotification)
-
+router.post('/orgNotification',AUTH.verifyToken,userController.orgNotification)
 module.exports=router;

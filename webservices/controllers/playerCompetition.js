@@ -422,16 +422,9 @@ const followCompetition = (req, res) => {
                                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err2);
                                     else
                                         Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success2);
-                                    User.findOne({ _id: success2.organizer }, { _id: 1, email: 1, countryCode: 1, mobileNumber: 1, deviceToken: 1, competitionNotify: 1 }, (err, success) => {
-                                        console.log("successssssss------>>>>>.", success)
-                                        if ((success.competitionNotify.email).indexOf("registration") != -1)
-                                            message.sendMail(success.email, "yala Sports App ✔", firstName + " " + lastName + " has followed your competion " + competitionName, (err, result) => {
-                                                console.log("send--->>", result)
-                                            }, success2.organizer)
-                                        if ((success.competitionNotify.mobile).indexOf("registration") != -1)
-                                            message.sendSMS(firstName + " " + lastName + " has followed your competion " + competitionName, success.countryCode, success.mobileNumber, (err, result1) => {
-                                                console.log("send1--->>", result1)
-                                            })
+                                    User.findOne({ _id: success2.organizer }, { _id: 1, deviceToken: 1 }, (err, success) => {
+                                        console.log("successssssss------>>>>>.", success2.organizer);
+                                        
                                         console.log(success.deviceToken)
                                         message.sendNotificationToAll(firstName + " " + lastName + " has followed your competion " + competitionName, [success.deviceToken])
                                         message.saveNotification([success2.organizer], firstName + " " + lastName + " has followed your competion " + competitionName)
@@ -500,30 +493,34 @@ const followCompetition = (req, res) => {
 // }
 
 const searchCompetition = (req, res) => {
-    let search = new RegExp("^" + req.body.search)
-    let query = {published:true,
-        $or: [
-            { competitionName: search },
-            { period: search },
-            { sports: search },
-            { status: search },
-            { venue: search }]
-        //    organi
-        //    userId:req.query.userId
-    }
-    var options = {
-        page: req.body.page || 1,
-        limit: req.body.limit || 10,
-        sort: { createdAt: -1 }
-    }
-    Competition.competition.paginate(query, options, (err, success) => {
+   // let search = new RegExp("^" + req.body.search)
+   Competition.competition.find({published:true, $or: [
+            { competitionName: {$regex:req.query.search, $options: 'i'}},
+            { period: {$regex:req.query.search, $options: 'i'} },
+            { sports: {$regex:req.query.search, $options: 'i'} },
+            { status: {$regex:req.query.search, $options: 'i'} },
+            { venue: {$regex:req.query.search, $options: 'i'} },
+            { division: {$regex:req.query.search, $options: 'i'} }
+        ]})
+   .populate({path:"organizer",
+            select:"firstName lastName",
+            match:{$or:[
+                {"firstName":{$regex:req.query.search,$options: 'i'}},
+                {"lastName":{$regex:req.query.search,$options: 'i'}}
+            ]}})
+        .exec((err,success)=>{
         if (err)
-            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
-        else if (!success.docs.length)
-            return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NO_DATA_FOUND);
-        else
-            return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success)
-    })
+            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err);
+        else if (success==false)
+            return Response.sendResponse(res, responseCode.NOT_FOUND, "No data found!");
+        else{
+            return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success);
+            
+              
+        }
+
+   })
+
 }
 
 const unFollowCompetition = (req, res) => {

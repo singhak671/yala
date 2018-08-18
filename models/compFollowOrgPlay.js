@@ -23,8 +23,11 @@ let competitionFollowSchema = new Schema({
         default:"ACTIVE",
         uppercase:true
     },
-    teamId:{
-        type:Schema.Types.ObjectId,ref:"createTeamInCompetition"
+    // teamId:{
+    //     type:Schema.Types.ObjectId,ref:"createTeamInCompetition"
+    // },
+    teamName:{
+        type:String
     },
     followStatus:{
         type:String,

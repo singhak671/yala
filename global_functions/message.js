@@ -238,15 +238,15 @@ module.exports = {
        console.log(err,messageId)
     })
  },
- saveNotification:(playerId,message)=>{
-     data=playerId
+ saveNotification:(userId,message)=>{
+     data=userId;
      notification={
          "title":"yALA App Media3546565",
          "body":message
      }
      console.log(data)
      async.forEach(data, (key) => {
-         Notification.findOneAndUpdate ({playerId:key},{$push:{notification:notification}},{upsert:true,multi:true}, (err, success) => {
+         Notification.findOneAndUpdate ({userId:key},{$push:{notification:notification}},{upsert:true,multi:true}, (err, success) => {
          if (err) 
         return console.log(err);
          if(key==data[(data.length-1)])

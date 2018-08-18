@@ -117,6 +117,9 @@ let userSchema = new Schema({
         email:{type:Array},
         mobile:{type:Array}
     },
+    organizerNotification:{
+        type:Array
+    },
     deviceType: {
         type: String,
         enum: ['iOS', 'android'],

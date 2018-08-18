@@ -716,34 +716,36 @@ const approveCompetition = (req, res) => {
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else
-        Competition.competition.findOneAndUpdate({ "_id": req.body.competitionId, "playerFollowStatus.playerId": req.body.playerId }, { $set: { "playerFollowStatus.$.followStatus": req.body.followStatus } }, { new: true }, (err, success) => {
+        User.findOne({ _id: req.body.userId }, (err, result) => {
             if (err)
-                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
-            else if (!success)
-                return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND, "data");
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
             else {
-                followComp.competitionFollow.findOneAndUpdate({ _id: req.body.approvalId, competitionId: req.body.competitionId, playerId: req.body.playerId, followStatus: "PENDING" }, { $set: { followStatus: req.body.followStatus } }, { new: true }, (err2, success2) => {
-                    if (err2)
-                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err2);
-                    else if (!success2)
-                        return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND, "data2");
+                let organizerName = result.firstName + " " + result.lastName
+                Competition.competition.findOneAndUpdate({ "_id": req.body.competitionId, "playerFollowStatus.playerId": req.body.playerId }, { $set: { "playerFollowStatus.$.followStatus": req.body.followStatus } }, { new: true }, (err, success) => {
+                    if (err)
+                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+                    else if (!success)
+                        return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND, "data");
                     else {
-                        Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success2);
-                        User.findOne({ _id: req.body.playerId, role: "PLAYER" }, { "deviceToken": 1, email: 1, competitionNotify: 1, countryCode: 1, mobileNumber: 1 }, (err, success3) => {
-                            if (success3) {
-                                console.log("&&&&&& anurag &&&&&&", success3)
-                                message.sendPushNotifications(success3.deviceToken, "You are confirmed by the organizer")
-                                if ((success3.competitionNotify.email).indexOf("registration") != -1)
-                                    message.sendMail(success3.email, "yala Sports App ✔", "You are confirmed by the organizer", (err, result) => {
-                                        console.log("send--->>", result)
-                                    }, req.body.userId)
-                                if ((success3.competitionNotify.mobile).indexOf("registration") != -1)
-                                    message.sendSMS("You are confirmed by the organizer", success3.countryCode, success3.mobileNumber, (err, result1) => {
-                                        console.log("send1--->>", result1)
-                                    })
-                                message.saveNotification([req.body.playerId], "You are confirmed by the organizer")
+                        followComp.competitionFollow.findOneAndUpdate({ _id: req.body.approvalId, competitionId: req.body.competitionId, playerId: req.body.playerId, followStatus: "PENDING" }, { $set: { followStatus: req.body.followStatus } }, { new: true }, (err2, success2) => {
+                            if (err2)
+                                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err2);
+                            else if (!success2)
+                                return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND, "data2");
+                            else {
+                                Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success2);
+                                User.findOne({ _id: req.body.playerId }, { "deviceToken": 1, email: 1, competitionNotify: 1, countryCode: 1, mobileNumber: 1 }, (err, success3) => {
+                                    if (success3) {
+                                       // console.log("&&&&&& anurag &&&&&&", success3)
+                                        message.sendPushNotifications(success3.deviceToken, "You are confirmed by the organizer " + organizerName,(err,suc)=>{})
+                                        if ((success3.competitionNotify.email).indexOf("message") != -1)
+                                            message.sendMail(success3.email, "Yala Sports App ✔", "You are confirmed by the " + organizerName, (err, result) => {
+                                                console.log("send1--->>", result1)
+                                            })
+                                        message.saveNotification([req.body.playerId], "You are confirmed by the " + organizerName)
+                                    }
+                                })
                             }
-
                         })
                     }
                 })
