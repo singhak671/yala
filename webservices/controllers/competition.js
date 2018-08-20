@@ -33,7 +33,7 @@ const addNewCompetition = (req, res) => {
                             if (err)
                                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
                             if (success >= 1)
-                                return Response.sendResponse(res, responseCode.BAD_REQUEST, "Only one competition is allowed!");
+                                return Response.sendResponse(res, responseCode.BAD_REQUEST, "Only one competition is allowed for your plan");
                         })
                     else
                         Competition.competition.findOne({ organizer: req.body.userId, competitionName: req.body.competitionDetails.competitionName }, (err, success) => {
@@ -51,7 +51,7 @@ const addNewCompetition = (req, res) => {
                                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, "Unable to create competition _id into the User _id");
                                     else {
                                         User.find({}, )
-                                        return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, responseMsg.SUCCESSFULLY_DONE, success);
+                                        return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, "A new competition created successfully", success);
                                     }
                                 })
                             });
@@ -181,7 +181,7 @@ const configureCompetition = (req, res) => {
             Competition.competition.findByIdAndUpdate({ _id: req.body.competitionId }, req.body, (err, success) => {
                 if (err || !success)
                     return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
-                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE);
+                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Configured successfully");
             })
         })
     })
@@ -458,7 +458,7 @@ const publishCompetition = (req, res) => {
             else if (!success)
                 return Response.sendResponse(res, responseCode.NOT_FOUND, "competitionId not found");
             else
-                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success);
+                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "You have ", success);
         })
 }
 
@@ -490,7 +490,7 @@ const getRegistrationDetail = (req, res) => {
                 if (err)
                     return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
                 else if (!success)
-                    return Response.sendResponse(res, responseCode.NOT_FOUND, "competitionId not found");
+                    return Response.sendResponse(res, responseCode.NOT_FOUND, "You cannot register in this competition as registration form for this competition is not created yet!");
                 else
                     return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success);
             })

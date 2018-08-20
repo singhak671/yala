@@ -65,10 +65,21 @@ const filterCompetitions = (req, res) => {
                 query2 = { $and: [{ sports: { $in: obj.sports } }, { status: obj.status }] }
                 console.log("222query>>>>>", query2)
             };
+            if(req.body.filterFields)
+            if(req.body.filterFields.search)
+                {
+                query2.$or=[
+                    { competitionName: {$regex:req.body.filterFields.search, $options: 'i'}},
+                    { period: {$regex:req.body.filterFields.search, $options: 'i'} },
+                    { sports: {$regex:req.body.filterFields.search, $options: 'i'} },
+                    { status: {$regex:req.body.filterFields.search, $options: 'i'} },
+                    { venue: {$regex:req.body.filterFields.search, $options: 'i'} },
+                    { division: {$regex:req.body.filterFields.search, $options: 'i'} }
+                ]}
             let option = {
                 populate: [{
                     path: "competitionId",
-                    select: "competitionName _id createdAt organizer division period sports status venue imageURL sportType",
+                    select: "competitionName _id createdAt organizer division period sports status published venue imageURL sportType published registrationForm",
 
                     match: query2
                 },
@@ -79,8 +90,7 @@ const filterCompetitions = (req, res) => {
                 }],
                 sort: { createdAt: -1 },
                 lean: false
-
-            }
+            };
             followComp.competitionFollow.paginate({ playerId: req.body.userId, followStatus: obj.followStatus }, option, (err, success) => {
 
                 if (err)
@@ -241,10 +251,11 @@ const filterCompetitions = (req, res) => {
             //        limit : req.body.limit ||4,
             //        lean:true,
             //        populate:{path:"organizer",select:"firstName lastName"}};
-            console.log("i am second obj", obj);
+           // console.log("i am 1st obj", obj);
             obj.published = true;
+           
             let query1;
-            if (!obj.sports || !status)
+            if (!obj.sports && !obj.status)
                 query1 = obj;
             else if (obj.sports && !obj.status) {
                 query1 = { sports: { $in: obj.sports } }
@@ -255,6 +266,19 @@ const filterCompetitions = (req, res) => {
                 console.log("22 query>>>>>", query1)
             };
 
+            //condition for searching 
+            if(req.body.filterFields)
+                if(req.body.filterFields.search)
+                    {
+                    query1.$or=[
+                        { competitionName: {$regex:req.body.filterFields.search, $options: 'i'}},
+                        { period: {$regex:req.body.filterFields.search, $options: 'i'} },
+                        { sports: {$regex:req.body.filterFields.search, $options: 'i'} },
+                        { status: {$regex:req.body.filterFields.search, $options: 'i'} },
+                        { venue: {$regex:req.body.filterFields.search, $options: 'i'} },
+                        { division: {$regex:req.body.filterFields.search, $options: 'i'} }
+                    ]}
+            console.log("i am NEW FINAL obj", query1);
             Competition.competition.aggregate([
                 {
                     "$match": query1
@@ -272,11 +296,13 @@ const filterCompetitions = (req, res) => {
                         // period:"$period",
                         "status": { "$first": "$status" },
                         "sports": { "$first": "$sports" },
+                        "published": { "$first": "$published" },
                         "venue": { "$first": "$venue" },
                         "division": { "$first": "$division" },
                         "competitionName": { "$first": "$competitionName" },
                         "organizer": { "$first": "$organizer" },
                         "createdAt": { "$first": "$createdAt" },
+                        "registrationForm":{"$first":"$registrationForm"},
                         "imageURL": { "$first": "$imageURL" },
                         "sportType": { "$first": "$sportType" },
                         playerFollowStatus: {
@@ -305,9 +331,11 @@ const filterCompetitions = (req, res) => {
                         status: 1,
                         venue: 1,
                         sportType: 1,
+                        published:1,
                         competitionName: 1,
                         organizer: 1,
                         createdAt: 1,
+                        registrationForm:1,
                         imageURL: 1
                     }
                 },
@@ -324,7 +352,7 @@ const filterCompetitions = (req, res) => {
 
 
             ]).exec((err, result) => {
-                console.log("query }}}}}}}}}}}}}}}}}}}}}", query)
+               // console.log("query }}}}}}}}}}}}}}}}}}}}}", query)
                 if (err || !result)
                     return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
 
@@ -337,7 +365,7 @@ const filterCompetitions = (req, res) => {
                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err, errrr);
 
 
-                    console.log("iam result>>>", result)
+                   // console.log("iam result>>>", result)
 
 
 
@@ -573,6 +601,7 @@ const confirmRegistration = (req, res) => {
     else {
         Follow.competitionFollow.findOneAndUpdate({ competitionId: req.body.competitionId, playerId: req.body.playerId, organizer: req.body.organizerId }, { $set: { registration: true } })
         .populate("organizer"," _id competitionNotify email deviceToken countryCode mobileNumber firstName lastName")
+        .populate("competitionId","competitionName _id")
         .exec((err, success) => {
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err1);
@@ -585,6 +614,8 @@ const confirmRegistration = (req, res) => {
                     else if (!success1)
                         return Response.sendResponse(res, responseCode.NOT_FOUND, "Player not found !");
                     else {
+                        var firstName=success1.firstName;
+                        var lastName=success1.lastName;
                          Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "You are successfully registered!");
                          //============sending notification to the organizer//
                         //  if ((success.organizer.competitionNotify.mobile).indexOf("registration") != -1){
@@ -599,8 +630,8 @@ const confirmRegistration = (req, res) => {
                         //             console.log("send1--->>", result1)
                         //         })}
                                 //=====================
-                            message.sendNotificationToAll(firstName + " " + lastName + " has followed your competition " + competitionName, [success.deviceToken])
-                            message.saveNotification([success2.organizer], firstName + " " + lastName + " has followed your competition " + competitionName)
+                           message.sendNotificationToAll(firstName + " " + lastName + " is registered into your competition i.e, " + success.competitionId.competitionName, [success.organizer.deviceToken])
+                           message.saveNotification([success.organizer._id], firstName + " " + lastName + " is registered into your competition i.e, " + success.competitionId.competitionName)
                     }
 
                 })

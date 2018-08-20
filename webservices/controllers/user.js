@@ -123,7 +123,7 @@ const verifyOtp=(req,res)=>{
 	
 	})
 }
-//--------------------------Resend OTP-----------------------------------------------------------
+//--------------------------Resend OTP -----------------------------------------------------------
 const resendOtp=(req,res)=>{
 	console.log("user Id------>>>>",req.query._id)
 	
@@ -148,7 +148,7 @@ const resendOtp=(req,res)=>{
 			if (err)
 			Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
 			else{
-			Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.OTP_SENDS)
+			Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"OTP sent successfully")
 			}
 			
 		})
@@ -474,7 +474,7 @@ const forgetPassword=(req,res)=>{
 								else if(!result)
 								return Response.sendResponse(res,responseCode.UNAUTHORIZED.responseMsg.SIGN_IN_WITH_VALID)
 								else{
-									return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.PASSWORD_UPDATE_SUCCESS);
+									return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Password sent to your registered email ID");
 								}
 							}) 
 							

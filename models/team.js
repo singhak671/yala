@@ -3,8 +3,6 @@ global.Promise = mongoose.Promise;
 const paginate = require('mongoose-paginate');
 const Schema = mongoose.Schema;
 var mongooseAggregatePaginate = require('mongoose-aggregate-paginate');
-
-var mongooseAggregatePaginate = require('mongoose-aggregate-paginate');
 let createTeamInComp = new Schema({
     competitionId:{
     type:Schema.Types.ObjectId, 
@@ -52,7 +50,6 @@ let createTeamInComp = new Schema({
     timestamps:true
     })
     createTeamInComp.plugin(paginate);
-    createTeamInComp.plugin(mongooseAggregatePaginate);
     createTeamInComp.plugin(mongooseAggregatePaginate);
     var createTeamInCompetition=mongoose.model("createTeamInCompetition",createTeamInComp)
     module.exports=createTeamInCompetition
