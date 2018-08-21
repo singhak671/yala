@@ -3,9 +3,25 @@ global.Promise = mongoose.Promise;
 const paginate = require('mongoose-paginate');
 const Schema = mongoose.Schema;
 let transactionSchema = new Schema({
+    organizerId:{
+        type: Schema.Types.ObjectId, ref: 'user' 
+    },
+    playerId:{
+        type: Schema.Types.ObjectId, ref: 'user' 
+
+    },
+    paymentDetails:[{
+        createdAt:{
+           type:Date,
+           default:Date.now
+        }
+    }],
+},{
+    timestamps:true,
+    strict:false
 })
-createTeamInComp.plugin(paginate);
+transactionSchema.plugin(paginate);
 var transaction=mongoose.model("transaction",transactionSchema)
 module.exports={
-    transaction:transaction
+    organizerTransaction:transaction
 }

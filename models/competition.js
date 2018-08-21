@@ -4,12 +4,7 @@ const paginate = require('mongoose-paginate');
 const Schema = mongoose.Schema;
 const userSchema=require("./user")
 let competitionSchema = new Schema({ 
-   playerFollowStatus:{
-       type:Array
-    //    playerId:{
-    //        type: Schema.Types.ObjectId, ref:'user'},
-    //     followStatus:String
-   },
+  
 
     competitionName: {
         type: String,
@@ -121,12 +116,15 @@ let competitionSchema = new Schema({
         type: String,
         enum: ['iOS', 'android']
     },
-    deviceToken: {
-        type: String
-    },
+    // deviceToken: {
+    //     type: String
+    // },
     sportType:{
         type:String
-    }
+    },
+    playerFollowStatus:{
+        type:Array}
+    
 }, {
     timestamps: true
 });

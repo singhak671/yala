@@ -20,12 +20,12 @@ let competitionFollowSchema = new Schema({
     },
     status:{
         type:String,
-        default:"ACTIVE",
+        default:"CONFIRMED",
         uppercase:true
     },
-    // teamId:{
-    //     type:Schema.Types.ObjectId,ref:"createTeamInCompetition"
-    // },
+    teamId:{
+        type:Schema.Types.ObjectId,ref:"createTeamInCompetition"
+    },
     teamName:{
         type:String
     },

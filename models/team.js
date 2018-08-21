@@ -4,53 +4,55 @@ const paginate = require('mongoose-paginate');
 const Schema = mongoose.Schema;
 var mongooseAggregatePaginate = require('mongoose-aggregate-paginate');
 let createTeamInComp = new Schema({
-    competitionId:{
-    type:Schema.Types.ObjectId, 
-    ref:'competition'
+    competitionId: {
+        type: Schema.Types.ObjectId,
+        ref: 'competitions'
     },
-    competitionName:{
-       type:String
+    competitionName: {
+        type: String
     },
-    venue:{
-        type:String
+    venue: {
+        type: String
     },
-    organizer:{
-    type: Schema.Types.ObjectId, ref:'user'
+    organizer: {
+        type: Schema.Types.ObjectId, ref: 'user'
     },
-    imageURL:{
-    type:String
+    imageURL: {
+        type: String
     },
-    playerId:[{
-        type:Schema.Types.ObjectId, 
-        ref:'user'
+    playerId: [{
+        type: Schema.Types.ObjectId,
+        ref: 'user'
     }],
-    teamName:{
-    type:String
+    teamName: {
+        type: String
     },
-    mobileNumber:{
-    type:String
+    mobileNumber: {
+        type: String
     },
-    email:{
-    type:String
+    email: {
+        type: String
     },
-    venueId:{
-        type: Schema.Types.ObjectId, 
-        ref:'venues'
+    venueId: {
+        type: Schema.Types.ObjectId,
+        ref: 'venues'
     },
-    division:{
-    type:String
+    division: {
+        type: String
     },
-    status:{
-    type:String
+    status: {
+        type: String
     },
-    sports:{
-        type:String
+    sports: {
+        type: String
+    },
+    teamDynamicDetail:{
+        type:Object
     }
-    },{
-    timestamps:true
+}, {
+        timestamps: true
     })
-    createTeamInComp.plugin(paginate);
-    createTeamInComp.plugin(mongooseAggregatePaginate);
-    var createTeamInCompetition=mongoose.model("createTeamInCompetition",createTeamInComp)
-    module.exports=createTeamInCompetition
-    
+createTeamInComp.plugin(paginate);
+createTeamInComp.plugin(mongooseAggregatePaginate);
+var createTeamInCompetition = mongoose.model("createTeamInCompetition", createTeamInComp)
+module.exports = createTeamInCompetition

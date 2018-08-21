@@ -100,28 +100,7 @@ const createAlbum = (req, res) => {
                                                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
                                             else {
                                                 Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, responseMsg.MEDIA_CREATED, success)
-                                                Follow.competitionFollow.find({ organizer: req.body.organizer, competitionId: req.body.competitionId }, { _id: 0, playerId: 1 }, { populate: { path: "playerId", model: User, select: { "email": 1, "competitionNotify": 1, _id: 1, mobileNumber: 1, countryCode: 1 } } }, (err, success) => {
-                                                    console.log("success---->>>", success)
-                                                    if (success) {
-                                                        let arr = [], arrEmail = [], arrId = [], arrMobile = [];
-                                                        for (let data in success) {
-                                                            if ((success[data].playerId.competitionNotify.email).indexOf("media") != -1)
-                                                                arrEmail.push(success[data].playerId.email)
-                                                            if ((success[data].playerId.competitionNotify.mobile).indexOf("media") != -1)
-                                                                arrMobile.push(success[data].playerId.countryCode + success[data].playerId.mobileNumber)
-                                                            //  arr.push(success[data].playerId.deviceToken)
-                                                            arrId.push(success[data].playerId._id)
-                                                        }
-                                                        console.log("I am email mobile Id deviceToken", arrEmail, arrMobile, arrId, arr)
-                                                        arr = ['ddMQdHYWfB4:APA91bHmiaJtIJAlonDRDEKSlZFi3-6tvvMJ9qRIs_IBRbZakJG1HUgmOZRkHQJ54uVwvcuPXhGHk-cc3AmZL0Cvnnklx5wC7-nQQXQtAiB5D5ttAOR-RkBZI6ZrjLeOD9uh6SttStoN2g2dmETfBpRqTpqUUhtXqQ']
-                                                        message.sendMailToAll(arrEmail, firstName + " " + lastName + " added a new " + req.body.typeOfMedia, (err, success) => {
-                                                            console.log(success)
-                                                        }, req.body.organizer)
-                                                        message.sendSmsToAll(arrMobile, firstName + " " + lastName + " added a new " + req.body.typeOfMedia)
-                                                        message.sendNotificationToAll(firstName + " " + lastName + " added a new " + req.body.typeOfMedia, arr)
-                                                        message.saveNotification(arrId, firstName + " " + lastName + " added a new " + req.body.typeOfMedia)
-                                                    }
-                                                })
+                                             
                                             }
                                         })
                                     } else {
@@ -130,6 +109,28 @@ const createAlbum = (req, res) => {
                                 })
                             }, (finalResult) => {
                                 console.log("ggggggg", finalResult)
+                            });
+                            Follow.competitionFollow.find({ organizer: req.body.organizer, competitionId: req.body.competitionId }, { _id: 0, playerId: 1 }, { populate: { path: "playerId", model: User, select: { "email": 1, "competitionNotify": 1, _id: 1, mobileNumber: 1, countryCode: 1 } } }, (err, success) => {
+                                console.log("success---->>>", success)
+                                if (success) {
+                                    let arr = [], arrEmail = [], arrId = [], arrMobile = [];
+                                    for (let data in success) {
+                                        if ((success[data].playerId.competitionNotify.email).indexOf("media") != -1)
+                                            arrEmail.push(success[data].playerId.email)
+                                        if ((success[data].playerId.competitionNotify.mobile).indexOf("media") != -1)
+                                            arrMobile.push(success[data].playerId.countryCode + success[data].playerId.mobileNumber)
+                                        //  arr.push(success[data].playerId.deviceToken)
+                                        arrId.push(success[data].playerId._id)
+                                    }
+                                    console.log("I am email mobile Id deviceToken", arrEmail, arrMobile, arrId, arr)
+                                    arr = ['ddMQdHYWfB4:APA91bHmiaJtIJAlonDRDEKSlZFi3-6tvvMJ9qRIs_IBRbZakJG1HUgmOZRkHQJ54uVwvcuPXhGHk-cc3AmZL0Cvnnklx5wC7-nQQXQtAiB5D5ttAOR-RkBZI6ZrjLeOD9uh6SttStoN2g2dmETfBpRqTpqUUhtXqQ']
+                                    message.sendMailToAll(arrEmail, firstName + " " + lastName + " added a new " + req.body.typeOfMedia, (err, success) => {
+                                        console.log(success)
+                                    }, req.body.organizer)
+                                    message.sendSmsToAll(arrMobile, firstName + " " + lastName + " added a new " + req.body.typeOfMedia)
+                                    message.sendNotificationToAll(firstName + " " + lastName + " added a new " + req.body.typeOfMedia, arr)
+                                    message.saveNotification(arrId, firstName + " " + lastName + " added a new " + req.body.typeOfMedia)
+                                }
                             })
                         }
                         else {

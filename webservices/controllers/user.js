@@ -530,7 +530,7 @@ const logOut=(req,res)=>{
 				_id:req.query._id
 			}
 			set={
-				jwt:''
+				deviceToken:''
 			}
 			options={
 				new:true
@@ -1424,13 +1424,13 @@ const deleteNotification=(req,res)=>{
 const orgNotification=(req,res)=>{
 	console.log("xxxxxxxx-->>",req.body)
 	if(!req.query.userId)
-	return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORG_IS_REQ)
+		return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORG_IS_REQ)
 	else{
 		userServices.findUser({_id:req.query.userId},(err,success)=>{
 			if(err)
-			return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR)
+				return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR)
 			else if(!success)
-			return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS)
+				return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS)
 			else{
 				let set={
 					organizerNotification:req.body.organizerNotification
@@ -1444,6 +1444,24 @@ const orgNotification=(req,res)=>{
 			}
 		})
 	}
+}
+
+const updateDeviceToken=(req,res)=>{
+	if(!req.query.userId || !req.query.deviceToken)
+		return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORG_IS_REQ);
+	else{
+		User.findByIdAndUpdate(req.query.userId,{$set:{deviceToken:req.query.deviceToken}},{new:true},(err,success)=>{
+			if(err)
+				return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+			else if(!success)
+				return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS)
+			else{
+				return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Device-Token updated successfully")
+			}
+
+		})
+	}
+
 }
 module.exports={
 	signup,
@@ -1476,7 +1494,11 @@ module.exports={
 	getControlNotification,
 	getnotificationList,
 	deleteNotification,
-	orgNotification
+	orgNotification,
+
+
+
+	updateDeviceToken
 }
 
 
