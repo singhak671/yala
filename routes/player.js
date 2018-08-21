@@ -11,10 +11,10 @@ router.post('/competition/getAllCompetitions',playerCompetitionController.getAll
 
 
 router.post('/competition/followCompetition',AUTH.verifyToken,playerCompetitionController.followCompetition);
-router.post('/competition/filterCompetitions',playerCompetitionController.filterCompetitions);
+router.post('/competition/filterCompetitions',AUTH.verifyToken,playerCompetitionController.filterCompetitions);
 router.post('/competition/unFollowCompetition',AUTH.verifyToken,playerCompetitionController.unFollowCompetition);
-router.post('/competition/confirmRegistration',playerCompetitionController.confirmRegistration);
-router.post('/competition/competitionNotification',playerCompetitionController.competitionNotification);
-router.post('/competition/getRegisterFormOrNot',playerCompetitionController.getRegisterFormOrNot);
-router.get('/competition/searchCompetition',playerCompetitionController.searchCompetition);
+router.post('/competition/confirmRegistration',AUTH.verifyToken,playerCompetitionController.confirmRegistration);
+router.post('/competition/competitionNotification',AUTH.verifyToken,playerCompetitionController.competitionNotification);
+router.post('/competition/getRegisterFormOrNot',AUTH.verifyToken,playerCompetitionController.getRegisterFormOrNot);
+router.get('/competition/searchCompetition',AUTH.verifyToken,playerCompetitionController.searchCompetition);
 module.exports=router;

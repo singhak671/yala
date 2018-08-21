@@ -13,7 +13,7 @@ const responseMsg = require('../../helper/httpResponseMessage')
 const userServices = require('../services/userApis');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
-
+const General = require("../../models/generalSchema.js")
 
 const getAllCompetitions = (req, res) => {
     let flag = Validator(req.body, [], [], ["userId"]);
@@ -58,16 +58,20 @@ const filterCompetitions = (req, res) => {
         if (obj.followStatus) {
             console.log("11111111111111111111");
             let query2;
-            if (obj.followStatus && !obj.sports && !obj.sports)
+            if (obj.followStatus && !obj.sports && !obj.status)
                 query2 = {};
             else if (obj.sports && !obj.status) {
-                query2 = { sports: { $in: obj.sports } }
+                query2 = { sports: { $in: obj.sports },published:true }
                 console.log("111query>>>>>>>>>>>", query2);
             }
             else if (obj.status && obj.sports) {
-                query2 = { $and: [{ sports: { $in: obj.sports } }, { status: obj.status }] }
+                query2 = { $and: [{ sports: { $in: obj.sports } }, { status: obj.status },{published:true}] }
                 console.log("222query>>>>>", query2)
-            };
+            }
+            else if (obj.status && !obj.sports) {
+                query2 = { status: obj.status ,published:true};
+                console.log("222query>>>>>", query2)
+            }
             if(req.body.filterFields)
             if(req.body.filterFields.search)
                 {
@@ -94,6 +98,8 @@ const filterCompetitions = (req, res) => {
                 sort: { createdAt: -1 },
                 lean: false
             };
+
+            console.log("i am final object with FOLLOW STATUS",query2)
             followComp.competitionFollow.paginate({ playerId: req.body.userId, followStatus: obj.followStatus }, option, (err, success) => {
 
                 if (err)
@@ -261,13 +267,18 @@ const filterCompetitions = (req, res) => {
             if (!obj.sports && !obj.status)
                 query1 = obj;
             else if (obj.sports && !obj.status) {
-                query1 = { sports: { $in: obj.sports } }
+                query1 = { sports: { $in: obj.sports } ,published:true}
                 console.log("111query>>>>>>>>>>>", query1);
             }
             else if (obj.status && obj.sports) {
-                query1 = { $and: [{ sports: { $in: obj.sports } }, { status: obj.status }] }
+                query1 = { $and: [{ sports: { $in: obj.sports } }, { status: obj.status },{published:true}] };
+                
                 console.log("22 query>>>>>", query1)
-            };
+            }
+            else if(obj.status && !obj.sports){
+                query1 = obj;
+                console.log("33 query>>>>>", query1)
+            }
 
             //condition for searching 
             if(req.body.filterFields)
@@ -449,30 +460,32 @@ const followCompetition = (req, res) => {
                                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err2);
                             else {
                          // Competition.competition.findByIdAndUpdate(req.body.competitionId, { $push: { playerFollowStatus: obj } }, { new: true }, (error, result5) => {
-                         Competition.competition.findOneAndUpdate({_id:req.body.competitionId,"playerFollowStatus.playerId":{$nin:[obj.playerId]}}, { $addToSet: { playerFollowStatus: obj } }, { new: true,upsert:true }, (error, result5) => {
+                         Competition.competition.findOneAndUpdate({_id:req.body.competitionId,"playerFollowStatus.playerId":{$nin:[obj.playerId]}}, { $addToSet: { playerFollowStatus: obj } }, { new: true,upsert:true })
+                         .populate("organizer"," _id competitionNotify email deviceToken countryCode mobileNumber firstName lastName organizerNotification")
+                         .exec((error, result5) => {
                                     if (error || !result5)
                                         return Response.sendResponse(res, responseCode.BAD_REQUEST, "Player has already followed the competition", error);
                                     else
                                         Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success2);
-                                    User.findOne({ _id: success2.organizer },(err, success) => {
+                                    // User.findOne({ _id: success2.organizer },(err, success) => {
                                       //  console.log("successssssss------>>>>>.", success2.organizer);
                                         
                                        // console.log(success.deviceToken)
                                        //===================
-                                    //    if ((success.competitionNotify.mobile).indexOf("registration") != -1){
-                                    //     message.sendSMS(firstName + " " + lastName + " has followed your competition " + competitionName,success.countryCode,success.phoneNumber,(error,result)=>{
-                                    //         if(err)
-                                    //         console.log("error in sending SMS")
-                                    //         else if(result)
-                                    //         console.log("SMS sent successfully to the organizer!")
-                                    //     })
+                                       if ((result5.organizer.organizerNotification).indexOf("registration") != -1){
+                                        message.sendSMS(firstName + " " + lastName + " has followed your competition i.e, " + competitionName,result5.organizer.countryCode,result5.organizer.mobileNumber,(error,result)=>{
+                                            if(err)
+                                            console.log("error in sending SMS")
+                                            else if(result)
+                                            console.log("SMS sent successfully to the organizer!")
+                                        })
                                        
-                                    //         message.sendMail(success3.email, "Yala Sports App ✔", "You are confirmed by the organizer " + organizerName, (err, result) => {
-                                    //             console.log("send1--->>", result1)
-                                    //         })}
-                                        message.sendNotificationToAll(firstName + " " + lastName + " has followed your competition " + competitionName, [success.deviceToken])
-                                        message.saveNotification([success2.organizer], firstName + " " + lastName + " has followed your competition " + competitionName)
-                                    })
+                                            message.sendMail(result5.organizer.email, "Yala Sports App ✔", firstName + " " + lastName + " has followed your competition i.e, " + competitionName, (err, result) => {
+                                                console.log("send1--->>", result1)
+                                            })}
+                                        message.sendNotificationToAll(firstName + " " + lastName + " has followed your competition " + competitionName, [result5.organizer.deviceToken])
+                                        message.saveNotification([result5.organizer._id], firstName + " " + lastName + " has followed your competition " + competitionName)
+                                        //})
                                 })
                             }
 
@@ -604,189 +617,232 @@ const confirmRegistration = (req, res) => {
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else {
-        Competition.competitionReg.findOne({competitionId:req.body.regData.competitionId},(error,result)=>{
-            if(error)
-                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, error);
-            else if(!result)
-                    return Response.sendResponse(res,responseCode.NOT_FOUND,"Competition not found")
-                else{
-                    if(result.freeOrPaid=="paid" && req.body.regData.paymentMethod=="Online"){
-                        if(!req.body.data || !req.body.data.response || !req.body.data.response.token)
-	                        return Response.sendResponse(res,responseCode.BAD_REQUEST,"Payment failed");
+          User.findOne({_id:req.body.regData.playerId},(err,success1)=>{
+              if(err||!success1)
+              return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+              else{
+                  let gender=success1.gender;let dob=success1.dob;
+                  Competition.competitionReg.findOne({competitionId:req.body.regData.competitionId},{},{populate:{path:"competitionId",Model:"competition"}},(error,result)=>{
+                    if(error)
+                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, error);
+                    else if(!result)
+                            return Response.sendResponse(res,responseCode.NOT_FOUND,"Competition not found")
+                        else{
+                           console.log("result----->>>",result.competitionId.division)
+                           General.division.aggregate([
+                            {
+                                $match: {
+                                    divisionName: result.competitionId.division
+                                }
+                           },
+                            { $project: { dateDifference: { $divide: [{ $subtract: ["$date", new Date(dob)] }, (60 * 60 * 24 * 1000 * 366)] }, gender: 1, minAge: 1, maxAge: 1, divisionName: 1 } },
+                        ], (err, success) => {
+                            console.log(success)
+                            if (err || !success)
+                            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                            else{
+                                let GENDER;
+                                if(success[0].gender=="male")
+                                GENDER="Males";
+                                if(success[0].gender=="female")
+                                GENDER="Females";
+                                if(success[0].gender=="co-ed")
+                                GENDER="Co-ed";
 
-                        var tco = new Twocheckout({
-                            sellerId: "901386003",         // Seller ID, required for all non Admin API bindings 
-                            privateKey: "CA54E803-AC54-41C3-8677-A36DE6C276A4",     // Payment API private key, required for checkout.authorize binding
-                            sandbox: true                          // Uses 2Checkout sandbox URL for all bindings
-                        });
-                      
-                        var params = {
-                            "merchantOrderId": "123",
-                            "token": req.body.data.response.token.token,
-                            "currency": "USD",
-                            "total":result.registrationFee,
-                            "billingAddr": {     
-                                "name": "Testing Tester",
-                                "addrLine1": "123 Test St",
-                                "city": "Columbus",
-                                "state": "Ohio",
-                                "zipCode": "43123",
-                                "country": "USA",
-                                "email": "example@2co.com",
-                                "phoneNumber": "5555555555"
-                            }
-                        };
-                      
-                        tco.checkout.authorize(params, function (error, data) {
-                                        console.log("i am data and error",data,error);
-                                        if (error || !data ) {
-                                            return Response.sendResponse(res,responseCode.BAD_REQUEST,"UNAUTHORIZED");
-                                        } else {
-                                            if(data.response.responseCode=="APPROVED" && data.response.orderNumber && !data.response.errors){
-                                                TransactionSchema.organizerTransaction.findOneAndUpdate({organizerId:req.body.regData.organizerId,playerId:req.body.regData.playerId},{$push:{paymentDetails:data}},{new:true,safe:true,upsert:true},(err3,success3)=>{
-                                                    if(err3 || !success3)
-                                                        return Response.sendResponse(res,responseCode.BAD_REQUEST,"Transaction history not saved");
-                                                    else{
-                                                        if(req.body.data.paymentMethod=="Offline")
-                                                            var paymentMethod="UNCONFIRMED";
-                                                        else
-                                                            paymentMethod="CONFIRMED";
-
-
-                                                    if(req.body.regData.team)
-                                                          if(req.body.regData.team._id){
-                                                              var teamname=req.body.regData.team.teamName;
-                                                            let set={
-                                                                $push:{
-                                                                    playerId:req.body.regData.playerId
-                                                                }
-                                                            }
-                                                            teamServices.updateTeam({_id:req.body.regData.team._id},set,{new:true},(err,success3)=>{
-                                                               if(err || !success3)
-                                                                    return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-                                                               else{
-                                                                 console.log("success")
-                                                               }
-                                                            })
-                                                          }
-                                                        Follow.competitionFollow.findOneAndUpdate({ competitionId: req.body.regData.competitionId, playerId: req.body.regData.playerId, organizer: req.body.regData.organizerId }, { $set: { registration: true ,status:paymentMethod,teamName:teamname} })
-                                                        .populate("organizer"," _id competitionNotify email deviceToken countryCode mobileNumber firstName lastName")
-                                                        .populate("competitionId","competitionName _id")
-                                                        .exec((err, success) => {
-                                                            if (err)
-                                                                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err1);
-                                                            else if (!success)
-                                                                return Response.sendResponse(res, responseCode.NOT_FOUND, "data");
-                                                            else {
-                                                                User.findOneAndUpdate({ _id: req.body.regData.playerId }, { $set: { playerDynamicDetails: req.body.regData.playerDynamicDetails } }, (err1, success1) => {
-                                                                    if (err)
-                                                                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err1);
-                                                                    else if (!success1)
-                                                                        return Response.sendResponse(res, responseCode.NOT_FOUND, "Player not found !");
-                                                                    else {
-                                                                        var firstName=success1.firstName;
-                                                                        var lastName=success1.lastName;
-                                                
-                                                                         Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "You are successfully registered!");
-                                                                         //============sending notification to the organizer//
-                                                                        //  if ((success.organizer.competitionNotify.mobile).indexOf("registration") != -1){
-                                                                        //     message.sendSMS(firstName + " " + lastName + " has followed your competition " + competitionName,success.countryCode,success.phoneNumber,(error,result)=>{
-                                                                        //         if(err)
-                                                                        //         console.log("error in sending SMS")
-                                                                        //         else if(result)
-                                                                        //         console.log("SMS sent successfully to the organizer!")
-                                                                        //     })
-                                                                           
-                                                                        //         message.sendMail(success3.email, "Yala Sports App ✔", "You are confirmed by the organizer " + organizerName, (err, result) => {
-                                                                        //             console.log("send1--->>", result1)
-                                                                        //         })}
-                                                                                //=====================
-                                                                           message.sendNotificationToAll(firstName + " " + lastName + " is registered into your competition i.e, " + success.competitionId.competitionName, [success.organizer.deviceToken])
-                                                                           message.saveNotification([success.organizer._id], firstName + " " + lastName + " is registered into your competition i.e, " + success.competitionId.competitionName)
-                                                                    }
-                                                
-                                                                })
-                                                            }
-                                                        })
-                                                      
-
+                                if (success[0].gender == "male" || success[0].gender == "female" || success[0].gender == "co-ed") {
+                                    if (gender != success[0].gender && success[0].gender != "co-ed")
+                                    return Response.sendResponse(res, responseCode.BAD_REQUEST, `"${GENDER}" are only allowed to register in this Competition`)
+                                    else{
+                                        if (success[0].dateDifference < success[0].minAge || success[0].dateDifference > (success[0].maxAge) + 1)
+                                         return Response.sendResponse(res, responseCode.BAD_REQUEST, `Players whose age lies between "${success[0].minAge}" to "${success[0].maxAge}" are only allowed to register in this Competition `)
+                                        else{
+                                            if(result.freeOrPaid=="paid" && req.body.regData.paymentMethod=="Online"){
+                                                if(!req.body.data || !req.body.data.response || !req.body.data.response.token)
+                                                    return Response.sendResponse(res,responseCode.BAD_REQUEST,"Payment failed");
+                        
+                                                var tco = new Twocheckout({
+                                                    sellerId: "901386003",         // Seller ID, required for all non Admin API bindings 
+                                                    privateKey: "CA54E803-AC54-41C3-8677-A36DE6C276A4",     // Payment API private key, required for checkout.authorize binding
+                                                    sandbox: true                          // Uses 2Checkout sandbox URL for all bindings
+                                                });
+                                              
+                                                var params = {
+                                                    "merchantOrderId": "123",
+                                                    "token": req.body.data.response.token.token,
+                                                    "currency": "USD",
+                                                    "total":result.registrationFee,
+                                                    "billingAddr": {     
+                                                        "name": "Testing Tester",
+                                                        "addrLine1": "123 Test St",
+                                                        "city": "Columbus",
+                                                        "state": "Ohio",
+                                                        "zipCode": "43123",
+                                                        "country": "USA",
+                                                        "email": "example@2co.com",
+                                                        "mobileNumber": "5555555555"
                                                     }
-
-                                                })
-
+                                                };
+                                              
+                                                tco.checkout.authorize(params, function (error, data) {
+                                                                console.log("i am data and error",data,error);
+                                                                if (error || !data ) {
+                                                                    return Response.sendResponse(res,responseCode.BAD_REQUEST,"UNAUTHORIZED");
+                                                                } else {
+                                                                    if(data.response.responseCode=="APPROVED" && data.response.orderNumber && !data.response.errors){
+                                                                        TransactionSchema.organizerTransaction.findOneAndUpdate({organizerId:req.body.regData.organizerId,playerId:req.body.regData.playerId},{$push:{paymentDetails:data}},{new:true,safe:true,upsert:true},(err3,success3)=>{
+                                                                            if(err3 || !success3)
+                                                                                return Response.sendResponse(res,responseCode.BAD_REQUEST,"Transaction history not saved");
+                                                                            else{
+                                                                                if(req.body.data.paymentMethod=="Offline")
+                                                                                    var paymentMethod="UNCONFIRMED";
+                                                                                else
+                                                                                    paymentMethod="CONFIRMED";
+                        
+                        
+                                                                            if(req.body.regData.team)
+                                                                                  if(req.body.regData.team._id){
+                                                                                      var teamname=req.body.regData.team.teamName;
+                                                                                    let set={
+                                                                                        $push:{
+                                                                                            playerId:req.body.regData.playerId
+                                                                                        }
+                                                                                    }
+                                                                                    teamServices.updateTeam({_id:req.body.regData.team._id},set,{new:true},(err,success3)=>{
+                                                                                       if(err || !success3)
+                                                                                            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+                                                                                       else{
+                                                                                         console.log("success")
+                                                                                       }
+                                                                                    })
+                                                                                  }
+                                                                                Follow.competitionFollow.findOneAndUpdate({ "competitionId": req.body.regData.competitionId, playerId: req.body.regData.playerId, organizer: req.body.regData.organizerId }, { $set: { registration: true ,status:paymentMethod,teamName:teamname} })
+                                                                                .populate("organizer"," _id competitionNotify email deviceToken countryCode mobileNumber firstName lastName organizerNotification")
+                                                                                .populate("competitionId","competitionName _id")
+                                                                                .exec((err, success) => {
+                                                                                    if (err)
+                                                                                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err1);
+                                                                                    else if (!success)
+                                                                                        return Response.sendResponse(res, responseCode.NOT_FOUND, "data");
+                                                                                    else {
+                                                                                        User.findOneAndUpdate({ _id: req.body.regData.playerId }, { $set: { playerDynamicDetails: req.body.regData.playerDynamicDetails } }, (err1, success1) => {
+                                                                                            if (err)
+                                                                                                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err1);
+                                                                                            else if (!success1)
+                                                                                                return Response.sendResponse(res, responseCode.NOT_FOUND, "Player not found !");
+                                                                                            else {
+                                                                                                var firstName=success1.firstName;
+                                                                                                var lastName=success1.lastName;
+                                                                        
+                                                                                                 Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "You are successfully registered!");
+                                                                                                 //============sending notification to the organizer//
+                                                                                                 if ((success.organizer.organizerNotification).indexOf("registration") != -1){
+                                                                                                    message.sendSMS(firstName + " " + lastName + " is registered into your competition i.e, " + success.competitionId.competitionName,success.organizer.countryCode,success.organizer.mobileNumber,(error,result)=>{
+                                                                                                        if(err)
+                                                                                                        console.log("error in sending SMS")
+                                                                                                        else if(result)
+                                                                                                        console.log("SMS sent successfully to the organizer!")
+                                                                                                    })
+                                                                                                   
+                                                                                                        message.sendMail(success.organizer.email, "Yala Sports App ✔", firstName + " " + lastName + " is registered into your competition i.e, " + success.competitionId.competitionName, (err, result) => {
+                                                                                                            console.log("send1--->>", result1)
+                                                                                                        })}
+                                                                                                        //=====================
+                                                                                                   message.sendNotificationToAll(firstName + " " + lastName + " is registered into your competition i.e, " + success.competitionId.competitionName, [success.organizer.deviceToken])
+                                                                                                   message.saveNotification([success.organizer._id], firstName + " " + lastName + " is registered into your competition i.e, " + success.competitionId.competitionName)
+                                                                                            }
+                                                                        
+                                                                                        })
+                                                                                    }
+                                                                                })
+                                                                              
+                        
+                                                                            }
+                        
+                                                                        })
+                        
+                                                                    }
+                                                                    else{
+                                                                        return sendResponse(res,responseCode.BAD_REQUEST,"Payment is not successfull")
+                                                                    }
+                        
+                                                                }
+                                                            })
+                        
                                             }
                                             else{
-                                                return sendResponse(res,responseCode.BAD_REQUEST,"Payment is not successfull")
+                                                if(req.body.regData.paymentMethod=="Offline")
+                                                    var paymentMethod="UNCONFIRMED";
+                                            if(req.body.regData.team)
+                                                if(req.body.regData.team._id){
+                                                    var teamname=req.body.regData.team.teamName;
+                                                    let set={
+                                                        $push:{
+                                                            playerId:req.body.regData.playerId
+                                                        }
+                                                    }
+                                                    teamServices.updateTeam({_id:req.body.regData.team._id},set,{new:true},(err,success3)=>{
+                                                       if(err || !success3)
+                                                            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+                                                       else{
+                                                         console.log("success")
+                                                       }
+                                                    })
+                                                  }
+                                            
+                                                Follow.competitionFollow.findOneAndUpdate({ competitionId: req.body.regData.competitionId, playerId: req.body.regData.playerId, organizer: req.body.regData.organizerId }, { $set: { registration: true,teamName:teamname,status:paymentMethod} })
+                                                .populate("organizer"," _id competitionNotify email deviceToken countryCode mobileNumber firstName lastName")
+                                                .populate("competitionId","competitionName _id")
+                                                .exec((err, success) => {
+                                                    if (err)
+                                                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err1);
+                                                    else if (!success)
+                                                        return Response.sendResponse(res, responseCode.NOT_FOUND, "Player not followed the competition");
+                                                    else {
+                                                        User.findOneAndUpdate({ _id: req.body.regData.playerId }, { $set: { playerDynamicDetails: req.body.regData.playerDynamicDetails } }, (err1, success1) => {
+                                                            if (err)
+                                                                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err1);
+                                                            else if (!success1)
+                                                                return Response.sendResponse(res, responseCode.NOT_FOUND, "Player not found !");
+                                                            else {
+                                                                var firstName=success1.firstName;
+                                                                var lastName=success1.lastName;
+                                        
+                                                                 Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "You are successfully registered!");
+                                                                //============sending notification to the organizer//
+                                                                if ((success.organizer.organizerNotification).indexOf("registration") != -1){
+                                                                    message.sendSMS(firstName + " " + lastName + " is registered into your competition i.e, " + success.competitionId.competitionName,success.organizer.countryCode,success.organizer.mobileNumber,(error,result)=>{
+                                                                        if(err)
+                                                                        console.log("error in sending SMS")
+                                                                        else if(result)
+                                                                        console.log("SMS sent successfully to the organizer!")
+                                                                    })
+                                                                   
+                                                                        message.sendMail(success.organizer.email, "Yala Sports App ✔", firstName + " " + lastName + " is registered into your competition i.e, " + success.competitionId.competitionName, (err, result) => {
+                                                                            console.log("send1--->>", result1)
+                                                                        })}
+                                                                        //=====================
+                                                                   message.sendNotificationToAll(firstName + " " + lastName + " is registered into your competition i.e, " + success.competitionId.competitionName, [success.organizer.deviceToken])
+                                                                   message.saveNotification([success.organizer._id], firstName + " " + lastName + " is registered into your competition i.e, " + success.competitionId.competitionName)
+                                                            }
+                                        
+                                                        })
+                                                    }
+                                                })
+                        
                                             }
-
-                                        }
-                                    })
-
-                    }
-                    else{
-                        if(req.body.regData.paymentMethod=="Offline")
-                            var paymentMethod="UNCONFIRMED";
-                    if(req.body.regData.team)
-                        if(req.body.regData.team._id){
-                            var teamname=req.body.regData.team.teamName;
-                            let set={
-                                $push:{
-                                    playerId:req.body.regData.playerId
+                                       }
+                                     }
                                 }
                             }
-                            teamServices.updateTeam({_id:req.body.regData.team._id},set,{new:true},(err,success3)=>{
-                               if(err || !success3)
-                                    return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-                               else{
-                                 console.log("success")
-                               }
-                            })
-                          }
-                    
-                        Follow.competitionFollow.findOneAndUpdate({ competitionId: req.body.regData.competitionId, playerId: req.body.regData.playerId, organizer: req.body.regData.organizerId }, { $set: { registration: true,teamName:teamname,status:paymentMethod} })
-                        .populate("organizer"," _id competitionNotify email deviceToken countryCode mobileNumber firstName lastName")
-                        .populate("competitionId","competitionName _id")
-                        .exec((err, success) => {
-                            if (err)
-                                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err1);
-                            else if (!success)
-                                return Response.sendResponse(res, responseCode.NOT_FOUND, "Player not followed the competition");
-                            else {
-                                User.findOneAndUpdate({ _id: req.body.regData.playerId }, { $set: { playerDynamicDetails: req.body.regData.playerDynamicDetails } }, (err1, success1) => {
-                                    if (err)
-                                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err1);
-                                    else if (!success1)
-                                        return Response.sendResponse(res, responseCode.NOT_FOUND, "Player not found !");
-                                    else {
-                                        var firstName=success1.firstName;
-                                        var lastName=success1.lastName;
-                
-                                         Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "You are successfully registered!");
-                                        //============sending notification to the organizer//
-                                        //  if ((success.organizer.competitionNotify.mobile).indexOf("registration") != -1){
-                                        //     message.sendSMS(firstName + " " + lastName + " has followed your competition " + competitionName,success.countryCode,success.phoneNumber,(error,result)=>{
-                                        //         if(err)
-                                        //         console.log("error in sending SMS")
-                                        //         else if(result)
-                                        //         console.log("SMS sent successfully to the organizer!")
-                                        //     })
-                                           
-                                        //         message.sendMail(success3.email, "Yala Sports App ✔", "You are confirmed by the organizer " + organizerName, (err, result) => {
-                                        //             console.log("send1--->>", result1)
-                                        //         })}
-                                                //=====================
-                                           message.sendNotificationToAll(firstName + " " + lastName + " is registered into your competition i.e, " + success.competitionId.competitionName, [success.organizer.deviceToken])
-                                           message.saveNotification([success.organizer._id], firstName + " " + lastName + " is registered into your competition i.e, " + success.competitionId.competitionName)
-                                    }
-                
-                                })
-                            }
+        
                         })
-
-                    }
-                }
-        })
-
+        
+                     }
+                })
+        
+              }
+          })
+       
     }
 }
 

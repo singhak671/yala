@@ -24,7 +24,8 @@ const selectCompition = (req, res) => {
             else
                 req.body.userId = req.query.userId
             let select = {
-                competitionName: 1
+                competitionName: 1,
+                sportType:1
             }
             teamServices.selectCompition({ organizer: req.body.userId }, select, (err, success) => {
                 if (err)
@@ -324,7 +325,7 @@ const tryyyy = (req, res) => {
 //---------------------------Add player-----------------------------------------------
 const addPlayer = (req, res) => {
     console.log(req.body.playerDetail)
-    subscriptionValidator(req.query, ["player&team",], (err, flag) => {
+    subscriptionValidator(req.query, ["team&player",], (err, flag) => {
         if (flag[0] !== 200)
             return Response.sendResponse(res, flag[0], flag[1], flag[2]);
         if (!req.query.userId)
@@ -370,7 +371,7 @@ const addPlayer = (req, res) => {
                                                     console.log("yieepieee")
                                                     console.log("dsffj", parseInt(success[0].dateDifference))
                                                     if (success[0].dateDifference < success[0].minAge || success[0].dateDifference > (success[0].maxAge) + 1)
-                                                        return Response.sendResponse(res, responseCode.BAD_REQUEST, `"${parseInt(success[0].dateDifference)}" year age players are not allowed for Competition "${req.body.competitionName}" !`)
+                                                        return Response.sendResponse(res, responseCode.BAD_REQUEST, `"${success[0].minAge}" to "${success[0].maxAge}" year age players are allowed for Competition "${req.body.competitionName}" !`)
                                                     else {
                                                         console.log("yippieee")
                                                         const password = message.genratePassword();

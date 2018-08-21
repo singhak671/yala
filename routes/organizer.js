@@ -64,16 +64,16 @@ router.post('/deletePeriod',generalController.deletePeriod);
 
 
 
-router.post('/addSport',generalController.addSport);
-router.post('/getSport',generalController.getSport);
-router.post('/getASport',generalController.getASport);
-router.get('/selectSport',generalController.selectSport);
-router.post('/editSport',generalController.editSport);
-router.post('/deleteSport',generalController.deleteSport);
+router.post('/addSport',AUTH.verifyToken,generalController.addSport);
+router.post('/getSport',AUTH.verifyToken,generalController.getSport);
+router.post('/getASport',AUTH.verifyToken,generalController.getASport);
+router.get('/selectSport',AUTH.verifyToken,generalController.selectSport);
+router.post('/editSport',AUTH.verifyToken,generalController.editSport);
+router.post('/deleteSport',AUTH.verifyToken,generalController.deleteSport);
 
 
-router.post('/addSmtpDetails',generalController.addSMTPDetails);
-router.post('/getMailMessageDetails',generalController.getMailMessageDetails);
+router.post('/addSmtpDetails',AUTH.verifyToken,generalController.addSMTPDetails);
+router.post('/getMailMessageDetails',AUTH.verifyToken,generalController.getMailMessageDetails);
 
 
 

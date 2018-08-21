@@ -456,9 +456,9 @@ const publishCompetition = (req, res) => {
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
             else if (!success)
-                return Response.sendResponse(res, responseCode.NOT_FOUND, "competitionId not found");
+                return Response.sendResponse(res, responseCode.NOT_FOUND, "CompetitionId not found");
             else
-                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "You have ", success);
+                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "You have Published this competition successfully", success);
         })
 }
 
@@ -474,7 +474,7 @@ const unPublishCompetition = (req, res) => {
             else if (!success)
                 return Response.sendResponse(res, responseCode.NOT_FOUND, "competitionId not found");
             else
-                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success);
+                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "You have Unpublished this competition successfully", success);
         })
 }
 
@@ -796,13 +796,5 @@ module.exports = {
     publishCompetition,
     unPublishCompetition,
     getRegistrationDetail,
-
-
-
-
-
-
-
-
 
 }

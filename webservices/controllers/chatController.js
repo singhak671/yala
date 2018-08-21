@@ -287,7 +287,7 @@ const sendMsgToAllPlayersOfATeam = (req, res) => {
             CreateTeamInCompetition.findById({ _id:req.body.teamId})
                 .populate({
                             path:"playerId",
-                            select:" _id competitionNotify email deviceToken countryCode mobileNumber firstName lastName"})
+                            select:"_id competitionNotify email deviceToken countryCode mobileNumber firstName lastName"})
                 .populate({path:"organizer",
                            select:"_id firstName lastName" })
                 .exec((err, success) => {

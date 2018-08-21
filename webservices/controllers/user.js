@@ -160,7 +160,7 @@ const resendOtp=(req,res)=>{
 //--------------------------Log In-----------------------------------------------------------
 const login=(req,res)=>{
 	console.log("LOGIN >>> req.body--->>",req.body)
-	let flag = Validator(req.body, ['email', 'password'],[],["currentDate"])  ;
+	let flag = Validator(req.body, ['email', 'password'],[],["currentDate","deviceToken","deviceType"])  ;
 	if(flag)
 	Response.sendResponse(res, flag[0],flag[1]) 
 	else{
@@ -181,6 +181,16 @@ const login=(req,res)=>{
 				else{
 					//console.log(result.subscriptionEndDate)
 					if(result.role.indexOf("ORGANIZER")!== -1 && result.subscription!="oneEvent"){
+						
+								User.findOneAndUpdate({email:req.body.email},{$set:{deviceToken:req.body.deviceToken,deviceType:req.body.deviceType}},(error,result)=>{
+									if(error|| !result)
+										return Response.sendResponse(res,responseCode.UNAUTHORIZED,responseMsg.EMAIL_NOT_EXISTS)
+									else if(result){
+										console.log("device token and device type setted successfully")
+									}
+									
+								})
+							
 					if(moment(Number(req.body.currentDate)).isSameOrBefore(result.subscriptionEndDate))
 					{
 						console.log("secret key is "+config.secret_key)
@@ -195,6 +205,14 @@ const login=(req,res)=>{
 					return Response.sendResponse(res,responseCode.PAYMENT_REQUIRED,"Your subscription plan has expired! </br> Please renew to continue.")
 				}
 				else{
+					User.findOneAndUpdate({email:req.body.email},{$set:{deviceToken:req.body.deviceToken,deviceType:req.body.deviceType}},(error,result)=>{
+						if(error|| !result)
+							return Response.sendResponse(res,responseCode.UNAUTHORIZED,responseMsg.EMAIL_NOT_EXISTS)
+						else if(result){
+							console.log("device token and device type setted successfully")
+						}
+						
+					})
 				var token =  jwt.sign({_id:result._id,email:result.email,password:result.password},config.secret_key);
 						console.log("token----->>",token)
 							return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.LOG_SUCCESS,result,"",token)	
@@ -1456,6 +1474,7 @@ const updateDeviceToken=(req,res)=>{
 			else if(!success)
 				return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS)
 			else{
+				console.log(success)
 				return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Device-Token updated successfully")
 			}
 

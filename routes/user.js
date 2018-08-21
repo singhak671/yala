@@ -9,14 +9,14 @@ router.post('/updateUser',AUTH.verifyToken,userController.updateUser);
 router.get('/getDetail',AUTH.verifyToken,userController.getDetail);
 router.post('/changePassword',AUTH.verifyToken,userController.changePassword);
 router.post('/forgetPassword',userController.forgetPassword);
-router.post('/changePlan',userController.changePlan)
+router.post('/changePlan',AUTH.verifyToken,userController.changePlan)
 router.get('/logOut',AUTH.verifyToken,userController.logOut)
 router.get('/code',userController.code)
-router.post('/addCard',userController.addCard)
+router.post('/addCard',AUTH.verifyToken,userController.addCard)
 router.get('/getCardDetails',AUTH.verifyToken,userController.getCardDetails)
 router.post('/editCardDetails',AUTH.verifyToken,userController.editCardDetails)
-router.post('/deleteCard',userController.deleteCard)
-router.post('/paymentOrder',userController.paymentOrder);
+router.post('/deleteCard',AUTH.verifyToken,userController.deleteCard)
+router.post('/paymentOrder',AUTH.verifyToken,userController.paymentOrder);
 router.post('/addEmployee',AUTH.verifyToken,userController.addEmployee)
 router.post('/getListOfEmployee',AUTH.verifyToken,userController.getListOfEmployee)
 router.get('/deleteEmployee',AUTH.verifyToken,userController.deleteEmployee)
@@ -25,8 +25,8 @@ router.post('/setRoleForEmployee',AUTH.verifyToken,userController.setRoleForEmpl
 router.get('/getRoleForEmployee',AUTH.verifyToken,userController.getRoleForEmployee)
 
 
-router.post('/changeAutoRenew',userController.changeAutoRenew);
-router.post('/changeCardforAutoRenew',userController.changeCardforAutoRenew);
+router.post('/changeAutoRenew',AUTH.verifyToken,userController.changeAutoRenew);
+router.post('/changeCardforAutoRenew',AUTH.verifyToken,userController.changeCardforAutoRenew);
 
 router.post('/controlNotification',AUTH.verifyToken,userController.controlNotification)
 router.get('/getControlNotification',AUTH.verifyToken,userController.getControlNotification)

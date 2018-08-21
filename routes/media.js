@@ -14,5 +14,5 @@ router.post('/mediaList',AUTH.verifyToken,mediaController.mediaList)
 router.post('/editMedia',AUTH.verifyToken,mediaController.editMedia)
 router.get('/deleteMedia',AUTH.verifyToken,mediaController.deleteMedia)
 router.post('/editMediaNews',AUTH.verifyToken,mediaController.editMediaNews)
-router.get('/mediaDelete',mediaController.mediaDelete)
+router.get('/mediaDelete',AUTH.verifyToken,mediaController.mediaDelete)
 module.exports=router 

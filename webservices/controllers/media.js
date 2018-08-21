@@ -119,11 +119,11 @@ const createAlbum = (req, res) => {
                                             arrEmail.push(success[data].playerId.email)
                                         if ((success[data].playerId.competitionNotify.mobile).indexOf("media") != -1)
                                             arrMobile.push(success[data].playerId.countryCode + success[data].playerId.mobileNumber)
-                                        //  arr.push(success[data].playerId.deviceToken)
+                                            arr.push(success[data].playerId.deviceToken)
                                         arrId.push(success[data].playerId._id)
                                     }
                                     console.log("I am email mobile Id deviceToken", arrEmail, arrMobile, arrId, arr)
-                                    arr = ['ddMQdHYWfB4:APA91bHmiaJtIJAlonDRDEKSlZFi3-6tvvMJ9qRIs_IBRbZakJG1HUgmOZRkHQJ54uVwvcuPXhGHk-cc3AmZL0Cvnnklx5wC7-nQQXQtAiB5D5ttAOR-RkBZI6ZrjLeOD9uh6SttStoN2g2dmETfBpRqTpqUUhtXqQ']
+                                    //arr = ['ddMQdHYWfB4:APA91bHmiaJtIJAlonDRDEKSlZFi3-6tvvMJ9qRIs_IBRbZakJG1HUgmOZRkHQJ54uVwvcuPXhGHk-cc3AmZL0Cvnnklx5wC7-nQQXQtAiB5D5ttAOR-RkBZI6ZrjLeOD9uh6SttStoN2g2dmETfBpRqTpqUUhtXqQ']
                                     message.sendMailToAll(arrEmail, firstName + " " + lastName + " added a new " + req.body.typeOfMedia, (err, success) => {
                                         console.log(success)
                                     }, req.body.organizer)
@@ -148,11 +148,11 @@ const createAlbum = (req, res) => {
                                                 arrEmail.push(success[data].playerId.email)
                                             if ((success[data].playerId.competitionNotify.mobile).indexOf("media") != -1)
                                                 arrMobile.push(success[data].playerId.countryCode + success[data].playerId.mobileNumber)
-                                            //  arr.push(success[data].playerId.deviceToken)
-                                            arrId.push(success[data].playerId._id)
+                                                arr.push(success[data].playerId.deviceToken)
+                                                arrId.push(success[data].playerId._id)
                                         }
                                         console.log("I am email mobile Id deviceToken", arrEmail, arrMobile, arrId, arr)
-                                        arr = ['ddMQdHYWfB4:APA91bHmiaJtIJAlonDRDEKSlZFi3-6tvvMJ9qRIs_IBRbZakJG1HUgmOZRkHQJ54uVwvcuPXhGHk-cc3AmZL0Cvnnklx5wC7-nQQXQtAiB5D5ttAOR-RkBZI6ZrjLeOD9uh6SttStoN2g2dmETfBpRqTpqUUhtXqQ']
+                                        //arr = ['ddMQdHYWfB4:APA91bHmiaJtIJAlonDRDEKSlZFi3-6tvvMJ9qRIs_IBRbZakJG1HUgmOZRkHQJ54uVwvcuPXhGHk-cc3AmZL0Cvnnklx5wC7-nQQXQtAiB5D5ttAOR-RkBZI6ZrjLeOD9uh6SttStoN2g2dmETfBpRqTpqUUhtXqQ']
                                         message.sendMailToAll(arrEmail, firstName + " " + lastName + " added a new " + req.body.typeOfMedia, (err, success) => {
                                             console.log(success)
                                         }, req.body.organizer)
@@ -198,12 +198,17 @@ const editMedia = (req, res) => {
                                 console.log("wronggggggg")
                             else if (req.body.image.length == counter) {
                                 console.log("hhjjjjh", imageArray)
+                                mediaUrl=imageArray
+                                console.log("hhhhh",mediaUrl)
+                                for(data in mediaUrl)
+                                req.body.mediaUrls.push(mediaUrl[data])
+                                console.log(req.body.mediaUrls)
                                 let set = {
                                     title: req.body.title,
                                     description: req.body.description,
                                     competitionName: req.body.competitionName,
                                     competitionId: req.body.competitionId,
-                                    $push: { mediaUrls: imageArray }
+                                    mediaUrls: req.body.mediaUrls 
                                 }
                                 mediaServices.updateMedia({ organizer: req.query.organizer, _id: req.query.mediaId }, set, { new: true }, (err, success) => {
                                     if (err)
@@ -231,6 +236,7 @@ const editMedia = (req, res) => {
         })
     }
 }
+
 //----------------------------Get List of Media for organizer-------------------------------------------
 const getListOfMedia = (req, res) => {
     subscriptionValidator(req.query, ["media"], (err, flag) => {
@@ -464,7 +470,7 @@ const likeMedia = (req, res) => {
                                                 if (success) {
                                                     console.log("name--->>>", success)
                                                     if ((success.organizerNotification).indexOf("media") != -1) {
-                                                        message.sendNotificationToAll(name + " likes your post", success.deviceToken)
+                                                        message.sendPushNotifications(success.deviceToken,name + " likes your post")
                                                         message.saveNotification([organizer], name + " likes your post")
                                                     }
                                                 }
@@ -532,7 +538,7 @@ const commentMedia = (req, res) => {
                                                             if (success) {
                                                                 console.log("$$$$$$$$$$--->>", success.organizerNotification)
                                                                 if ((success.organizerNotification).indexOf("media") != -1) {
-                                                                    message.sendNotificationToAll(name + " commented on your post", [success.deviceToken])
+                                                                    message.sendPushNotifications(success.deviceToken,name + " commented on your post")
                                                                     message.saveNotification([organizer], name + " commented on your post")
                                                                 }
                                                             }
@@ -570,7 +576,7 @@ const commentMedia = (req, res) => {
                                                             if (success) {
                                                                 console.log("name--->>", (success.organizerNotification))
                                                                 if ((success.organizerNotification).indexOf("media") != -1) {
-                                                                    message.sendNotificationToAll(name + " commented on your post", success.deviceToken)
+                                                                    message.sendPushNotifications(success.deviceToken,name + " commented on your post")
                                                                     message.saveNotification([organizer], name + " commented on your post")
                                                                 }
                                                             }

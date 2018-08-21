@@ -8,7 +8,7 @@ var FCM = require('fcm-push');
 const cors = require('cors');
 const TermsAndPolicy=("../model/termsAndPrivacyModel");
 var Twocheckout = require('2checkout-node');
-app.set('port',(process.env.PORT||5000));
+app.set('port',(process.env.PORT||1414));
 app.use(bodyParser.urlencoded({
 	extended:false
 }));
@@ -45,8 +45,9 @@ app.use('/api/v1/media',require('./routes/media'));
 // var fcm = new FCM(serverKey);
 
 // var message = {
-//     registration_ids: ['fjMeJ7SUTFM:APA91bH7tph6es09PDdbtmbejPSWkvczPuWXudkqfDuQX_g2JFvP8kYKGqvIOcBjDCDaQxLnIYK5qd21wFsZUNPs8Z-AY8ohW86t9yuvDDOtqQbBPS26o81I1N6BZkbNuxCtw_URKw-NTkh7WN_rgedS_jPkEyKuOA'], // required fill with device token or topics
-//     // collapse_key: 'your_collapse_key', 
+//     //registration_ids: ['crDzRaE2zVs:APA91bHt_kPhgQ3E29bna7G_tt2KenYx-vqygdKx62iR-pF-vnJwbZk2SJq2OdIJu3uRw7zLeZAvyOzFBPGpDZ_zb-Hu4vRtPcRmXeLq7NFwCmFlQdwLMKREEcbNsd71fxMIgr0YSgZ9gRGUJKbdPJAc34YxaEjN9Q'], // required fill with device token or topics
+// 	to:"di-vyOqWmnM:APA91bFDOGjfE5fNqrjBUS1KiMyxLLj0Mvww2nJz175en1U8YkfOlpF7FCLwtNjjF_YhXz6NoZ-GVYb9XQW7w0eXvPhNA6fQetotfeMR5pyGAnmj8hdRm2fZ58AJv41dHwIct3LQFu2kd5fMemrRbMJl70EUe_pp1A",
+// 	// collapse_key: 'your_collapse_key', 
 //     // data: {
 //     //     your_custom_data_key: 'your_custom_data_value'
 //     // },
