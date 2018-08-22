@@ -63,7 +63,7 @@ const signup=(req,res)=>{
 							"event&membershipManagement":"50"
 
 						};
-						req.body.subscriptionAccess=["competition","player&team","media","onlineRegistration","standing&fixture","product","websiteManagement","socialMedia","employeeUserManagement","financialManagement","userNotification"];
+						
 					}
 						userServices.addUser(req.body,(err,success)=>{
 						if(err){
@@ -160,7 +160,7 @@ const resendOtp=(req,res)=>{
 //--------------------------Log In-----------------------------------------------------------
 const login=(req,res)=>{
 	console.log("LOGIN >>> req.body--->>",req.body)
-	let flag = Validator(req.body, ['email', 'password'],[],["currentDate","deviceToken","deviceType"])  ;
+	let flag = Validator(req.body, ['email', 'password'],[],["currentDate"])  ;
 	if(flag)
 	Response.sendResponse(res, flag[0],flag[1]) 
 	else{
@@ -181,7 +181,7 @@ const login=(req,res)=>{
 				else{
 					//console.log(result.subscriptionEndDate)
 					if(result.role.indexOf("ORGANIZER")!== -1 && result.subscription!="oneEvent"){
-						
+							if(req.body.deviceToken && req.body.deviceType)
 								User.findOneAndUpdate({email:req.body.email},{$set:{deviceToken:req.body.deviceToken,deviceType:req.body.deviceType}},(error,result)=>{
 									if(error|| !result)
 										return Response.sendResponse(res,responseCode.UNAUTHORIZED,responseMsg.EMAIL_NOT_EXISTS)
@@ -205,6 +205,7 @@ const login=(req,res)=>{
 					return Response.sendResponse(res,responseCode.PAYMENT_REQUIRED,"Your subscription plan has expired! </br> Please renew to continue.")
 				}
 				else{
+					if(req.body.deviceToken && req.body.deviceType)
 					User.findOneAndUpdate({email:req.body.email},{$set:{deviceToken:req.body.deviceToken,deviceType:req.body.deviceType}},(error,result)=>{
 						if(error|| !result)
 							return Response.sendResponse(res,responseCode.UNAUTHORIZED,responseMsg.EMAIL_NOT_EXISTS)
@@ -913,9 +914,9 @@ else{paymentAmount=0;
 							// else
 							// 	req.body.autoRenewPlan=true;
 
-	
-			
-					User.findByIdAndUpdate(req.headers.userid,{$set:{subscription:req.body.subscription,paymentStatus:true,payment:data,subscriptionStartDate:req.body.response.token.dateCreated,subscriptionEndDate:subscriptionOverDate,autoRenewPlan:req.body.autoRenewPlan},$push:{subscriptionAccess:req.body.optionalSubsPrices}},{new:true},(err,result)=>{
+							var access=["Competition","Create Team & Player","Media","Online Registration","Standing & Fixture","Product","WebsiteManagement","Social Media","employeeUserManagement","financialManagement","userNotification"];
+							access.push.apply(access,req.body.optionalSubsPrices);
+					User.findByIdAndUpdate(req.headers.userid,{$set:{subscription:req.body.subscription,paymentStatus:true,payment:data,subscriptionStartDate:req.body.response.token.dateCreated,subscriptionEndDate:subscriptionOverDate,autoRenewPlan:req.body.autoRenewPlan},$push:{subscriptionAccess:access}},{new:true},(err,result)=>{
 						if(err)
 							return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
 						else if(!result)

@@ -113,7 +113,7 @@ LIST_OF_VENUE
 "List of Venue.",
 LOGOUT
 :
-"Logout Successfully.",
+"Logged out successfully.",
 LOG_SUCCESS
 :
 "Successfully Logged In",

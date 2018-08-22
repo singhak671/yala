@@ -433,12 +433,13 @@ const followCompetition = (req, res) => {
                 let firstName = success.firstName
                 let lastName = success.lastName
                 Competition.competition.findById(req.body.competitionId).lean().exec((err1, success1) => {
-                    let competitionName = success1.competitionName
+                    
                     if (err1)
                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err1);
                     else if (!success1)
                         return Response.sendResponse(res, responseCode.NOT_FOUND, "Competition not found !");
                     else {
+                        let competitionName = success1.competitionName
 
                         var obj = {
                             playerId: req.body.userId,
@@ -454,13 +455,12 @@ const followCompetition = (req, res) => {
                         console.log("objecvt>>>>>>>>", obj);
                         req.body.playerId = req.body.userId;
                         req.body.organizer = success1.organizer;
-                        let data = new followComp.competitionFollow(req.body);
-                        data.save((err2, success2) => {
+                        followComp.competitionFollow.findOneAndUpdate({playerId:req.body.userId,competitionId:req.body.competitionId},req.body,{new:true,safe:true,upsert:true},(err2, success2) => {
                             if (err2 || !success2)
                                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err2);
                             else {
                          // Competition.competition.findByIdAndUpdate(req.body.competitionId, { $push: { playerFollowStatus: obj } }, { new: true }, (error, result5) => {
-                         Competition.competition.findOneAndUpdate({_id:req.body.competitionId,"playerFollowStatus.playerId":{$nin:[obj.playerId]}}, { $addToSet: { playerFollowStatus: obj } }, { new: true,upsert:true })
+                         Competition.competition.findOneAndUpdate({_id:req.body.competitionId}, { $addToSet: { playerFollowStatus: obj } }, { new: true,upsert:true })
                          .populate("organizer"," _id competitionNotify email deviceToken countryCode mobileNumber firstName lastName organizerNotification")
                          .exec((error, result5) => {
                                     if (error || !result5)
@@ -472,6 +472,7 @@ const followCompetition = (req, res) => {
                                         
                                        // console.log(success.deviceToken)
                                        //===================
+                                       if(result5.organizer.organizerNotification)
                                        if ((result5.organizer.organizerNotification).indexOf("registration") != -1){
                                         message.sendSMS(firstName + " " + lastName + " has followed your competition i.e, " + competitionName,result5.organizer.countryCode,result5.organizer.mobileNumber,(error,result)=>{
                                             if(err)
@@ -735,6 +736,7 @@ const confirmRegistration = (req, res) => {
                                                                         
                                                                                                  Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "You are successfully registered!");
                                                                                                  //============sending notification to the organizer//
+                                                                                                 if(success.organizer.organizerNotification)
                                                                                                  if ((success.organizer.organizerNotification).indexOf("registration") != -1){
                                                                                                     message.sendSMS(firstName + " " + lastName + " is registered into your competition i.e, " + success.competitionId.competitionName,success.organizer.countryCode,success.organizer.mobileNumber,(error,result)=>{
                                                                                                         if(err)
@@ -809,6 +811,7 @@ const confirmRegistration = (req, res) => {
                                         
                                                                  Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "You are successfully registered!");
                                                                 //============sending notification to the organizer//
+                                                                if(success.organizer.organizerNotification)
                                                                 if ((success.organizer.organizerNotification).indexOf("registration") != -1){
                                                                     message.sendSMS(firstName + " " + lastName + " is registered into your competition i.e, " + success.competitionId.competitionName,success.organizer.countryCode,success.organizer.mobileNumber,(error,result)=>{
                                                                         if(err)

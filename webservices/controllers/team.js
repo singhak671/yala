@@ -67,7 +67,7 @@ const selectVenue = (req, res) => {
 //-----------------------------------Create Team---------------------------------------------------
 const createTeam = (req, res) => {
     console.log("req.body--->>", req.body)
-    subscriptionValidator(req.query, ["team&player",], (err, flag) => {
+    subscriptionValidator(req.query, ["Create Team & Player",], (err, flag) => {
         if (flag[0] !== 200)
             return Response.sendResponse(res, flag[0], flag[1], flag[2]);
         else {
@@ -122,7 +122,7 @@ const createTeam = (req, res) => {
 }
 //-----------------------------------------Get Detail of Team-----------------------------------------------------
 const getDetailOfTeam = (req, res) => {
-    subscriptionValidator(req.query, ["team&player"], (err, flag) => {
+    subscriptionValidator(req.query, ["Create Team & Player"], (err, flag) => {
         if (flag[0] !== 200)
             return Response.sendResponse(res, flag[0], flag[1], flag[2]);
         else {
@@ -175,7 +175,7 @@ const getDetailOfTeam = (req, res) => {
 
 //---------------Filter Team---------------------------------------
 const filterTeam = (req, res) => {
-    subscriptionValidator(req.query, ["team&player"], (err, flag) => {
+    subscriptionValidator(req.query, ["Create Team & Player"], (err, flag) => {
         if (flag[0] !== 200)
             return Response.sendResponse(res, flag[0], flag[1], flag[2]);
         else {
@@ -325,7 +325,7 @@ const tryyyy = (req, res) => {
 //---------------------------Add player-----------------------------------------------
 const addPlayer = (req, res) => {
     console.log(req.body.playerDetail)
-    subscriptionValidator(req.query, ["team&player",], (err, flag) => {
+    subscriptionValidator(req.query, ["Create Team & Player",], (err, flag) => {
         if (flag[0] !== 200)
             return Response.sendResponse(res, flag[0], flag[1], flag[2]);
         if (!req.query.userId)
@@ -379,7 +379,8 @@ const addPlayer = (req, res) => {
                                                         req.body.password = password
                                                         let salt = bcrypt.genSaltSync(10);
                                                         req.body.playerDetail.password = bcrypt.hashSync(req.body.password, salt)
-                                                        req.body.playerDetail.role = ["PLAYER"]
+                                                        req.body.playerDetail.role = ["PLAYER"],
+                                                        req.body.playerDetail.phoneVerified=true
                                                         message.uploadImg(req.body.playerDetail.image, (err, res1) => {
                                                             if (res1) {
                                                                 req.body.playerDetail.image = res1.secure_url
@@ -427,7 +428,7 @@ const addPlayer = (req, res) => {
                                                                                             })
                                                                                         }
                                                                                         Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, responseMsg.PLAYER_ADDED, success);
-                                                                                        message.sendMail(success.email, "login Credentials", "Your Login Creadentials are" + "<br/>UserId : " + req.body.playerDetail.email + "<br/>Password : " + req.body.password, (err, result1) => {
+                                                                                        message.sendMail(success.email, "YALA Login Credentials", "Your Login Credentials are:" + "<br/>UserId : " + req.body.playerDetail.email + "<br/>Password : " + req.body.password, (err, result1) => {
                                                                                             if (err || !result1) {
                                                                                                 console.log(err)
                                                                                             }

@@ -72,8 +72,8 @@ module.exports = {
             General.mailMessage.findOne({organizer:userId},(err,success)=>{
                 if(success){    
                     usr=success.smtpUsername;
-                    pwd=success.smtpPassword
-                }
+                    pwd=success.smtpPassword;
+                
                 console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%",pwd,usr);
 
             
@@ -88,6 +88,7 @@ module.exports = {
             host: 'smtp.gmail.com'
 
         }).sendMail(mailBody, callback)
+    }
     })
     }
     

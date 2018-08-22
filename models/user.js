@@ -126,7 +126,7 @@ let userSchema = new Schema({
 
     },
     deviceToken: {
-        type: String
+        type: Array
     },
     employeeRole:{
         type:String,
