@@ -8,7 +8,7 @@ var FCM = require('fcm-push');
 const cors = require('cors');
 const TermsAndPolicy=("../model/termsAndPrivacyModel");
 var Twocheckout = require('2checkout-node');
-app.set('port',(process.env.PORT||5000));
+app.set('port',(process.env.PORT||1414));
 app.use(bodyParser.urlencoded({
 	extended:false
 }));
@@ -41,30 +41,30 @@ app.use('/api/v1/media',require('./routes/media'));
 
 
 
-// var serverKey = 'AAAAQ0w6JT0:APA91bH6-L7dFYkPFneAiwevxN4rFPaewAylGJitQ4RnHVpsF2fuJpJPJ2gnxMJ2VPavo4PIqO8jcN2pWLuF0WCtQVHUjvlbtBcZAbhkkF5C3R5JMuC5ClfrMdocAaqJntGZ1yYYw5s50I-PCtSBQ4Ylk-m06navCA';
-// var fcm = new FCM(serverKey);
+var serverKey = 'AAAAQ0w6JT0:APA91bH6-L7dFYkPFneAiwevxN4rFPaewAylGJitQ4RnHVpsF2fuJpJPJ2gnxMJ2VPavo4PIqO8jcN2pWLuF0WCtQVHUjvlbtBcZAbhkkF5C3R5JMuC5ClfrMdocAaqJntGZ1yYYw5s50I-PCtSBQ4Ylk-m06navCA';
+var fcm = new FCM(serverKey);
 
-// var message = {
-//     //registration_ids: ['crDzRaE2zVs:APA91bHt_kPhgQ3E29bna7G_tt2KenYx-vqygdKx62iR-pF-vnJwbZk2SJq2OdIJu3uRw7zLeZAvyOzFBPGpDZ_zb-Hu4vRtPcRmXeLq7NFwCmFlQdwLMKREEcbNsd71fxMIgr0YSgZ9gRGUJKbdPJAc34YxaEjN9Q'], // required fill with device token or topics
-// 	to:"di-vyOqWmnM:APA91bFDOGjfE5fNqrjBUS1KiMyxLLj0Mvww2nJz175en1U8YkfOlpF7FCLwtNjjF_YhXz6NoZ-GVYb9XQW7w0eXvPhNA6fQetotfeMR5pyGAnmj8hdRm2fZ58AJv41dHwIct3LQFu2kd5fMemrRbMJl70EUe_pp1A",
-// 	// collapse_key: 'your_collapse_key', 
-//     // data: {
-//     //     your_custom_data_key: 'your_custom_data_value'
-//     // },
-//     notification: {
-//         title: 'YALA App',
-//         body: 'Player is added !'
-//     }
-// };
+var message = {
+    //registration_ids: ['dcwk4fElbTs:APA91bHyK9Ece-TZFBBpYZGpfqcYZgQcwTuhSQq7RrHDVNpHC5JjyuuhhxYIv8bB7sKmKeZt5oSRurUAJFyIuADzmMWrmmK9swfhwZMZo7VFCDx3L4Enq2Z4HJ4sWiuiFGoeN4jPydzJcbzSrEKW2bZFavZAkpeVEw'], // required fill with device token or topics
+	to:"dcwk4fElbTs:APA91bHyK9Ece-TZFBBpYZGpfqcYZgQcwTuhSQq7RrHDVNpHC5JjyuuhhxYIv8bB7sKmKeZt5oSRurUAJFyIuADzmMWrmmK9swfhwZMZo7VFCDx3L4Enq2Z4HJ4sWiuiFGoeN4jPydzJcbzSrEKW2bZFavZAkpeVEw",
+	// collapse_key: 'your_collapse_key', 
+    // data: {
+    //     your_custom_data_key: 'your_custom_data_value'
+    // },
+    notification: {
+        title: 'YALA App',
+        body: 'Player is added!'
+    }
+};
 
-// //callback style
-// fcm.send(message, function(err, response){
-//     if (err) {
-//         console.log("Something has gone wrong!");
-//     } else {
-//         console.log("Successfully sent with response: ", response);
-//     }
-// });
+//callback style
+fcm.send(message, function(err, response){
+    if (err) {
+        console.log("Something has gone wrong!",err);
+    } else {
+        console.log("Successfully sent with response: ", response);
+    }
+});
 
 // //promise style
 // fcm.send(message)

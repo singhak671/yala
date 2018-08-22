@@ -430,8 +430,8 @@ const followCompetition = (req, res) => {
             else if (!success)
                 return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.USER_NOT_EXISTS);
             else{
-                let firstName = success.firstName
-                let lastName = success.lastName
+                    let firstName = success.firstName;
+                    let lastName = success.lastName;
                 Competition.competition.findById(req.body.competitionId).lean().exec((err1, success1) => {
                     
                     if (err1)
@@ -442,7 +442,7 @@ const followCompetition = (req, res) => {
                         let competitionName = success1.competitionName
 
                         var obj = {
-                            playerId: req.body.userId,
+                            playerId: (req.body.userId).toString(),
                         }
 
                         if (success1.allowPublicToFollow) {
@@ -455,7 +455,8 @@ const followCompetition = (req, res) => {
                         console.log("objecvt>>>>>>>>", obj);
                         req.body.playerId = req.body.userId;
                         req.body.organizer = success1.organizer;
-                        followComp.competitionFollow.findOneAndUpdate({playerId:req.body.userId,competitionId:req.body.competitionId},req.body,{new:true,safe:true,upsert:true},(err2, success2) => {
+                        let data = new followComp.competitionFollow(req.body);
+                        data.save((err2, success2) => {
                             if (err2 || !success2)
                                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err2);
                             else {
@@ -484,7 +485,7 @@ const followCompetition = (req, res) => {
                                             message.sendMail(result5.organizer.email, "Yala Sports App ✔", firstName + " " + lastName + " has followed your competition i.e, " + competitionName, (err, result) => {
                                                 console.log("send1--->>", result1)
                                             })}
-                                        message.sendNotificationToAll(firstName + " " + lastName + " has followed your competition " + competitionName, [result5.organizer.deviceToken])
+                                        message.sendPushNotifications(result5.organizer.deviceToken,firstName + " " + lastName + " has followed your competition " + competitionName)
                                         message.saveNotification([result5.organizer._id], firstName + " " + lastName + " has followed your competition " + competitionName)
                                         //})
                                 })

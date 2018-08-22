@@ -6,11 +6,11 @@ const AUTH=require('../middlewares/auth_handler');
 
 
 router.post('/sendMessage',chatController.sendMessage);
-router.post('/getMessages',AUTH.verifyToken,chatController.getMessages);
-router.post('/sendMessageToAllTeam',AUTH.verifyToken,chatController.sendMessageToAllTeam);
-router.post('/sendMessageToAllPlayers',AUTH.verifyToken,chatController.sendMessageToAllPlayers);
-router.get('/getListOfMessageForPlayer',AUTH.verifyToken,chatController.getListOfMessageForPlayer);
-router.post('/sendMsgToAllPlayersOfATeam',AUTH.verifyToken,chatController.sendMsgToAllPlayersOfATeam);
+router.post('/getMessages',chatController.getMessages);
+router.post('/sendMessageToAllTeam',chatController.sendMessageToAllTeam);
+router.post('/sendMessageToAllPlayers',chatController.sendMessageToAllPlayers);
+router.get('/getListOfMessageForPlayer',chatController.getListOfMessageForPlayer);
+router.post('/sendMsgToAllPlayersOfATeam',chatController.sendMsgToAllPlayersOfATeam);
 
 
 

@@ -173,5 +173,8 @@ validate_communication_credentials:(userId,access_parameters,callback)=>{
                             }        
             })
         }
+        else{
+            return callback({},[responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE])
+            } 
     } 
 }

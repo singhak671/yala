@@ -150,6 +150,7 @@ module.exports = {
     },
     
     sendPushNotifications:(deviceTokens,messageBody,callback)=>{
+        
         if(typeof(deviceTokens)=="string")
         {
             
@@ -180,7 +181,7 @@ module.exports = {
 
 //callback style
     fcm.send(message, function(err, response){
-        callback(err,response)
+       console.log("Push notification detail>>",err,response,deviceTokens);
     });
 
 //promise style

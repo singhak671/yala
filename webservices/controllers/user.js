@@ -182,7 +182,7 @@ const login=(req,res)=>{
 					//console.log(result.subscriptionEndDate)
 					if(result.role.indexOf("ORGANIZER")!== -1 && result.subscription!="oneEvent"){
 							if(req.body.deviceToken && req.body.deviceType)
-								User.findOneAndUpdate({email:req.body.email},{$set:{deviceToken:req.body.deviceToken,deviceType:req.body.deviceType}},(error,result)=>{
+								User.findOneAndUpdate({email:req.body.email},{$addToSet:{deviceToken:req.body.deviceToken},$set:{deviceType:req.body.deviceType}},(error,result)=>{
 									if(error|| !result)
 										return Response.sendResponse(res,responseCode.UNAUTHORIZED,responseMsg.EMAIL_NOT_EXISTS)
 									else if(result){
@@ -206,7 +206,7 @@ const login=(req,res)=>{
 				}
 				else{
 					if(req.body.deviceToken && req.body.deviceType)
-					User.findOneAndUpdate({email:req.body.email},{$set:{deviceToken:req.body.deviceToken,deviceType:req.body.deviceType}},(error,result)=>{
+					User.findOneAndUpdate({email:req.body.email},{$addToSet:{deviceToken:req.body.deviceToken},$set:{deviceType:req.body.deviceType}},(error,result)=>{
 						if(error|| !result)
 							return Response.sendResponse(res,responseCode.UNAUTHORIZED,responseMsg.EMAIL_NOT_EXISTS)
 						else if(result){

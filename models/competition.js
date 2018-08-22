@@ -59,7 +59,7 @@ let competitionSchema = new Schema({
         }],
     allowComment:{
             type:Boolean,
-            default:false,
+            default:true
         },
     allowFollow:{
             type:String,

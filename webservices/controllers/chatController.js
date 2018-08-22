@@ -22,6 +22,11 @@ const sendMessage = (req, res) => {
     let flag = Validator(req.body, [], [], ["organizerId", "playerId", "message"])
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
+    else{
+    communicationValidator(req.body.organizerId, ["mail"], (err, flag) => {
+        if (flag[0] !== 200)
+            return Response.sendResponse(res, flag[0], flag[1], flag[2]);
+        else {
     User.find({ _id:{$in:[req.body.organizerId, req.body.senderId, req.body.playerId ]}}, (err, success) => {
 
         if (err)
@@ -64,7 +69,7 @@ const sendMessage = (req, res) => {
                                     // console.log("array&&&&&", arr)
                                     console.log("message sent SUCCESSFULLY_DONE");
                                 }
-                            });
+                            },success1.organizerId._id);
                        
                         //===================sent message to phone number==================
                         if(success1.playerId.competitionNotify.mobile.indexOf("message")!=-1)
@@ -110,7 +115,7 @@ const sendMessage = (req, res) => {
                                 //console.log("array&&&&&", arr);
                                 console.log("mail sent SUCCESSFULLY_DONE");
                             }
-                        });
+                        },success1.organizerId._id);
                         //===================sent message to phone number==================
                         message.sendSMS(`You have a new message from ${success1.playerId.firstName+" "+success1.playerId.lastName} in your YALA account`,success1.organizerId.countryCode,success1.organizerId.mobileNumber,(err,sent)=>{
                             if (err)
@@ -128,6 +133,10 @@ const sendMessage = (req, res) => {
             }
         }
     })
+    
+    }
+})
+}
 }
 
 
@@ -190,6 +199,7 @@ const sendMessageToAllTeam = (req, res) => {
     var mailArray = [];
     var pushArray=[];
     var mobileArray=[];
+    var saveNotify=[];
     let flag = Validator(req.body, [], [], ["organizerId", "message"])
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
@@ -220,13 +230,17 @@ const sendMessageToAllTeam = (req, res) => {
                     
                         async.forEach(success, (key1, callback) => {
                             async.forEach(key1.playerId, (key, callback) => {
-                                Notification.findOneAndUpdate({userId:key._id},{$push:{notification:obj}},{new:true,multi:true,upsert:true},(err,success)=>{});
+                               // Notification.findOneAndUpdate({userId:key._id},{$push:{notification:obj}},{new:true,multi:true,upsert:true},(err,success)=>{});
                                 General.chat.findOneAndUpdate({ organizerId: req.body.organizerId, playerId: key }, { $push: { message: req.body.message }, $set: { playerRead: false } }, { upsert: true, multi: true }, (err1, success1) => {
                                     if (err1) return res.send(err1);
                                     console.log("^^^^^^^^^^^^^success>",key.competitionNotify.email.indexOf("message"),key.email);
                                     if (key.competitionNotify.email.indexOf("message") != -1)
                                         mailArray.push(key.email);
-                                    pushArray.push(key.deviceToken) ;
+                                    pushArray.push.apply(pushArray,key.deviceToken);
+                                    //==============push only unique fields===========
+                                    if(saveNotify.indexOf(key._id)=== -1)
+                                        saveNotify.push(key._id);
+                                    
                                     if (key.competitionNotify.mobile.indexOf("message") != -1) // push notification array
                                          mobileArray.push((key.countryCode+key.mobileNumber)) ;// mobile number array to send message
                                          //console.log("ARRAY>>>",mailArray,mobileArray)
@@ -242,8 +256,8 @@ const sendMessageToAllTeam = (req, res) => {
                     
                       
                             Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Message successfully send to all!");
-                            console.log("NAME>>>",success[0].organizer.firstName)
-                            message.sendMail(mailArray, "YALA Sports", `Hi! you have a new message from ${success[0].organizer.firstName+" "+success[0].organizer.lastName}`, (err, success) => {
+                            console.log("Array>>>",saveNotify)
+                            message.sendMail(mailArray, "YALA Sports ✔", `Hi! you have a new message from ${success[0].organizer.firstName+" "+success[0].organizer.lastName}`, (err, success) => {
                                 if (success) {
                                     
                                     console.log("message sent SUCCESSFULLY_DONE");
@@ -253,8 +267,8 @@ const sendMessageToAllTeam = (req, res) => {
                         console.log("pushArray",pushArray,"mailArray",mailArray,"mobileArray",mobileArray)
                       
                          //==================send push notifications to all players=============//
-                         message.sendPushNotifications(pushArray,`Hi! you have a new message .`,(err,success)=>{})
-
+                         message.sendPushNotifications(pushArray,`Hi! you have a new message from ${success[0].organizer.firstName+" "+success[0].organizer.lastName}`,(err,success)=>{})
+                        message.saveNotification(saveNotify,`Hi! you have a new message from ${success[0].organizer.firstName+" "+success[0].organizer.lastName}`);
 
                     }
 
@@ -275,6 +289,7 @@ const sendMsgToAllPlayersOfATeam = (req, res) => {
     var mailArray = [];
     var pushArray=[];
     var mobileArray=[];
+    var saveNotify=[];
     let flag = Validator(req.body, [], [], ["organizerId", "message","teamId"])
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
@@ -312,27 +327,30 @@ const sendMsgToAllPlayersOfATeam = (req, res) => {
                                     console.log("^^^^^^^^^^^^^success>", key);
                                      if (key.competitionNotify.email.indexOf("message") !== -1)
                                         mailArray.push(key.email)
-                                    pushArray.push(key.deviceToken)  // push notification array
+                                    pushArray.push.apply(pushArray,key.deviceToken);
+                                    saveNotify.push(key._id);  // push notification array
                                     mobileArray.push((key.countryCode+key.mobileNumber)) // mobile number array to send message
                                     console.log("array&&&&&", mailArray)
                                     
-                                       
+                                    
                                     if (success.playerId.indexOf(key) == success.playerId.length-1){
+                                        Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Message successfully send to all!")
                                         //==============send email to all  players=====================//
-                                        message.sendMail(mailArray, "DON", "I am anurag", (err3, success) => {
+                                        message.sendMail(mailArray, "YALA Sports ✔", `You have a new message from ${success.organizer.firstName}" "${success.organizer.lastName}`, (err3, success) => {
                                             if(err3)
                                             res.send(err3)
                                            else if (success) {
                                                 console.log("array&&&&&", mailArray)
-                                                console.log("message sent SUCCESSFULLY_DONE");
-                                                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Message successfully send to all!")
-                                            }
+                                                console.log("message sent SUCCESSFULLY_DONE");}
+                                                
+                                            
                                         }, req.body.organizerId);
 
                                         //==================send push notifications to all players=============//
                                         message.sendPushNotifications(pushArray,`Hi! you have a new message from ${success.organizer.firstName} ${success.organizer.lastName}`,(err,success)=>{})
                                         
                                         //===================save notification of all players==================//
+                                        message.saveNotification(saveNotify,`Hi! you have a new message from ${success.organizer.firstName} ${success.organizer.lastName}`);
                                       
 
 
@@ -462,7 +480,7 @@ const sendMessageToAllPlayers = (req, res) => {
                                     if(success2.competitionNotify.mobile.indexOf("message"))
                                             mobileArray.push((success2.countryCode+success2.mobileNumber));
 
-                                    pushArray.push(success2.deviceToken);
+                                    pushArray.push.apply(pushArray,success2.deviceToken);
 
 
                                 })

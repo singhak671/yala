@@ -15,7 +15,7 @@ const message = require("../../global_functions/message");
 const Follow = require("../../models/compFollowOrgPlay");
 const User = require("../../models/user")
 const accessPlanMedia = (req, res) => {
-    subscriptionValidator(req.query, ["media"], (err, flag) => {
+    subscriptionValidator(req.query, ["Media"], (err, flag) => {
         if (flag[0] !== 200)
             return Response.sendResponse(res, flag[0], flag[1], flag[2]);
         else if (!req.query.userId) {
@@ -45,11 +45,11 @@ const accessPlanMedia = (req, res) => {
 }
 const createTry = (req, res) => {
     console.log("req.body--->>", req.body)
-    subscriptionValidator(req.query, ["media"], (err, flag) => {
+    subscriptionValidator(req.query, ["Media"], (err, flag) => {
         if (flag[0] !== 200)
             return Response.sendResponse(res, flag[0], flag[1], flag[2]);
         else {
-            accessPlan(req.query, ["Create Album"], ["media"], (err, flag) => {
+            accessPlan(req.query, ["Create Album"], ["Media"], (err, flag) => {
                 if (flag[0] !== 200) {
                     return Response.sendResponse(res, flag[0], flag[1], flag[2]);
                 }
@@ -63,7 +63,7 @@ const createTry = (req, res) => {
 //-------------------------Create Album Apis------------------------
 const createAlbum = (req, res) => {
     console.log("req.body--->>", req.body, req.query)
-    subscriptionValidator(req.query, ["media"], (err, flag) => {
+    subscriptionValidator(req.query, ["Media"], (err, flag) => {
         if (flag[0] !== 200)
             return Response.sendResponse(res, flag[0], flag[1], flag[2]);
         else {
@@ -119,7 +119,7 @@ const createAlbum = (req, res) => {
                                             arrEmail.push(success[data].playerId.email)
                                         if ((success[data].playerId.competitionNotify.mobile).indexOf("media") != -1)
                                             arrMobile.push(success[data].playerId.countryCode + success[data].playerId.mobileNumber)
-                                            arr.push(success[data].playerId.deviceToken)
+                                            arr.push.apply(arr,success[data].playerId.deviceToken);
                                         arrId.push(success[data].playerId._id)
                                     }
                                     console.log("I am email mobile Id deviceToken", arrEmail, arrMobile, arrId, arr)
@@ -128,7 +128,7 @@ const createAlbum = (req, res) => {
                                         console.log(success)
                                     }, req.body.organizer)
                                     message.sendSmsToAll(arrMobile, firstName + " " + lastName + " added a new " + req.body.typeOfMedia)
-                                    message.sendNotificationToAll(firstName + " " + lastName + " added a new " + req.body.typeOfMedia, arr)
+                                    message.sendPushNotifications(arr,firstName + " " + lastName + " added a new " + req.body.typeOfMedia)
                                     message.saveNotification(arrId, firstName + " " + lastName + " added a new " + req.body.typeOfMedia)
                                 }
                             })
@@ -148,7 +148,7 @@ const createAlbum = (req, res) => {
                                                 arrEmail.push(success[data].playerId.email)
                                             if ((success[data].playerId.competitionNotify.mobile).indexOf("media") != -1)
                                                 arrMobile.push(success[data].playerId.countryCode + success[data].playerId.mobileNumber)
-                                                arr.push(success[data].playerId.deviceToken)
+                                                arr.push.apply(arr,success[data].playerId.deviceToken);
                                                 arrId.push(success[data].playerId._id)
                                         }
                                         console.log("I am email mobile Id deviceToken", arrEmail, arrMobile, arrId, arr)
@@ -156,9 +156,9 @@ const createAlbum = (req, res) => {
                                         message.sendMailToAll(arrEmail, firstName + " " + lastName + " added a new " + req.body.typeOfMedia, (err, success) => {
                                             console.log(success)
                                         }, req.body.organizer)
-                                        message.sendSmsToAll(arrMobile, firstName + " " + lastName + " added a new " + req.body.typeOfMedia)
-                                        message.sendNotificationToAll(firstName + " " + lastName + " added a new " + req.body.typeOfMedia, arr)
-                                        message.saveNotification(arrId, firstName + " " + lastName + " added a new " + req.body.typeOfMedia)
+                                        message.sendSmsToAll(arrMobile, firstName + " " + lastName + " added a new " + req.body.typeOfMedia);
+                                        message.sendPushNotifications(arr,firstName + " " + lastName + " added a new " + req.body.typeOfMedia);
+                                        message.saveNotification(arrId, firstName + " " + lastName + " added a new " + req.body.typeOfMedia);
                                     }
                                 })
                             })
@@ -239,7 +239,7 @@ const editMedia = (req, res) => {
 
 //----------------------------Get List of Media for organizer-------------------------------------------
 const getListOfMedia = (req, res) => {
-    subscriptionValidator(req.query, ["media"], (err, flag) => {
+    subscriptionValidator(req.query, ["Media"], (err, flag) => {
         if (flag[0] !== 200)
             return Response.sendResponse(res, flag[0], flag[1], flag[2]);
         else {
