@@ -226,11 +226,16 @@ const addSport=(req,res)=>{
 //-------------------Get list of Sports--------------------------------------
 
 const getSport=(req,res)=>{
-    let flag=Validator(req.body,['userId'],[],[]);
+    let flag=Validator(req.body,[],[],["userId"]);
     if(flag)
         return Response.sendResponse(res,flag[0],flag[1]);
-    else
-    General.sport.find({organizer:req.body.userId},null,{sort:{createdAt:-1}},(err,result)=>{
+    else{
+        let options={
+            page:req.body.page ||1,
+            limit:req.body.limit ||4,
+            sort:{createdAt:-1}
+        };
+    General.sport.paginate({organizer:req.query.userId},options,(err,result)=>{
         if(err)
             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
         else if(result==false)
@@ -238,6 +243,7 @@ const getSport=(req,res)=>{
             else
                 return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,result);
     })
+    }
 }
 //========================select sport======================
 const selectSport=(req,res)=>{
