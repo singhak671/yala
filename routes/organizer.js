@@ -51,6 +51,7 @@ router.post('/competition/createTeamInCompetition',competitionController.createT
 
 router.post('/addDivision',generalController.addDivision);
 router.post('/getDivision',generalController.getDivision);
+router.get('/selectDivision',generalController.selectDivision);
 router.post('/getADivision',generalController.getADivision);
 router.post('/editDivision',generalController.editDivision);
 router.post('/deleteDivision',generalController.deleteDivision);
@@ -58,6 +59,7 @@ router.post('/deleteDivision',generalController.deleteDivision);
 
 router.post('/addPeriod',generalController.addPeriod);
 router.post('/getPeriod',generalController.getPeriod);
+router.get('/selectPeriod',generalController.selectPeriod);
 router.post('/getAPeriod',generalController.getAPeriod);
 router.post('/editPeriod',generalController.editPeriod);
 router.post('/deletePeriod',generalController.deletePeriod);

@@ -221,15 +221,69 @@ const sendMessageToAllTeam = (req, res) => {
                     else if (!success)
                         return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
                     else {
-                        res.send(success)
+                        //res.send(success)
                         let obj={
                             message:(`You have a new message !`),//from ${success.organizer.firstName} ${success.organizer.lastName}
                             title:"YALA Sports App"
 
                         }
+                        // console.log('success')
+                        
+                        async.forEach(success, function(key1, callback1) {
+                            
+                            // console.log('succ => ', obj)
+                             async.forEach(key1.playerId, function(key, callback2) {
+                                
+                                General.chat.findOneAndUpdate({ organizerId: req.body.organizerId, playerId: key }, { $push: { message: req.body.message }, $set: { playerRead: false } }, { upsert: true, multi: true }, (err1, success1) => {
+                                    if (err1) return res.send(err1);
+                                    if ((key.competitionNotify.email.indexOf("message") !== -1) && (mailArray.indexOf(key.email)== -1)) {
+                                        mailArray.push(key.email)
+                                    }
+                                        // console.log('new')
+                                    if((key.deviceToken && pushArray.indexOf(key.deviceToken[0])== -1) && key.deviceToken[0]) {
+                                        pushArray.push.apply(pushArray,key.deviceToken);// push notification array
+                                        // console.log('pushArray =>' , pushArray)
+                                    }
+                                    
+                                    if(saveNotify.indexOf(key._id)== -1)
+                                        saveNotify.push(key._id);  //save notification
+                                    if(mobileArray.indexOf(key.countryCode+key.mobileNumber)== -1)
+                                        mobileArray.push((key.countryCode+key.mobileNumber))
+                                            // mobile number array to send message
+                                    // console.log('after')
+                                    callback2(null, 'res');
+                                    // callback1(null, 'dsa')
+                                });
+                                
+                            }, function(err2, succ2) {
+                                if(err2) console.log('err2')
+                                else {
+                                    // console.log('succ2 => ', pushArray)
+                                    callback1(null, 'dsd')
+                                }
+                            }) 
+                            
+                        }, function(err1, succ1){
+                            if(err1) console.log('error 1')
+                            else {
+                                console.log("task has completed", pushArray,saveNotify,mailArray);
+                                message.sendMail(mailArray, "YALA Sports ✔", `Hi! you have a new message from ${success[0].organizer.firstName+" "+success[0].organizer.lastName}`, (err, success) => {
+                                    if (success) {
+                                        
+                                        console.log("message sent SUCCESSFULLY_DONE");
+                                    }
+                                }, req.body.organizerId);
+                          
+                            
+                          
+                             //==================send push notifications to all players=============//
+                             message.sendPushNotifications(pushArray,`Hi! you have a new message from ${success[0].organizer.firstName+" "+success[0].organizer.lastName}`,(err,success)=>{})
+                            message.saveNotification(saveNotify,`Hi! you have a new message from ${success[0].organizer.firstName+" "+success[0].organizer.lastName}`);
+                            }
+                        })
 
-                    
-                        async.forEach(success, (key1, callback) => {
+
+                        /* async.forEach(success, (key1, callback) => {
                             
                             async.forEach(key1.playerId, (key, callback) => {
                                // Notification.findOneAndUpdate({userId:key._id},{$push:{notification:obj}},{new:true,multi:true,upsert:true},(err,success)=>{});
@@ -256,41 +310,32 @@ const sendMessageToAllTeam = (req, res) => {
                                     
                                     // if (key.competitionNotify.mobile.indexOf("message") != -1) // push notification array
                                     //      mobileArray.push((key.countryCode+key.mobileNumber)) ;// mobile number array to send message
-                                    //console.log("ARRAY>>>",mailArray,mobileArray,pushArray,saveNotify)
+                                    console.log("ARRAY>>>",mailArray,mobileArray,pushArray,saveNotify)
                                     //      callback()
                                 });
-                            })
+                            },callback())
                            count++;
-                           console.log("i am count",count,success.length);
+                          // console.log("i am count",count,success.length);
                            if(count==success.length){
                                //res.send("DONE");
+                               
                                console.log('$$$$$$$$$$$$$$$$done',success.length,mailArray,pushArray,saveNotify)
                            }
                            
-                        },(err,data)=> {
+                        },(err)=> {
+                            console.log("iterationDone")
                             if(err)
                             console.log("i am anurag")
                             else{
                                 console.log("****||||||||||||||********************")
                             }
                            
-                          })
+                          }) */
                     
                       
-                            //Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Message successfully send to all!");
+                            Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Message successfully send to all!");
                           //  console.log("Array>>>",saveNotify)
-                            message.sendMail(mailArray, "YALA Sports ✔", `Hi! you have a new message from ${success[0].organizer.firstName+" "+success[0].organizer.lastName}`, (err, success) => {
-                                if (success) {
-                                    
-                                    console.log("message sent SUCCESSFULLY_DONE");
-                                }
-                            }, req.body.organizerId);
-                      
-                        console.log("pushArray",pushArray,"mailArray",mailArray,"mobileArray",mobileArray)
-                      
-                         //==================send push notifications to all players=============//
-                         message.sendPushNotifications(pushArray,`Hi! you have a new message from ${success[0].organizer.firstName+" "+success[0].organizer.lastName}`,(err,success)=>{})
-                        message.saveNotification(saveNotify,`Hi! you have a new message from ${success[0].organizer.firstName+" "+success[0].organizer.lastName}`);
+                            
 
                     }
 
@@ -312,7 +357,7 @@ const sendMsgToAllPlayersOfATeam = (req, res) => {
     var pushArray=[];
     var mobileArray=[];
     var saveNotify=[];
-    var count=0;
+   
     let flag = Validator(req.body, [], [], ["organizerId", "message","teamId"])
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
@@ -352,8 +397,8 @@ const sendMsgToAllPlayersOfATeam = (req, res) => {
                                      if ((key.competitionNotify.email.indexOf("message") !== -1) && (mailArray.indexOf(key.email)== -1))
                                         {
                                         mailArray.push(key.email)}
-                                        count++;
-                                    if((pushArray.indexOf(key.deviceToken[0])== -1) && key.deviceToken[0])
+                                        
+                                    if((key.deviceToken && pushArray.indexOf(key.deviceToken[0])== -1) && key.deviceToken[0])
                                         pushArray.push.apply(pushArray,key.deviceToken);// push notification array
                                     if(saveNotify.indexOf(key._id)== -1)
                                         saveNotify.push(key._id);  //save notification
@@ -361,37 +406,56 @@ const sendMsgToAllPlayersOfATeam = (req, res) => {
                                         mobileArray.push((key.countryCode+key.mobileNumber)) // mobile number array to send message
                                     
                                     
-                                    if ( count== success.playerId.length){
-                                        console.log("array&&&&& after success", mailArray,pushArray,saveNotify)
-                                    //console.log("TEST",count,success.playerId.length)
+                                    // if ( count== success.playerId.length){
+                                    //     console.log("array&&&&& after success", mailArray,pushArray,saveNotify)
+                                    // //console.log("TEST",count,success.playerId.length)
                                        
-                                        //==============send email to all  players=====================//
-                                        message.sendMail(mailArray, "YALA Sports ✔", `You have a new message from "${success.organizer.firstName} ${success.organizer.lastName}"`, (err3, success) => {
-                                            if(err3)
-                                            res.send(err3)
-                                           else if (success) {
-                                                console.log("array&&&&&", mailArray)
-                                                console.log("message sent SUCCESSFULLY_DONE");}
+                                    //     //==============send email to all  players=====================//
+                                    //     message.sendMail(mailArray, "YALA Sports ✔", `You have a new message from "${success.organizer.firstName} ${success.organizer.lastName}"`, (err3, success) => {
+                                    //         if(err3)
+                                    //         res.send(err3)
+                                    //        else if (success) {
+                                    //             console.log("array&&&&&", mailArray)
+                                    //             console.log("message sent SUCCESSFULLY_DONE");}
                                                 
                                             
-                                        }, req.body.organizerId);
+                                    //     }, req.body.organizerId);
 
-                                        //==================send push notifications to all players=============//
-                                        message.sendPushNotifications(pushArray,`Hi! you have a new message from ${success.organizer.firstName} ${success.organizer.lastName}`,(err,success)=>{})
+                                    //     //==================send push notifications to all players=============//
+                                    //     message.sendPushNotifications(pushArray,`Hi! you have a new message from ${success.organizer.firstName} ${success.organizer.lastName}`,(err,success)=>{})
                                         
-                                        //===================save notification of all players==================//
-                                        message.saveNotification(saveNotify,`Hi! you have a new message from ${success.organizer.firstName} ${success.organizer.lastName}`);
+                                    //     //===================save notification of all players==================//
+                                    //     message.saveNotification(saveNotify,`Hi! you have a new message from ${success.organizer.firstName} ${success.organizer.lastName}`);
                                       
 
 
 
 
-                                    }
+                                    // }
                                       
-
+                                    callback(null,"res");
                                 });
-                            }, (err) => {
-                                if (err) console.error(err.message);
+                               
+                            }, (err,result) => {
+                                if (err) console.error("error",err);
+                                else {
+                                    console.log("Iteration done succcesfully!",pushArray,saveNotify,mailArray);
+                                    message.sendMail(mailArray, "YALA Sports ✔", `You have a new message from "${success.organizer.firstName} ${success.organizer.lastName}"`, (err3, success) => {
+                                                if(err3)
+                                                res.send(err3)
+                                               else if (success) {
+                                                    console.log("array&&&&&", mailArray)
+                                                    console.log("message sent SUCCESSFULLY_DONE");}
+                                                    
+                                                
+                                            }, req.body.organizerId);
+    
+                                            //==================send push notifications to all players=============//
+                                            message.sendPushNotifications(pushArray,`Hi! you have a new message from ${success.organizer.firstName} ${success.organizer.lastName}`,(err,success)=>{})
+                                            
+                                            //===================save notification of all players==================//
+                                            message.saveNotification(saveNotify,`Hi! you have a new message from ${success.organizer.firstName} ${success.organizer.lastName}`);
+                                }
 
                             });
                             Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Message successfully send to all!")
@@ -494,6 +558,9 @@ const sendMessageToAllPlayers = (req, res) => {
                         return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
                     else {
                         console.log("success>>>>>",success);
+                        success=["5b7bfc14aa6fa4119c411b8c",
+                            "5b7d0da0cb722d6e897fc562",
+                            "5b584417a2d273c3ac61b72e" ]
                         let obj={
                             message:(`you have a new message !`),
                             title:"YALA Sports App"
@@ -501,18 +568,33 @@ const sendMessageToAllPlayers = (req, res) => {
                         }
                     
                         async.forEach(success, (key, callback) => {
-                            Notification.findOneAndUpdate({userId:key},{$push:{notification:obj}},{new:true,multi:true,upsert:true},(err,success)=>{});
+                          //  Notification.findOneAndUpdate({userId:key},{$push:{notification:obj}},{new:true,multi:true,upsert:true},(err,success)=>{});
                           //  console.log(">>>>>>>>>>>>>>>",key)
                             General.chat.findOneAndUpdate({ organizerId: req.body.organizerId, playerId: key }, { $push: { message: req.body.message }, $set: { playerRead: false } }, { upsert: true, multi: true }, (err1, success1) => {
+                               
                                 if (err1) return res.send(err1);
                                 User.findOne({_id:key},(err2,success2)=>{
-                                    if(success2.competitionNotify.email.indexOf("message")!=-1)
-                                        mailArray.push(success2.email);
-                                    if(success2.competitionNotify.mobile.indexOf("message"))
-                                            mobileArray.push((success2.countryCode+success2.mobileNumber));
+                                    if(success2){
+                                       // 
 
-                                    pushArray.push.apply(pushArray,success2.deviceToken);
+                                    if ((success2.competitionNotify.email.indexOf("message") != -1) && (mailArray.indexOf(success2.email)== -1))
+                                        {
+                                        mailArray.push(success2.email)}
+                                    if((success2.deviceToken && pushArray.indexOf(success2.deviceToken[0])== -1) && success2.deviceToken[0])
+                                        pushArray.push.apply(pushArray,success2.deviceToken);// push notification array
+                                    
+                                    if(mobileArray.indexOf(success2.countryCode+success2.mobileNumber)== -1)
+                                        mobileArray.push((success2.countryCode+success2.mobileNumber))
 
+                                        console.log("success>>>>>LAST DTA&&**&*&*&*&&*((((")
+                                    // if(success2.competitionNotify.email.indexOf("message")!=-1)
+                                    //     mailArray.push(success2.email);
+                                    // if(success2.competitionNotify.mobile.indexOf("message"))
+                                    //         mobileArray.push((success2.countryCode+success2.mobileNumber));
+
+                                    // pushArray.push.apply(pushArray,success2.deviceToken);
+                                    }
+                                    callback(null,"result"); 
 
                                 })
 
@@ -520,31 +602,33 @@ const sendMessageToAllPlayers = (req, res) => {
                                 // console.log("^^^^^^^^^^^^^success>", key);
                                 // if (key.competitionNotify.email.indexOf("email") !== -1)
                                 //     arr.push(key.email) 
-                                if(success.indexOf(key)==(success.length-1)){
-                                    console.log("anurag",mailArray)
-                                    return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Message successfully send to all!");
+                                // if(success.indexOf(key)==(success.length-1)){
+                                //     console.log("anurag",mailArray)
+                                //     return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Message successfully send to all!");
 
-                                      message.sendMail(mailArray, "YALA Sports", "Hi! you have a new message.", (err3, success) => {
-                                            if(err3)
-                                            res.send(err3)
-                                           else if (success) {
-                                                console.log("array&&&&&", mailArray)
-                                                console.log("message sent SUCCESSFULLY_DONE");
+                                //       message.sendMail(mailArray, "YALA Sports", "Hi! you have a new message.", (err3, success) => {
+                                //             if(err3)
+                                //             res.send(err3)
+                                //            else if (success) {
+                                //                 console.log("array&&&&&", mailArray)
+                                //                 console.log("message sent SUCCESSFULLY_DONE");
                                              
-                                            }
-                                        }, req.body.organizerId);
+                                //             }
+                                //         }, req.body.organizerId);
 
-                                        //==================send push notifications to all players=============//
-                                        message.sendPushNotifications(pushArray,`Hi ! you have a new message from`,(err,success)=>{})
+                                //         //==================send push notifications to all players=============//
+                                //         message.sendPushNotifications(pushArray,`Hi ! you have a new message from`,(err,success)=>{})
                                         
-                                        //===================save notification of all players==================//
+                                //         //===================save notification of all players==================//
                                       
 
-                                }                                
+                                // } 
+                                                              
                             
                             });
-                        }, (err) => {
+                        }, (err,result) => {
                             if (err) console.error(err.message);
+                            else console.log("iteration done succesfully",pushArray,mailArray,mobileArray)
 
                         });
 

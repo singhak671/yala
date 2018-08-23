@@ -39,12 +39,12 @@ const addDivision=(req,res)=>{
 
 }
 
-const getDivision=(req,res)=>{
-    let flag=Validator(req.body,['userId'],[],[]);
+const selectDivision=(req,res)=>{
+    let flag=Validator(req.query,[],[],["userId"]);
     if(flag)
         return Response.sendResponse(res,flag[0],flag[1]);
     else
-    General.division.find({organizer:req.body.userId,status:"ACTIVE"},null,{sort:{createdAt:-1}},(err,result)=>{
+    General.division.find({organizer:req.query.userId,status:"ACTIVE"},null,{sort:{createdAt:-1}},(err,result)=>{
         if(err)
             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
         else if(result==false)
@@ -52,6 +52,46 @@ const getDivision=(req,res)=>{
             else
                 return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,result);
     })
+}
+
+const getDivision=(req,res)=>{
+    let flag=Validator(req.body,['userId'],[],[]);
+    if(flag)
+        return Response.sendResponse(res,flag[0],flag[1]);
+    else{
+       // let search = new RegExp("^" + req.body.search)
+        let query={
+            organizer:req.body.userId,
+            status:"ACTIVE",
+            $or:[
+                {divisionName:{$regex:req.body.search, $options: 'i'}},
+                //{minAge:search},
+                {$where: `/^${req.body.search}.*/.test(this.minAge)`},
+                {$where: `/^${req.body.search}.*/.test(this.maxAge)`},
+                //{maxAge:search},
+                {gender:{$regex:req.body.search, $options: 'i'}},
+                {sports:{$regex:req.body.search, $options: 'i'}},
+
+            ]
+            
+
+        };
+        let options={
+            page:req.body.page || 1,
+            limit:req.body.limit || 4,
+            sort:{createdAt:-1}
+        }
+        General.division.paginate(query,options,(err,result)=>{
+            console.log(err,result);
+            if(err)
+                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+            else if(result==false)
+                    return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
+                else
+                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,result);
+        })
+    }
+
 }
 
 const getADivision=(req,res)=>{
@@ -132,12 +172,12 @@ const addPeriod=(req,res)=>{
 
 }
 
-const getPeriod=(req,res)=>{
-    let flag=Validator(req.body,['userId'],[],[]);
+const selectPeriod=(req,res)=>{
+    let flag=Validator(req.query,[],[],["userId"]);
     if(flag)
         return Response.sendResponse(res,flag[0],flag[1]);
     else
-    General.period.find({organizer:req.body.userId},null,{sort:{createdAt:-1}},(err,result)=>{
+    General.period.find({organizer:req.query.userId,status:"ACTIVE"},null,{sort:{createdAt:-1}},(err,result)=>{
         if(err)
             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
         else if(result==false)
@@ -145,6 +185,27 @@ const getPeriod=(req,res)=>{
             else
                 return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,result);
     })
+}
+
+const getPeriod=(req,res)=>{
+    let flag=Validator(req.body,['userId'],[],[]);
+    if(flag)
+        return Response.sendResponse(res,flag[0],flag[1]);
+    else{
+        let options={
+            page:req.body.page || 1,
+            limit:req.body.limit || 4,
+            sort:{createdAt:-1}
+        }
+        General.period.paginate({organizer:req.body.userId,status:"ACTIVE"},options,(err,result)=>{
+            if(err)
+                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+            else if(result==false)
+                    return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
+                else
+                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,result);
+        })
+    }
 }
 
 const getAPeriod=(req,res)=>{
@@ -230,12 +291,27 @@ const getSport=(req,res)=>{
     if(flag)
         return Response.sendResponse(res,flag[0],flag[1]);
     else{
+        
+        let query={
+            organizer:req.body.userId,
+            status:"ACTIVE",
+            $or:[
+                {sportName:{$regex:req.body.search, $options: 'i'}},
+                // {minAge:{$regex:/req.body.search/}},
+                // {maxAge:{$regex:req.body.search, $options: 'i'}},
+                {sportType:{$regex:req.body.search, $options: 'i'}},
+              //  {sports:{$regex:req.body.search, $options: 'i'}},
+
+            ]
+            
+
+        };
         let options={
             page:req.body.page ||1,
             limit:req.body.limit ||4,
             sort:{createdAt:-1}
         };
-    General.sport.paginate({organizer:req.query.userId},options,(err,result)=>{
+    General.sport.paginate(query,options,(err,result)=>{
         if(err)
             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
         else if(result==false)
@@ -348,12 +424,14 @@ const getMailMessageDetails=(req,res)=>{
 module.exports={
     addDivision,
     getDivision,
+    selectDivision,
     getADivision,
     editDivision,
     deleteDivision,
 
     addPeriod,
     getPeriod,
+    selectPeriod,
     getAPeriod,
     editPeriod,
     deletePeriod,
