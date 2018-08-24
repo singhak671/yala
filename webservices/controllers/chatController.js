@@ -31,10 +31,10 @@ const sendMessage = (req, res) => {
 
         if (err)
             return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
-        else if (!success)
+        else if (success==false)
             return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
         else {
-           // res.send(success)
+           // console.log(success)
             let obj={
                 message:(`You have a new message !`),//from ${success.organizer.firstName} ${success.organizer.lastName}
                 title:"YALA Sports App"
@@ -51,7 +51,7 @@ const sendMessage = (req, res) => {
                    // console.log("}}}}}}}}}}}}}77}}}}}",success1)
                     if (err1)
                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
-                    else if (!success)
+                    else if (success==false)
                         return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
                     else {  console.log("}}}}}}}}}}}}}77}}}}}",success1.playerId.email)
                        Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success1);
@@ -96,7 +96,7 @@ const sendMessage = (req, res) => {
                    
                     if (err1)
                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
-                    else if (!success1)
+                    else if (success1==false)
                         return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
                     else {
                         //console.log("anurag")
@@ -150,7 +150,7 @@ const getMessages = (req, res) => {
     User.find({ _id: req.body.organizerId, _id: req.body.senderId, _id: req.body.playerId }, (err, success) => {
         if (err)
             return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
-        else if (!success)
+        else if (success==false)
             return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
         else {
             let options = {
@@ -186,7 +186,7 @@ const getMessages = (req, res) => {
             General.chat.paginate(query, options, (err1, success1) => {
                 if (err1)
                     return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
-                else if (!success1)
+                else if (success1==false)
                     return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
                 else {
                     return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success1);
@@ -220,10 +220,10 @@ const sendMessageToAllTeam = (req, res) => {
 
                     if (err)
                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
-                    else if (!success)
+                    else if (success==false)
                         return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
                     else {
-                        //res.send(success)
+                        //console.log(success)
                         let obj={
                             message:(`You have a new message !`),//from ${success.organizer.firstName} ${success.organizer.lastName}
                             title:"YALA Sports App"
@@ -237,7 +237,7 @@ const sendMessageToAllTeam = (req, res) => {
                              async.forEach(key1.playerId, function(key, callback2) {
                                 
                                 General.chat.findOneAndUpdate({ organizerId: req.body.organizerId, playerId: key }, { $push: { message: req.body.message }, $set: { playerRead: false } }, { upsert: true, multi: true }, (err1, success1) => {
-                                    if (err1) return res.send(err1);
+                                    if (err1) return console.log(err1);
                                     if ((key.competitionNotify.email.indexOf("message") !== -1) && (mailArray.indexOf(key.email)== -1)) {
                                         mailArray.push(key.email)
                                     }
@@ -291,7 +291,7 @@ const sendMessageToAllTeam = (req, res) => {
                             async.forEach(key1.playerId, (key, callback) => {
                                // Notification.findOneAndUpdate({userId:key._id},{$push:{notification:obj}},{new:true,multi:true,upsert:true},(err,success)=>{});
                                 General.chat.findOneAndUpdate({ organizerId: req.body.organizerId, playerId: key }, { $push: { message: req.body.message }, $set: { playerRead: false } }, { upsert: true, multi: true }, (err1, success1) => {
-                                    if (err1) return res.send(err1);
+                                    if (err1) return console.log(err1);
                                     if ((key.competitionNotify.email.indexOf("message") !== -1) && (mailArray.indexOf(key.email)== -1))
                                     {
                                     mailArray.push(key.email)}
@@ -320,7 +320,7 @@ const sendMessageToAllTeam = (req, res) => {
                            count++;
                           // console.log("i am count",count,success.length);
                            if(count==success.length){
-                               //res.send("DONE");
+                               //console.log("DONE");
                                
                                console.log('$$$$$$$$$$$$$$$$done',success.length,mailArray,pushArray,saveNotify)
                            }
@@ -379,7 +379,7 @@ const sendMsgToAllPlayersOfATeam = (req, res) => {
                 .exec((err, success) => {
                     if (err)
                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
-                    else if (!success)
+                    else if (success==false)
                         return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
                     else {
                         // let obj={
@@ -388,7 +388,7 @@ const sendMsgToAllPlayersOfATeam = (req, res) => {
 
                         // }
 
-                       // res.send(success);
+                       // console.log(success);
 
                             async.forEach(success.playerId, (key, callback) => {
                                 
@@ -416,7 +416,7 @@ const sendMsgToAllPlayersOfATeam = (req, res) => {
                                     //     //==============send email to all  players=====================//
                                     //     message.sendMail(mailArray, "YALA Sports ✔", `You have a new message from "${success.organizer.firstName} ${success.organizer.lastName}"`, (err3, success) => {
                                     //         if(err3)
-                                    //         res.send(err3)
+                                    //         console.log(err3)
                                     //        else if (success) {
                                     //             console.log("array&&&&&", mailArray)
                                     //             console.log("message sent SUCCESSFULLY_DONE");}
@@ -444,8 +444,7 @@ const sendMsgToAllPlayersOfATeam = (req, res) => {
                                 else {
                                     console.log("Iteration done succcesfully!",pushArray,saveNotify,mailArray);
                                     message.sendMail(mailArray, "YALA Sports ✔", `You have a new message from "${success.organizer.firstName} ${success.organizer.lastName}" in your YALA account`, (err3, success) => {
-                                                if(err3)
-                                                res.send(err3)
+                                                if(err3) console.log(err3)
                                                else if (success) {
                                                     console.log("array&&&&&", mailArray)
                                                     console.log("message sent SUCCESSFULLY_DONE");}
@@ -508,7 +507,7 @@ const sendMsgToAllPlayersOfATeam = (req, res) => {
             // });
             //     async.forEach(data, (key,callback) => {
             //         General.chat.findOneAndUpdate ({organizerId:req.body.organizerId,playerId:key},{$push:{message:req.body.message}},{upsert:true,multi:true}, (err, success) => {
-            //         if (err) return res.send(err);
+            //         if (err) return console.log(err);
             //         if(key==data[(data.length-1)])
             //         return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Message successfully send to all!")
 
@@ -560,7 +559,7 @@ const sendMessageToAllPlayers = (req, res) => {
                 .exec((err, success) => {
                     if (err)
                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
-                    else if (!success)
+                    else if (success==false)
                         return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
                     else {
                         console.log("success>>>>>",success);
@@ -622,7 +621,7 @@ const sendMessageToAllPlayers = (req, res) => {
 
                                       message.sendMail(mailArray, "YALA Sports", `Hi! you have a new message from ${firstName} ${lastName} in your YALA account.`, (err3, success) => {
                                             if(err3)
-                                            res.send(err3)
+                                            console.log(err3)
                                            else if (success) {
                                                 console.log("array&&&&&", mailArray)
                                                 console.log("mail sent SUCCESSFULLY_DONE");
@@ -666,7 +665,7 @@ const getListOfMessageForPlayer = (req, res) => {
         User.findOne({ _id: req.query.userId }, (err, success) => {
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
-            else if (!success)
+            else if (success==false)
                 return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NO_DATA_FOUND)
             else {
                 let option = {
@@ -682,7 +681,7 @@ const getListOfMessageForPlayer = (req, res) => {
                 General.chat.paginate({ playerId: req.query.userId }, option, (err, success) => {
                     if (err)
                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
-                    else if (!success)
+                    else if (success==false)
                         return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NO_DATA_FOUND)
                     else
                         return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.MESSAGE_LIST, success)
