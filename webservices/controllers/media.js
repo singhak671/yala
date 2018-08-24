@@ -119,6 +119,7 @@ const createAlbum = (req, res) => {
                                             arrEmail.push(success[data].playerId.email)
                                         if ((success[data].playerId.competitionNotify.mobile).indexOf("media") != -1)
                                             arrMobile.push(success[data].playerId.countryCode + success[data].playerId.mobileNumber)
+                                            
                                             arr.push.apply(arr,success[data].playerId.deviceToken);
                                         arrId.push(success[data].playerId._id)
                                     }
