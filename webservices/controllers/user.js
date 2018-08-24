@@ -554,9 +554,9 @@ const logOut=(req,res)=>{
 			options={
 				new:true
 			}
-         userServices.updateUser(query,set,options,(err,success)=>{
+         User.findOneAndUpdate(query,{$pull:{deviceToken:req.query.deviceToken}},options,(err,success)=>{
 			 if(err)
-			 return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR)
+			 return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
 			 else
 			 return Response.sendResponse(res,responseCode.SUCCESSFULLY_DONE,responseMsg.LOGOUT)
 		 })

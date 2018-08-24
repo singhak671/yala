@@ -326,7 +326,7 @@ const selectSport=(req,res)=>{
     if(flag)
         return Response.sendResponse(res,flag[0],flag[1]);
     else
-    General.sport.find({organizer:req.query.userId},null,{sort:{createdAt:-1}},(err,result)=>{
+    General.sport.find({organizer:req.query.userId,status:"ACTIVE"},null,{sort:{createdAt:-1}},(err,result)=>{
         if(err)
             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
         else if(result==false)

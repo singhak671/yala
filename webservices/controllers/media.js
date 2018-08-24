@@ -119,7 +119,7 @@ const createAlbum = (req, res) => {
                                             arrEmail.push(success[data].playerId.email)
                                         if ((success[data].playerId.competitionNotify.mobile).indexOf("media") != -1)
                                             arrMobile.push(success[data].playerId.countryCode + success[data].playerId.mobileNumber)
-                                            
+                                        if((success[data].playerId.deviceToken && arr.indexOf(success[data].playerId.deviceToken[0])== -1) && success[data].playerId.deviceToken[0]) 
                                             arr.push.apply(arr,success[data].playerId.deviceToken);
                                         arrId.push(success[data].playerId._id)
                                     }
@@ -149,7 +149,12 @@ const createAlbum = (req, res) => {
                                                 arrEmail.push(success[data].playerId.email)
                                             if ((success[data].playerId.competitionNotify.mobile).indexOf("media") != -1)
                                                 arrMobile.push(success[data].playerId.countryCode + success[data].playerId.mobileNumber)
+                                                
+                                            if((success[data].playerId.deviceToken && arr.indexOf(success[data].playerId.deviceToken[0])== -1) && success[data].playerId.deviceToken[0]) 
                                                 arr.push.apply(arr,success[data].playerId.deviceToken);
+
+
+
                                                 arrId.push(success[data].playerId._id)
                                         }
                                         console.log("I am email mobile Id deviceToken", arrEmail, arrMobile, arrId, arr)

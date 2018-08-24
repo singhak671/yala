@@ -268,9 +268,10 @@ const deleteClub=(req,res)=>{
 }
 //
 const searchClub=(req,res)=>{
+    console.log("req.body-->>",req.body,req.query)
     let search=new RegExp("^"+req.body.search)
        let query={
-           clubName:search,
+           clubName:{$regex:search,$options:'i'},
            userId:req.query.userId
         }
             var options={
@@ -282,7 +283,7 @@ const searchClub=(req,res)=>{
                 if(err)
                 return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
                 else if(!success.docs.length)
-                return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NO_DATA_FOUND);
+                return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.CLUB_NOT_FOUND);
                 else
                 return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.LIST_OF_SPONSERS,success)
          })
@@ -509,7 +510,7 @@ const deleteSponsor=(req,res)=>{
 const searchSponsor=(req,res)=>{
     let search=new RegExp("^"+req.body.search)
        let query={
-           sponserName:search,
+           sponserName:{$regex:search,$options:'i'},
            userId:req.query.userId
        }
             var options={
@@ -521,7 +522,7 @@ const searchSponsor=(req,res)=>{
                 if(err)
                 return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
                 else if(!success.docs.length)
-                return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NO_DATA_FOUND);
+                return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.SPONSER_NOT_FOUND);
                 else
                 return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.LIST_OF_SPONSERS,success)
             })
@@ -601,7 +602,7 @@ const addVenue=(req,res)=>{
                                   if(err)
                                   return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
                                   if(!success)
-                                  return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.CLUB_NOT_FOUND)
+                                  return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.CLUB_NOT_FOUND);
                                   else
                                   req.body.club={
                                       clubName:success.clubName,
@@ -751,9 +752,10 @@ const deleteVenue=(req,res)=>{
 }
 //-------------------------Search Venue-----------------------
 const searchVenue=(req,res)=>{
+    console.log("req.body-->>",req.body)
     let search=new RegExp("^"+req.body.search)
        let query={
-           venue:search,
+           venue:{$regex:search,$options:'i'},
            userId:req.query.userId
        }
             var options={
@@ -765,7 +767,7 @@ const searchVenue=(req,res)=>{
                 if(err)
                 return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
                 else if(!success.docs.length)
-                return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NO_DATA_FOUND);
+                return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.VENUE_NOT_FOUND);
                 else
                 return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.LIST_OF_VENUE,success)
             })
@@ -965,7 +967,7 @@ const deleteReferee=(req,res)=>{
 const searchReferee=(req,res)=>{
     let search=new RegExp("^"+req.body.search)
        let query={
-           name:search,
+           name:{$regex:search,$options:'i'},
            userId:req.query.userId
        }
             var options={
@@ -977,7 +979,7 @@ const searchReferee=(req,res)=>{
                 if(err)
                 return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
                 else if(!success.docs.length)
-                return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NO_DATA_FOUND);
+                return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.REFREE_NOT_FOUND);
                 else
                 return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.REFREE_LIST,success)
             })

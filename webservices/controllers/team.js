@@ -196,7 +196,7 @@ const filterTeam = (req, res) => {
                         if (req.body.search) {
                             let search = new RegExp("^" + req.body.search)
                             query = {
-                                $or: [{ teamName: search }, { email: search }, { competitionName: search }, { venue: search }, { sports: search }, { status: search }]
+                                $or: [{ teamName: {$regex:search,$options:'i'} }, { email: {$regex:search,$options:'i'} }, { competitionName: {$regex:search,$options:'i'} }, { venue: {$regex:search,$options:'i'} }, { sports: {$regex:search,$options:'i'} }, { status: {$regex:search,$options:'i'} }]
                             }
                         }
                         if (req.body.status)
@@ -488,7 +488,7 @@ const getListOfPlayer = (req, res) => {
                 if (req.body.search) {
                     let search = new RegExp("^" + req.body.search)
                     query = {
-                        $or: [{ teamName: search }, { "Comp.competitionName": search }, { "Player.gender": search }, { status: search }, { "Player.firstName": search }, { "Comp.division": search }, { "Player.email": search }]
+                        $or: [{ teamName: {$regex:search,$options:'i'} }, { "Comp.competitionName": {$regex:search,$options:'i'} }, { "Player.gender": {$regex:search,$options:'i'} }, { status: {$regex:search,$options:'i'} }, { "Player.firstName": {$regex:search,$options:'i'} }, { "Comp.division": {$regex:search,$options:'i'} }, { "Player.email": {$regex:search,$options:'i'} }]
                     }
                 }
                 if (req.body.teamName)

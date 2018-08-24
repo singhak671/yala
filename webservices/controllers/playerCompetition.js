@@ -325,32 +325,32 @@ const filterCompetitions = (req, res) => {
                 },
 
 
-                {
-                    "$project": {
-                        _id: 1,
-                        playerFollowStatus: {
-                            $cond: {
-                                if: {
-                                    $eq: ['$playerFollowStatus.playerId', req.body.userId]
-                                },
-                                then: "$playerFollowStatus",
-                                else: "NOT FOLLOWED",
-                            }
-                        },
-                        division: 1,
-                        period: 1,
-                        sports: 1,
-                        status: 1,
-                        venue: 1,
-                        sportType: 1,
-                        published:1,
-                        competitionName: 1,
-                        organizer: 1,
-                        createdAt: 1,
-                        registrationForm:1,
-                        imageURL: 1
-                    }
-                },
+                // {
+                //     "$project": {
+                //         _id: 1,
+                //         playerFollowStatus: {
+                //             $cond: {
+                //                 if: {
+                //                     $eq: ['$playerFollowStatus.playerId', req.body.userId]
+                //                 },
+                //                 then: "$playerFollowStatus",
+                //                 else: "NOT FOLLOWED",
+                //             }
+                //         },
+                //         division: 1,
+                //         period: 1,
+                //         sports: 1,
+                //         status: 1,
+                //         venue: 1,
+                //         sportType: 1,
+                //         published:1,
+                //         competitionName: 1,
+                //         organizer: 1,
+                //         createdAt: 1,
+                //         registrationForm:1,
+                //         imageURL: 1
+                //     }
+                // },
                 { '$sort': { 'createdAt': -1 } },
 
                 {

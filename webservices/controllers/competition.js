@@ -19,7 +19,7 @@ const addNewCompetition = (req, res) => {
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else
-        subscriptionValidator(req.body, ["competition"], (err, flag) => {
+        subscriptionValidator(req.body, ["Competition"], (err, flag) => {
             if (flag[0] !== 200)
                 return Response.sendResponse(res, flag[0], flag[1], flag[2]);
 
