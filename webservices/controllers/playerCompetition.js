@@ -306,22 +306,20 @@ const filterCompetitions = (req, res) => {
                 {
                     $group: {
                         _id: "$_id",
-                        "period": { "$first": "$period" },
-                        // period:"$period",
-                        "status": { "$first": "$status" },
-                        "sports": { "$first": "$sports" },
-                        "published": { "$first": "$published" },
-                        "venue": { "$first": "$venue" },
-                        "division": { "$first": "$division" },
-                        "competitionName": { "$first": "$competitionName" },
-                        "organizer": { "$first": "$organizer" },
-                        "createdAt": { "$first": "$createdAt" },
-                        "registrationForm":{"$first":"$registrationForm"},
-                        "imageURL": { "$first": "$imageURL" },
-                        "sportType": { "$first": "$sportType" },
-                        playerFollowStatus: {
-                            $first: "$playerFollowStatus"
-                        },
+                        // "period": { "$first": "$period" },
+                        // // period:"$period",
+                        // "status": { "$first": "$status" },
+                        // "sports": { "$first": "$sports" },
+                        // "published": { "$first": "$published" },
+                        // "venue": { "$first": "$venue" },
+                        // "division": { "$first": "$division" },
+                        // "competitionName": { "$first": "$competitionName" },
+                        // "organizer": { "$first": "$organizer" },
+                        // "createdAt": { "$first": "$createdAt" },
+                        // "registrationForm":{"$first":"$registrationForm"},
+                        // "imageURL": { "$first": "$imageURL" },
+                        // "sportType": { "$first": "$sportType" },
+                        "playerFollowStatus": {"$first": "$playerFollowStatus"},
 
                     }
                 },

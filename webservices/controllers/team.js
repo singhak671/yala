@@ -25,7 +25,7 @@ const selectCompition = (req, res) => {
                 req.body.userId = req.query.userId
             let select = {
                 competitionName: 1,
-                sportType:1
+                sportType: 1
             }
             teamServices.selectCompition({ organizer: req.body.userId }, select, (err, success) => {
                 if (err)
@@ -192,6 +192,12 @@ const filterTeam = (req, res) => {
                             req.body.organizer = req.query.userId
                         let query = {
                             organizer: ObjectId(req.body.organizer)
+                        }
+                        if (req.body.search) {
+                            let search = new RegExp("^" + req.body.search)
+                            query = {
+                                $or: [{ teamName: search }, { email: search }, { competitionName: search }, { venue: search }, { sports: search }, { status: search }]
+                            }
                         }
                         if (req.body.status)
                             query.status = req.body.status
@@ -380,7 +386,7 @@ const addPlayer = (req, res) => {
                                                         let salt = bcrypt.genSaltSync(10);
                                                         req.body.playerDetail.password = bcrypt.hashSync(req.body.password, salt)
                                                         req.body.playerDetail.role = ["PLAYER"],
-                                                        req.body.playerDetail.phoneVerified=true
+                                                            req.body.playerDetail.phoneVerified = true
                                                         message.uploadImg(req.body.playerDetail.image, (err, res1) => {
                                                             if (res1) {
                                                                 req.body.playerDetail.image = res1.secure_url
@@ -478,6 +484,12 @@ const getListOfPlayer = (req, res) => {
                 let query = {
                     organizer: ObjectId(req.body.organizer),
                     "registration": true,
+                }
+                if (req.body.search) {
+                    let search = new RegExp("^" + req.body.search)
+                    query = {
+                        $or: [{ teamName: search }, { "Comp.competitionName": search }, { "Player.gender": search }, { status: search }, { "Player.firstName": search }, { "Comp.division": search }, { "Player.email": search }]
+                    }
                 }
                 if (req.body.teamName)
                     query["teamName"] = req.body.teamName

@@ -1389,10 +1389,10 @@ const getnotificationList=(req,res)=>{
               },{
                   $unwind:"$notification"
               },{
-                  $sort:{"notification.createdAt":-1}
-              },{
                 $project:{message:"$notification",_id:0}
-              }
+              },{
+				$sort:{"message.createdAt":-1}
+			},
             ])
             let option={
                 page:req.body.page||1,

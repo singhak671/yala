@@ -11,7 +11,7 @@ router.post('/competition/getAllCompetitions',playerCompetitionController.getAll
 
 
 router.post('/competition/followCompetition',AUTH.verifyToken,playerCompetitionController.followCompetition);
-router.post('/competition/filterCompetitions',AUTH.verifyToken,playerCompetitionController.filterCompetitions);
+router.post('/competition/filterCompetitions',playerCompetitionController.filterCompetitions);
 router.post('/competition/unFollowCompetition',AUTH.verifyToken,playerCompetitionController.unFollowCompetition);
 router.post('/competition/confirmRegistration',AUTH.verifyToken,playerCompetitionController.confirmRegistration);
 router.post('/competition/competitionNotification',AUTH.verifyToken,playerCompetitionController.competitionNotification);

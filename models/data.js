@@ -111,7 +111,9 @@ let refereeSchema=new Schema({
                   type:String
                 },
                 visibleIn:{
-                      type:String
+                     _id:{type:Schema.Types.ObjectId,ref:"competitions"},
+                     competitionName:String,
+                     sportType:String
                 },
                 status:{
                     type:String

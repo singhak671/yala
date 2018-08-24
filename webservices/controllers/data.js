@@ -761,7 +761,7 @@ const searchVenue=(req,res)=>{
                 limit:req.body.limit||10,
                 sort:{ createdAt: -1 }
             }
-            dataServices.getEditDetailOfVenue(query,options,(err,success)=>{
+            dataServices.getListOfVenue(query,options,(err,success)=>{
                 if(err)
                 return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
                 else if(!success.docs.length)

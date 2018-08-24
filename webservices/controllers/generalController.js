@@ -68,7 +68,6 @@ const getDivision=(req,res)=>{
                 //{minAge:search},
                 {$where: `/^${req.body.search}.*/.test(this.minAge)`},
                 {$where: `/^${req.body.search}.*/.test(this.maxAge)`},
-                //{maxAge:search},
                 {gender:{$regex:req.body.search, $options: 'i'}},
                 {sports:{$regex:req.body.search, $options: 'i'}},
 

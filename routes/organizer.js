@@ -68,9 +68,9 @@ router.post('/deletePeriod',generalController.deletePeriod);
 
 router.post('/addSport',AUTH.verifyToken,generalController.addSport);
 router.post('/getSport',generalController.getSport);
-router.post('/getASport',AUTH.verifyToken,generalController.getASport);
+router.post('/getASport',generalController.getASport);
 router.get('/selectSport',AUTH.verifyToken,generalController.selectSport);
-router.post('/editSport',AUTH.verifyToken,generalController.editSport);
+router.post('/editSport',generalController.editSport);
 router.post('/deleteSport',AUTH.verifyToken,generalController.deleteSport);
 
 
