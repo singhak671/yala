@@ -268,6 +268,9 @@ const deleteClub=(req,res)=>{
 }
 //
 const searchClub=(req,res)=>{
+    let flag = Validator(req.body, [], [], ["search"])
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
     console.log("req.body-->>",req.body,req.query)
     let search=new RegExp("^"+req.body.search)
        let query={
@@ -508,6 +511,9 @@ const deleteSponsor=(req,res)=>{
 }
 //------------------------Search Sponser----------------------------------------
 const searchSponsor=(req,res)=>{
+    let flag = Validator(req.body, [], [], ["search"])
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
     let search=new RegExp("^"+req.body.search)
        let query={
            sponserName:{$regex:search,$options:'i'},
@@ -547,8 +553,8 @@ const selectClub=(req,res)=>{
                     userId:req.body.userId
                 }
                 select={
-                    clubName:1,
-                    _id:0
+                    
+                   
                 }
                 dataServices.selectClub(query,select,(err,success)=>{
                     if(err){
@@ -752,6 +758,9 @@ const deleteVenue=(req,res)=>{
 }
 //-------------------------Search Venue-----------------------
 const searchVenue=(req,res)=>{
+    let flag = Validator(req.body, [], [], ["search"])
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
     console.log("req.body-->>",req.body)
     let search=new RegExp("^"+req.body.search)
        let query={
@@ -965,6 +974,9 @@ const deleteReferee=(req,res)=>{
 }
 //-------------------------Search Referee-----------------------
 const searchReferee=(req,res)=>{
+    let flag = Validator(req.body, [], [], ["search"])
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
     let search=new RegExp("^"+req.body.search)
        let query={
            name:{$regex:search,$options:'i'},

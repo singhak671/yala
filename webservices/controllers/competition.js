@@ -34,8 +34,8 @@ const addNewCompetition = (req, res) => {
                                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
                             if (success >= 1)
                                 return Response.sendResponse(res, responseCode.BAD_REQUEST, "Only one competition is allowed for your plan");
-                        })
-                    else
+                        
+                        else
                         Competition.competition.findOne({ organizer: req.body.userId, competitionName: req.body.competitionDetails.competitionName }, (err, success) => {
                             if (err)
                                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
@@ -56,6 +56,7 @@ const addNewCompetition = (req, res) => {
                                 })
                             });
                         });
+                    })
                 })
             }
         })

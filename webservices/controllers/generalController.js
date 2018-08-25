@@ -62,8 +62,11 @@ const getDivision=(req,res)=>{
        // let search = new RegExp("^" + req.body.search)
         let query={
             organizer:req.body.userId,
-            status:"ACTIVE",
-            $or:[
+            status:"ACTIVE"            
+
+        };
+        if(req.body.search){
+            query.$or=[
                 {divisionName:{$regex:req.body.search, $options: 'i'}},
                 //{minAge:search},
                 {$where: `/^${req.body.search}.*/.test(this.minAge)`},
@@ -72,16 +75,15 @@ const getDivision=(req,res)=>{
                 {sports:{$regex:req.body.search, $options: 'i'}},
 
             ]
-            
-
-        };
+        }
+        console.log("query",query)
         let options={
             page:req.body.page || 1,
             limit:req.body.limit || 4,
             sort:{createdAt:-1}
         }
         General.division.paginate(query,options,(err,result)=>{
-            console.log(err,result);
+           // console.log(err,result);
             if(err)
                 return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
             else if(result==false)
@@ -193,13 +195,14 @@ const getPeriod=(req,res)=>{
     else{
         let query={
             organizer:req.body.userId,
-            status:"ACTIVE",
-            $or:[
-                {periodName:{$regex:req.body.search, $options: 'i'}}
-            ]
-            
+            status:"ACTIVE"            
 
         };
+        if(req.body.search){
+            query.$or=[
+                {periodName:{$regex:req.body.search, $options: 'i'}}
+            ]
+        }
         let options={
             page:req.body.page || 1,
             limit:req.body.limit || 4,
@@ -285,7 +288,7 @@ const addSport=(req,res)=>{
                     else if(!success1)
                             return Response.sendResponse(res,responseCode.BAD_REQUEST,`Cannot create a sport!`);
                         else
-                            return Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,responseMsg.SUCCESSFULLY_DONE,success1);
+                            return Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,"Sport added successfully",success1);
                 })
             }
             
@@ -302,8 +305,11 @@ const getSport=(req,res)=>{
         
         let query={
             organizer:req.body.userId,
-            status:"ACTIVE",
-            $or:[
+            status:"ACTIVE"           
+
+        };
+        if(req.body.search){
+            query.$or=[
                 {sportName:{$regex:req.body.search, $options: 'i'}},
                 // {minAge:{$regex:/req.body.search/}},
                 // {maxAge:{$regex:req.body.search, $options: 'i'}},
@@ -311,14 +317,13 @@ const getSport=(req,res)=>{
               //  {sports:{$regex:req.body.search, $options: 'i'}},
 
             ]
-            
-
-        };
+        }
         let options={
             page:req.body.page ||1,
             limit:req.body.limit ||4,
             sort:{createdAt:-1}
         };
+        console.log("query>>>>>",query)
     General.sport.paginate(query,options,(err,result)=>{
         if(err)
             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
