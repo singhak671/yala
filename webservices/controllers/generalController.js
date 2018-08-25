@@ -191,12 +191,21 @@ const getPeriod=(req,res)=>{
     if(flag)
         return Response.sendResponse(res,flag[0],flag[1]);
     else{
+        let query={
+            organizer:req.body.userId,
+            status:"ACTIVE",
+            $or:[
+                {periodName:{$regex:req.body.search, $options: 'i'}}
+            ]
+            
+
+        };
         let options={
             page:req.body.page || 1,
             limit:req.body.limit || 4,
             sort:{createdAt:-1}
         }
-        General.period.paginate({organizer:req.body.userId,status:"ACTIVE"},options,(err,result)=>{
+        General.period.paginate(query,options,(err,result)=>{
             if(err)
                 return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
             else if(result==false)

@@ -8,7 +8,7 @@ var FCM = require('fcm-push');
 const cors = require('cors');
 const TermsAndPolicy=("../model/termsAndPrivacyModel");
 var Twocheckout = require('2checkout-node');
-app.set('port',(process.env.PORT||5000));
+app.set('port',(process.env.PORT||1414));
 app.use(bodyParser.urlencoded({
 	extended:false
 }));

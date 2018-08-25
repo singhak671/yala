@@ -208,7 +208,7 @@ const sendMessageToAllTeam = (req, res) => {
         return Response.sendResponse(res, flag[0], flag[1]);
 
     communicationValidator(req.body.organizerId, ["mail"], (err, flag) => {
-        if (flag[0] !== 200)
+        if (flag[0] == 200)
             return Response.sendResponse(res, flag[0], flag[1], flag[2]);
         else {
             let arr = [];
