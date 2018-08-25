@@ -24,42 +24,43 @@ const addNewCompetition = (req, res) => {
                 return Response.sendResponse(res, flag[0], flag[1], flag[2]);
 
             else {
-                //console.log("====================Data ELSE",data)
-                User.findById(req.body.userId, (err2, success2) => {
-                    // console.log(success2.subscription)
-                    if (success2.subscription == "oneEvent")
-                        Competition.competition.count({ organizer: req.body.userId}, (err, success) => {
-                            console.log("count>>>>>>>>>>", success)
-                            if (err)
-                                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
-                            if (success >= 1)
-                                return Response.sendResponse(res, responseCode.BAD_REQUEST, "Only one competition is allowed for your plan");
-                        
-                        else if(!success)
-                        Competition.competition.findOne({ organizer: req.body.userId, competitionName: req.body.competitionDetails.competitionName }, (err, success) => {
-                            if (err)
+                Competition.competition.count({ organizer: req.body.userId}, (err, success) => {
+                    console.log("count>>>>>>>>>>", success)
+                    if (err)
+                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err);
+                    else {
+                        User.findById(req.body.userId, (err2, success2) => {
+                            if(err2 || !success2)
                                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
-                            if (success)
-                                return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.ALREADY_EXISTS);
-                            req.body.competitionDetails.organizer = req.body.userId;
-                            // console.log(req.body);
-                            Competition.competition.create(req.body.competitionDetails, (err, success) => {
-                                if (err || !success)
-                                    return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
-                                User.findByIdAndUpdate(req.body.userId, { $push: { organizerCompetition: success._id } }, {}, (err, success1) => {
-                                    if (err || !success1)
-                                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, "Unable to create competition _id into the User _id");
-                                    else {
-                                        User.find({}, )
-                                        return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, "A new competition created successfully", success);
+                            else if(success2.subscription=="oneEvent" && success >= 1)
+                                    return Response.sendResponse(res, responseCode.BAD_REQUEST, "Only one competition is allowed for your plan");
+                                    else{                       
+                                        Competition.competition.findOne({ organizer: req.body.userId, competitionName: req.body.competitionDetails.competitionName }, (err, success) => {
+                                            if (err)
+                                                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+                                            if (success)
+                                                return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.ALREADY_EXISTS);
+                                            req.body.competitionDetails.organizer = req.body.userId;
+                                            // console.log(req.body);
+                                            Competition.competition.create(req.body.competitionDetails, (err, success) => {
+                                                if (err || !success)
+                                                    return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+                                                User.findByIdAndUpdate(req.body.userId, { $push: { organizerCompetition: success._id } }, {}, (err, success1) => {
+                                                    if (err || !success1)
+                                                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, "Unable to create competition _id into the User _id");
+                                                    else {
+                                                        User.find({}, )
+                                                        return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, "A new competition created successfully", success);
+                                                    }
+                                                })
+                                            });
+                                        });
                                     }
                                 })
-                            });
-                        });
-                    })
+                        }
                 })
             }
-        })
+    })
 }
 
 
@@ -194,9 +195,9 @@ const addPrize = (req, res) => {
     Competition.competition.findById(req.body.competitionId, (err, result) => {
         if (err)
             return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
-        if (!result)
+        else if (!result)
             return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
-
+        else{
         for (let x of result.prize) {
             if (x.name === req.body.prizeDetails.name)
                 return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.ALREADY_EXISTS);
@@ -209,7 +210,25 @@ const addPrize = (req, res) => {
 
             return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, responseMsg.SUCCESSFULLY_DONE, success);
         });
+    }
     });
+}
+const getPrizeList=(req,res)=>{
+    let flag = Validator(req.query, [], [], ["competitionId"])
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
+    Competition.competition.findById(req.query.competitionId,"prize",(err,success)=>{
+        if (err)
+            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
+        else if (!success)
+            return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
+            else{
+                return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, responseMsg.SUCCESSFULLY_DONE, success);
+            }
+
+    })
+        
+
 }
 
 const editPrize = (req, res) => {
@@ -780,6 +799,7 @@ module.exports = {
     configureCompetition,
     addPrize,
     editPrize,
+    getPrizeList,
     deletePrize,
     optionCompetition,
     addFile,
