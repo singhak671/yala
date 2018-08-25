@@ -28,14 +28,14 @@ const addNewCompetition = (req, res) => {
                 User.findById(req.body.userId, (err2, success2) => {
                     // console.log(success2.subscription)
                     if (success2.subscription == "oneEvent")
-                        Competition.competition.count({ organizer: req.body.userId, competitionName: req.body.competitionDetails.competitionName }, (err, success) => {
+                        Competition.competition.count({ organizer: req.body.userId}, (err, success) => {
                             console.log("count>>>>>>>>>>", success)
                             if (err)
                                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
                             if (success >= 1)
                                 return Response.sendResponse(res, responseCode.BAD_REQUEST, "Only one competition is allowed for your plan");
                         
-                        else
+                        else if(!success)
                         Competition.competition.findOne({ organizer: req.body.userId, competitionName: req.body.competitionDetails.competitionName }, (err, success) => {
                             if (err)
                                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
