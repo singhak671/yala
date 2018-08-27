@@ -214,16 +214,35 @@ const addPrize = (req, res) => {
     });
 }
 const getPrizeList=(req,res)=>{
+    var arrLength;
     let flag = Validator(req.query, [], [], ["competitionId"])
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
-    Competition.competition.findById(req.query.competitionId,"prize",(err,success)=>{
+    var data={
+        page:req.body.page ||1,
+        limit:req.body.limit ||4
+    }
+       // skip((query.page - 1) * query.limit)
+        // let options={"prize":  {$slice: [((query.page - 1) * query.limit),query.limit]}}
+        Competition.competition.findById(req.query.competitionId,"prize",(err,success)=>{
+            if(success)
+            arrLength= success.prize.length;
+        })
+        
+        //console.log(length)
+    Competition.competition.findById(req.query.competitionId)
+    .select("prize")
+    .select({ 'prize': { '$slice': [((data.page - 1) * data.limit),(data.limit)] } ,file:0})
+    .lean()
+    .exec((err,success)=>{
         if (err)
-            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
+            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err);
         else if (!success)
             return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
             else{
-                return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, responseMsg.SUCCESSFULLY_DONE, success);
+                data.total=arrLength
+                
+                return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, responseMsg.SUCCESSFULLY_DONE, success,data);
             }
 
     })
@@ -238,7 +257,7 @@ const editPrize = (req, res) => {
         return Response.sendResponse(res, flag[0], flag[1]);
     Competition.competition.findOneAndUpdate({ "_id": req.body.competitionId, "prize._id": req.body.prizeDetails._id }, { $set: { "prize.$": req.body.prizeDetails } }, { new: true }, (err, success) => {
         if (err)
-            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
+            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err);
         else if (!success)
             return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
         else {
@@ -331,6 +350,21 @@ const addFile = (req, res) => {
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, "File not uploaded successfully");
         });
     });
+}
+const getFileList=(req,res)=>{
+    let flag = Validator(req.query, [], [], ["competitionId"])
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
+    Competition.competition.findById(req.query.competitionId,"file",(err,success)=>{
+        if (err)
+            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
+        else if (!success)
+            return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
+            else{
+                return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, responseMsg.SUCCESSFULLY_DONE, success);
+            }
+    })    
+
 }
 
 const editFile = (req, res) => {
@@ -803,6 +837,7 @@ module.exports = {
     deletePrize,
     optionCompetition,
     addFile,
+    getFileList,
     editFile,
     deleteFile,
     competitionRegistration,

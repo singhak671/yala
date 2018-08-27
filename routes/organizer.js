@@ -16,11 +16,12 @@ router.post('/competition/filterCompetition',competitionController.filterCompeti
 router.post('/competition/configureCompetition',competitionController.configureCompetition);
 
 router.post('/competition/addPrize',competitionController.addPrize);
-router.get('/competition/getPrizeList',competitionController.getPrizeList);
+router.post('/competition/getPrizeList',competitionController.getPrizeList);
 router.post('/competition/editPrize',competitionController.editPrize);
 router.post('/competition/deletePrize',competitionController.deletePrize);
 router.post('/competition/optionCompetition',competitionController.optionCompetition);
 router.post('/competition/addFile',competitionController.addFile);
+router.get('/competition/getFileList',competitionController.getFileList);
 router.post('/competition/editFile',competitionController.editFile);
 router.post('/competition/deleteFile',competitionController.deleteFile);
 

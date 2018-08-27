@@ -65,6 +65,8 @@ const signup=(req,res)=>{
 						};
 						
 					}
+					if(req.body.role=="PLAYER") //changes done by sammer sir
+					req.body.paymentStatus=true;
 						userServices.addUser(req.body,(err,success)=>{
 						if(err){
 							console.log("err--->>",err)
