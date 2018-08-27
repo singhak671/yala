@@ -41,30 +41,30 @@ app.use('/api/v1/media',require('./routes/media'));
 
 
 
-var serverKey = 'AAAAQ0w6JT0:APA91bH6-L7dFYkPFneAiwevxN4rFPaewAylGJitQ4RnHVpsF2fuJpJPJ2gnxMJ2VPavo4PIqO8jcN2pWLuF0WCtQVHUjvlbtBcZAbhkkF5C3R5JMuC5ClfrMdocAaqJntGZ1yYYw5s50I-PCtSBQ4Ylk-m06navCA';
-var fcm = new FCM(serverKey);
+// var serverKey = 'AAAAQ0w6JT0:APA91bH6-L7dFYkPFneAiwevxN4rFPaewAylGJitQ4RnHVpsF2fuJpJPJ2gnxMJ2VPavo4PIqO8jcN2pWLuF0WCtQVHUjvlbtBcZAbhkkF5C3R5JMuC5ClfrMdocAaqJntGZ1yYYw5s50I-PCtSBQ4Ylk-m06navCA';
+// var fcm = new FCM(serverKey);
 
-var message = {
-    //registration_ids: ['dcwk4fElbTs:APA91bHyK9Ece-TZFBBpYZGpfqcYZgQcwTuhSQq7RrHDVNpHC5JjyuuhhxYIv8bB7sKmKeZt5oSRurUAJFyIuADzmMWrmmK9swfhwZMZo7VFCDx3L4Enq2Z4HJ4sWiuiFGoeN4jPydzJcbzSrEKW2bZFavZAkpeVEw'], // required fill with device token or topics
-	to:"dcwk4fElbTs:APA91bHyK9Ece-TZFBBpYZGpfqcYZgQcwTuhSQq7RrHDVNpHC5JjyuuhhxYIv8bB7sKmKeZt5oSRurUAJFyIuADzmMWrmmK9swfhwZMZo7VFCDx3L4Enq2Z4HJ4sWiuiFGoeN4jPydzJcbzSrEKW2bZFavZAkpeVEw",
-	// collapse_key: 'your_collapse_key', 
-    // data: {
-    //     your_custom_data_key: 'your_custom_data_value'
-    // },
-    notification: {
-        title: 'YALA App',
-        body: 'Player is added!'
-    }
-};
+// var message = {
+//     //registration_ids: ['dcwk4fElbTs:APA91bHyK9Ece-TZFBBpYZGpfqcYZgQcwTuhSQq7RrHDVNpHC5JjyuuhhxYIv8bB7sKmKeZt5oSRurUAJFyIuADzmMWrmmK9swfhwZMZo7VFCDx3L4Enq2Z4HJ4sWiuiFGoeN4jPydzJcbzSrEKW2bZFavZAkpeVEw'], // required fill with device token or topics
+// 	to:"dcwk4fElbTs:APA91bHyK9Ece-TZFBBpYZGpfqcYZgQcwTuhSQq7RrHDVNpHC5JjyuuhhxYIv8bB7sKmKeZt5oSRurUAJFyIuADzmMWrmmK9swfhwZMZo7VFCDx3L4Enq2Z4HJ4sWiuiFGoeN4jPydzJcbzSrEKW2bZFavZAkpeVEw",
+// 	// collapse_key: 'your_collapse_key', 
+//     // data: {
+//     //     your_custom_data_key: 'your_custom_data_value'
+//     // },
+//     notification: {
+//         title: 'YALA App',
+//         body: 'Player is added!'
+//     }
+// };
 
-//callback style
-fcm.send(message, function(err, response){
-    if (err) {
-        console.log("Something has gone wrong!",err);
-    } else {
-        console.log("Successfully sent with response: ", response);
-    }
-});
+// //callback style
+// fcm.send(message, function(err, response){
+//     if (err) {
+//         console.log("Something has gone wrong!",err);
+//     } else {
+//         console.log("Successfully sent with response: ", response);
+//     }
+// });
 
 // //promise style
 // fcm.send(message)

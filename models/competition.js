@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 global.Promise = mongoose.Promise;
 const paginate = require('mongoose-paginate');
+var mongooseAggregatePaginate = require('mongoose-aggregate-paginate');
 const Schema = mongoose.Schema;
 const userSchema=require("./user")
 let competitionSchema = new Schema({ 
@@ -130,6 +131,7 @@ let competitionSchema = new Schema({
 });
 
 competitionSchema.plugin(paginate);
+competitionSchema.plugin(mongooseAggregatePaginate);
 //competitionSchema.index({'$**': 'text'});
 //competitionSchema.index({competitionName: 'text', sportType: 'text'});
 var competition = mongoose.model('competition', competitionSchema);

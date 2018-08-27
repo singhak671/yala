@@ -13,6 +13,7 @@ const responseMsg = require('../../helper/httpResponseMessage')
 const userServices = require('../services/userApis');
 const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
+var aggregate = Competition.competition.aggregate();
 const General = require("../../models/generalSchema.js")
 
 const getAllCompetitions = (req, res) => {
@@ -293,123 +294,192 @@ const filterCompetitions = (req, res) => {
                         { division: {$regex:req.body.filterFields.search, $options: 'i'} }
                     ]}
             console.log("i am NEW FINAL obj", query1);
-            Competition.competition.aggregate([
-                {
-                    "$match": query1
-                },
-                {
-                    "$unwind": {
-                        path: '$playerFollowStatus',
-                        preserveNullAndEmptyArrays: true,
-                    }
-                },
-                {
-                    $group: {
-                        _id: "$_id",
-                        "period": { "$first": "$period" },
-                        // period:"$period",
-                        "status": { "$first": "$status" },
-                        "sports": { "$first": "$sports" },
-                        "published": { "$first": "$published" },
-                        "venue": { "$first": "$venue" },
-                        "division": { "$first": "$division" },
-                        "competitionName": { "$first": "$competitionName" },
-                        "organizer": { "$first": "$organizer" },
-                        "createdAt": { "$first": "$createdAt" },
-                        "registrationForm":{"$first":"$registrationForm"},
-                        "imageURL": { "$first": "$imageURL" },
-                        "sportType": { "$first": "$sportType" },
-                        "playerFollowStatus": {"$first": "$playerFollowStatus"},
 
-                    }
-                },
+            aggregate
+            .match(query1)
+            .unwind({       path: '$playerFollowStatus',
+                            preserveNullAndEmptyArrays: true,
+                       }
+                    )
+            // .group({
+            //                 _id: "$_id",
+            //                 "period": { "$first": "$period" },
+            //                 // period:"$period",
+            //                 "status": { "$first": "$status" },
+            //                 "sports": { "$first": "$sports" },
+            //                 "published": { "$first": "$published" },
+            //                 "venue": { "$first": "$venue" },
+            //                 "division": { "$first": "$division" },
+            //                 "competitionName": { "$first": "$competitionName" },
+            //                 "organizer": { "$first": "$organizer" },
+            //                 "createdAt": { "$first": "$createdAt" },
+            //                 "registrationForm":{"$first":"$registrationForm"},
+            //                 "imageURL": { "$first": "$imageURL" },
+            //                 "sportType": { "$first": "$sportType" },
+            //                 "playerFollowStatus": {"$first": "$playerFollowStatus"},
 
+            //         })
+        aggregate.project(
+            {
+                            _id: 1,
+                            playerFollowStatus: {
+                                $cond: {
+                                    if: {
+                                        $eq: ['$playerFollowStatus.playerId', req.body.userId]
+                                    },
+                                    then: "$playerFollowStatus",
+                                    else: "NOT FOLLOWED",
+                                }
+                            },
+                            division: 1,
+                            period: 1,
+                            sports: 1,
+                            status: 1,
+                            venue: 1,
+                            sportType: 1,
+                            published:1,
+                            competitionName: 1,
+                            organizer: 1,
+                            createdAt: 1,
+                            registrationForm:1,
+                            imageURL: 1
+                        }
+        )
+        var options = { page : query.page, limit : query.limit}
 
-                // {
-                //     "$project": {
-                //         _id: 1,
-                //         playerFollowStatus: {
-                //             $cond: {
-                //                 if: {
-                //                     $eq: ['$playerFollowStatus.playerId', req.body.userId]
-                //                 },
-                //                 then: "$playerFollowStatus",
-                //                 else: "NOT FOLLOWED",
-                //             }
-                //         },
-                //         division: 1,
-                //         period: 1,
-                //         sports: 1,
-                //         status: 1,
-                //         venue: 1,
-                //         sportType: 1,
-                //         published:1,
-                //         competitionName: 1,
-                //         organizer: 1,
-                //         createdAt: 1,
-                //         registrationForm:1,
-                //         imageURL: 1
-                //     }
-                // },
-                { '$sort': { 'createdAt': -1 } },
-
-                {
-                    '$facet': {
-                        pageInfo: [{ $count: "total" }, { $addFields: { page: query.page, limit: query.limit } }],
-                        data: [{ $skip: ((query.page - 1) * query.limit) }, { $limit: query.limit }] // add projection here wish you re-shape the docs
-                    }
-                }
-
-
-
-
-            ]).exec((err, result) => {
-               // console.log("query }}}}}}}}}}}}}}}}}}}}}", query)
-                if (err || !result)
-                    return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
-
-
-
-                User.populate(result[0].data, { path: "organizer", select: "firstName lastName", option: { lean: true } }, (errrr, succcc) => {
-
-
-                    if (errrr)
-                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err, errrr);
-
-
-                   // console.log("iam result>>>", result)
+        Competition.competition.aggregatePaginate(aggregate, options, function(err, results, pageCount, count) {
+            if(err) 
+            {
+              res.send(err)
+            }
+            else
+            { console.log("pageCount",pageCount);
+            console.log("count",count);
+              res.send(results)
+            }
+          })
 
 
 
 
 
-                    //    Competition.competition.find({"playerFollowStatus.playerId":req.body.userId},(err,result)=>{
-                    //    if (err)
-                    //        return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
-                    //    else if(!result)
-                    //        return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
-                    //    else{
-                    //let newResult=result;
-                    //    for( let data of result.docs){
-                    //        if(data.playerFollowStatus)
-                    //     for (let data1 of data.playerFollowStatus){
-                    //         if(data1.playerId==req.body.userId)
-                    //             {
-                    //                 data.playerStatus=data1;
-                    //                 delete data["playerFollowStatus"];
-                    //             }
+                                                                                                            // Competition.competition.aggregate([
+                                                                                                            //     {
+                                                                                                            //         "$match": query1
+                                                                                                            //     },
+                                                                                                            //     {
+                                                                                                            //         "$unwind": {
+                                                                                                            //             path: '$playerFollowStatus',
+                                                                                                            //             preserveNullAndEmptyArrays: true,
+                                                                                                            //         }
+                                                                                                            //     },
+                                                                                                            //     {
+                                                                                                            //         $group: {
+                                                                                                            //             _id: "$_id",
+                                                                                                            //             "period": { "$first": "$period" },
+                                                                                                            //             // period:"$period",
+                                                                                                            //             "status": { "$first": "$status" },
+                                                                                                            //             "sports": { "$first": "$sports" },
+                                                                                                            //             "published": { "$first": "$published" },
+                                                                                                            //             "venue": { "$first": "$venue" },
+                                                                                                            //             "division": { "$first": "$division" },
+                                                                                                            //             "competitionName": { "$first": "$competitionName" },
+                                                                                                            //             "organizer": { "$first": "$organizer" },
+                                                                                                            //             "createdAt": { "$first": "$createdAt" },
+                                                                                                            //             "registrationForm":{"$first":"$registrationForm"},
+                                                                                                            //             "imageURL": { "$first": "$imageURL" },
+                                                                                                            //             "sportType": { "$first": "$sportType" },
+                                                                                                            //             "playerFollowStatus": {"$first": "$playerFollowStatus"},
 
-                    //              else
-                    //              {
-                    //                  data.player=null;
-                    //             delete data["playerFollowStatus"];
-                    //         }
-                    //    }}
+                                                                                                            //         }
+                                                                                                            //     },
 
 
-                    return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, succcc, result[0].pageInfo);
-                })
-            })
+                                                                                                            //     // {
+                                                                                                            //     //     "$project": {
+                                                                                                            //     //         _id: 1,
+                                                                                                            //     //         playerFollowStatus: {
+                                                                                                            //     //             $cond: {
+                                                                                                            //     //                 if: {
+                                                                                                            //     //                     $eq: ['$playerFollowStatus.playerId', req.body.userId]
+                                                                                                            //     //                 },
+                                                                                                            //     //                 then: "$playerFollowStatus",
+                                                                                                            //     //                 else: "NOT FOLLOWED",
+                                                                                                            //     //             }
+                                                                                                            //     //         },
+                                                                                                            //     //         division: 1,
+                                                                                                            //     //         period: 1,
+                                                                                                            //     //         sports: 1,
+                                                                                                            //     //         status: 1,
+                                                                                                            //     //         venue: 1,
+                                                                                                            //     //         sportType: 1,
+                                                                                                            //     //         published:1,
+                                                                                                            //     //         competitionName: 1,
+                                                                                                            //     //         organizer: 1,
+                                                                                                            //     //         createdAt: 1,
+                                                                                                            //     //         registrationForm:1,
+                                                                                                            //     //         imageURL: 1
+                                                                                                            //     //     }
+                                                                                                            //     // },
+                                                                                                            //     { '$sort': { 'createdAt': -1 } },
+
+                                                                                                            //     {
+                                                                                                            //         '$facet': {
+                                                                                                            //             pageInfo: [{ $count: "total" }, { $addFields: { page: query.page, limit: query.limit } }],
+                                                                                                            //             data: [{ $skip: ((query.page - 1) * query.limit) }, { $limit: query.limit }] // add projection here wish you re-shape the docs
+                                                                                                            //         }
+                                                                                                            //     }
+
+
+
+
+                                                                                                            // ]).exec((err, result) => {
+                                                                                                            //    // console.log("query }}}}}}}}}}}}}}}}}}}}}", query)
+                                                                                                            //     if (err || !result)
+                                                                                                            //         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+
+
+
+                                                                                                            //     User.populate(result[0].data, { path: "organizer", select: "firstName lastName", option: { lean: true } }, (errrr, succcc) => {
+
+
+                                                                                                            //         if (errrr)
+                                                                                                            //             return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err, errrr);
+
+
+                                                                                                            //        // console.log("iam result>>>", result)
+
+
+
+
+
+                                                                                                            //         //    Competition.competition.find({"playerFollowStatus.playerId":req.body.userId},(err,result)=>{
+                                                                                                            //         //    if (err)
+                                                                                                            //         //        return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+                                                                                                            //         //    else if(!result)
+                                                                                                            //         //        return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
+                                                                                                            //         //    else{
+                                                                                                            //         //let newResult=result;
+                                                                                                            //         //    for( let data of result.docs){
+                                                                                                            //         //        if(data.playerFollowStatus)
+                                                                                                            //         //     for (let data1 of data.playerFollowStatus){
+                                                                                                            //         //         if(data1.playerId==req.body.userId)
+                                                                                                            //         //             {
+                                                                                                            //         //                 data.playerStatus=data1;
+                                                                                                            //         //                 delete data["playerFollowStatus"];
+                                                                                                            //         //             }
+
+                                                                                                            //         //              else
+                                                                                                            //         //              {
+                                                                                                            //         //                  data.player=null;
+                                                                                                            //         //             delete data["playerFollowStatus"];
+                                                                                                            //         //         }
+                                                                                                            //         //    }}
+
+
+                                                                                                            //         return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, succcc, result[0].pageInfo);
+                                                                                                            //     })
+                                                                                                            // })
 
         }
     }

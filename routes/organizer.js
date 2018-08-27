@@ -18,10 +18,12 @@ router.post('/competition/configureCompetition',competitionController.configureC
 router.post('/competition/addPrize',competitionController.addPrize);
 router.post('/competition/getPrizeList',competitionController.getPrizeList);
 router.post('/competition/editPrize',competitionController.editPrize);
+router.get('/competition/getAPrize',competitionController.getAPrize);
 router.post('/competition/deletePrize',competitionController.deletePrize);
 router.post('/competition/optionCompetition',competitionController.optionCompetition);
 router.post('/competition/addFile',competitionController.addFile);
-router.get('/competition/getFileList',competitionController.getFileList);
+router.get('/competition/getAFile',competitionController.getAFile);
+router.post('/competition/getFileList',competitionController.getFileList);
 router.post('/competition/editFile',competitionController.editFile);
 router.post('/competition/deleteFile',competitionController.deleteFile);
 

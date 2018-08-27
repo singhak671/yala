@@ -214,7 +214,7 @@ const addPrize = (req, res) => {
     });
 }
 const getPrizeList=(req,res)=>{
-    var arrLength;
+    //var arrLength;
     let flag = Validator(req.query, [], [], ["competitionId"])
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
@@ -224,10 +224,7 @@ const getPrizeList=(req,res)=>{
     }
        // skip((query.page - 1) * query.limit)
         // let options={"prize":  {$slice: [((query.page - 1) * query.limit),query.limit]}}
-        Competition.competition.findById(req.query.competitionId,"prize",(err,success)=>{
-            if(success)
-            arrLength= success.prize.length;
-        })
+        
         
         //console.log(length)
     Competition.competition.findById(req.query.competitionId)
@@ -240,10 +237,15 @@ const getPrizeList=(req,res)=>{
         else if (!success)
             return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
             else{
-                data.total=arrLength
+                Competition.competition.findById(req.query.competitionId,"prize",(err,result)=>{
+                    if(result)
+                    data.total= result.prize.length;              
+               
                 
                 return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, responseMsg.SUCCESSFULLY_DONE, success,data);
-            }
+            })
+        }
+        
 
     })
         
@@ -268,6 +270,24 @@ const editPrize = (req, res) => {
         }
     })
 
+}
+
+const getAPrize=(req,res)=>{
+    let flag = Validator(req.query, [], [], ["competitionId","prizeId"])
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
+
+    Competition.competition.findOne({ _id: req.query.competitionId, "prize._id": req.query.prizeId}, { 'prize.$._id': 1 }, (err, result) => {
+        console.log(result);
+        if (err)
+            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
+        else if (result == false)
+            return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
+            else {
+                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, result);
+            }
+
+})
 }
 
 // const deletePrize=(req,res)=>{
@@ -352,21 +372,61 @@ const addFile = (req, res) => {
     });
 }
 const getFileList=(req,res)=>{
+    //var arrLength;
     let flag = Validator(req.query, [], [], ["competitionId"])
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
-    Competition.competition.findById(req.query.competitionId,"file",(err,success)=>{
+    var data={
+        page:req.body.page ||1,
+        limit:req.body.limit ||4
+    }
+       // skip((query.page - 1) * query.limit)
+        // let options={"prize":  {$slice: [((query.page - 1) * query.limit),query.limit]}}
+        
+        
+        //console.log(length)
+    Competition.competition.findById(req.query.competitionId)
+    .select({ 'file': { '$slice': [((data.page - 1) * data.limit),(data.limit)] } ,prize:0})
+    .lean()
+    .exec((err,success)=>{
         if (err)
-            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
+            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err);
         else if (!success)
             return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
             else{
-                return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, responseMsg.SUCCESSFULLY_DONE, success);
-            }
-    })    
+                Competition.competition.findById(req.query.competitionId,"file",(err,result)=>{
+                    if(result)
+                    data.total= result.file.length;              
+               
+                
+                return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, responseMsg.SUCCESSFULLY_DONE, success,data);
+            })
+        }
+        
+
+    })
+        
 
 }
 
+
+const getAFile=(req,res)=>{
+    let flag = Validator(req.query, [], [], ["competitionId","fileId"])
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
+
+    Competition.competition.findOne({ _id: req.query.competitionId, "file._id": req.query.fileId}, { 'file.$._id': 1 }, (err, result) => {
+        console.log(result);
+        if (err)
+            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
+        else if (result == false)
+            return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
+            else {
+                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, result);
+            }
+
+})
+}
 const editFile = (req, res) => {
     //console.log(req.body.prizeDetails._id,req.body.competitionId)
     let flag = Validator(req.body, ["fileDetails"], ["_id", "fileName", "file", "name"], ["competitionId"]);
@@ -833,11 +893,13 @@ module.exports = {
     configureCompetition,
     addPrize,
     editPrize,
+    getAPrize,
     getPrizeList,
     deletePrize,
     optionCompetition,
     addFile,
     getFileList,
+    getAFile,
     editFile,
     deleteFile,
     competitionRegistration,
