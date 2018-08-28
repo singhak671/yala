@@ -396,7 +396,8 @@ NOTIFICATION:"Notification setting successfull.",
 NOTIFICATION_SETTING:"List of Notification.",
 NOTIFICATION_LIST:"List of Notification",
 NOTIFICATION_NOT_FOUND:"Notification not found.",
-NOTIFICATION_DELTED:"Notification deleted successfully."
+NOTIFICATION_DELTED:"Notification deleted successfully.",
+USER_ALREADY_EXISTS:"Email already Exists."
     // INTERNAL_SERVER_ERROR: 'Internal server error.',
     // REQUIRED_DATA: 'Please fill all required data.',
     // SUCCESSFULLY_DONE: 'SUCCESS.',

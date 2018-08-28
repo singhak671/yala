@@ -195,19 +195,19 @@ const addPrize = (req, res) => {
         if (err)
             return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
         else if (!result)
-            return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
+            return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.COMPETITION_NOT_FOUND);
         else {
             for (let x of result.prize) {
                 if (x.name === req.body.prizeDetails.name)
-                    return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.ALREADY_EXISTS);
+                    return Response.sendResponse(res, responseCode.BAD_REQUEST, "Prize with this name already exits");
             }
             Competition.competition.findByIdAndUpdate(req.body.competitionId, { $push: { prize: req.body.prizeDetails } }, { new: true }, (err, success) => {
                 if (err)
                     return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
                 if (!success)
-                    return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
+                    return Response.sendResponse(res, responseCode.NOT_FOUND, "No data found");
 
-                return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, responseMsg.SUCCESSFULLY_DONE, success);
+                return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, "Prize added successfully", success);
             });
         }
     });
@@ -236,20 +236,21 @@ const getPrizeList = (req, res) => {
             $or: [{ "prize.name": { $regex: search, $options: 'i' } }, { "prize.description": { $regex: search, $options: 'i' } }]
         }
     }
+    // `"${data}" is not accessible by you !`
     console.log("query--->>", query)
     var aggregate = Competition.competition.aggregate([
-       
+
         {
-        $unwind: "$prize"
-    }, {
-        $project: { prize: "$prize", _id: 1 }
-    },
-    {
-       $sort:{"prize.createdAt":-1}
-    },
-    {
-        $match: query
-    },
+            $unwind: "$prize"
+        }, {
+            $project: { prize: "$prize", _id: 1 }
+        },
+        {
+            $sort: { "prize.createdAt": -1 }
+        },
+        {
+            $match: query
+        },
     ])
     //   .exec((err,success)=>{
     //     if (err)
@@ -275,10 +276,8 @@ const getPrizeList = (req, res) => {
                 "pages": pages,
             }
             console.log(success)
-            if (success.docs.length)
-                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success);
-            else
-                return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
+            if (success)
+                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK,"Prize list", success);
         }
         else {
             return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
@@ -324,7 +323,7 @@ const editPrize = (req, res) => {
             for (let x of success.prize)
                 if (x._id == req.body.prizeDetails._id)
                     success = x;
-            return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, responseMsg.SUCCESSFULLY_DONE, success);
+            return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK,"Prize detail updated successfully", success);
         }
     })
 
@@ -342,7 +341,7 @@ const getAPrize = (req, res) => {
         else if (result == false)
             return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
         else {
-            return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, result);
+            return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK,"Detail of prize", result);
         }
 
     })
@@ -378,7 +377,7 @@ const deletePrize = (req, res) => {
         if (!success)
             return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
 
-        return Response.sendResponse(res, responseCode.RESOURCE_DELETED, "Successfully deleted", success);
+        return Response.sendResponse(res, responseCode.RESOURCE_DELETED, "Prize deleted successfully.", success);
     })
 
 }
@@ -397,7 +396,8 @@ const optionCompetition = (req, res) => {
 
 
 const addFile = (req, res) => {
-    let flag = Validator(req.body, ["fileDetails"], ["fileName", "file", "name"], ["competitionId"])
+    console.log("req.body--->>",req.body)
+    let flag = Validator(req.body, ["fileDetails"], ["file", "name"], ["competitionId"])
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     Competition.competition.findById(req.body.competitionId, (err, result) => {
@@ -421,7 +421,7 @@ const addFile = (req, res) => {
                 result.save((err, success) => {
                     if (err || !success)
                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
-                    return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, responseMsg.SUCCESSFULLY_DONE);
+                    return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED,"File added successfully.");
                 });
             }
             else
@@ -434,54 +434,52 @@ const getFileList = (req, res) => {
     let flag = Validator(req.query, [], [], ["competitionId"])
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
-        let query = {
-            _id: ObjectId(req.query.competitionId)
-        }
-        if (req.body.search) {
-            let search = new RegExp("^" + req.body.search)
-            query["file.name"]=  { $regex: search, $options: 'i' } 
-            
-        }
-        console.log("query--->>", query)
-        var aggregate = Competition.competition.aggregate([
-           
-            {
+    let query = {
+        _id: ObjectId(req.query.competitionId)
+    }
+    if (req.body.search) {
+        let search = new RegExp("^" + req.body.search)
+        query["file.name"] = { $regex: search, $options: 'i' }
+
+    }
+    console.log("query--->>", query)
+    var aggregate = Competition.competition.aggregate([
+
+        {
             $unwind: "$file"
         }, {
             $project: { file: "$file", _id: 1 }
         },
         {
-            $sort:{"file.createdAt":-1}
-         },
+            $sort: { "file.createdAt": -1 }
+        },
         {
             $match: query
         },
-        ])
-        
-        let option = {
-            page: req.body.page || 1,
-            limit: req.body.limit || 4
+    ])
+
+    let option = {
+        page: req.body.page || 1,
+        limit: req.body.limit || 4
+    }
+    Competition.competition.aggregatePaginate(aggregate, option, (err, result, pages, total) => {
+        if (!err) {
+            const success = {
+                "docs": result,
+                "total": total,
+                "limit": option.limit,
+                "page": option.page,
+                "pages": pages,
+            }
+            console.log(success)
+            if (success)
+                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK,"File list", success);
         }
-        Competition.competition.aggregatePaginate(aggregate, option, (err, result, pages, total) => {
-            if (!err) {
-                const success = {
-                    "docs": result,
-                    "total": total,
-                    "limit": option.limit,
-                    "page": option.page,
-                    "pages": pages,
-                }
-                console.log(success)
-                if (success.docs.length)
-                    return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success);
-                else
-                    return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
-            }
-            else {
-                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
-            }
-    
-        })
+        else {
+            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+        }
+
+    })
     // var data = {
     //     page: req.body.page || 1,
     //     limit: req.body.limit || 4
@@ -528,7 +526,7 @@ const getAFile = (req, res) => {
         else if (result == false)
             return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
         else {
-            return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, result);
+            return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK,"File Detail", result);
         }
 
     })
@@ -557,7 +555,7 @@ const editFile = (req, res) => {
                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
                     if (!success)
                         return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
-                    return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, responseMsg.SUCCESSFULLY_DONE, success.file);
+                    return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK,"File updated successfully", success.file);
                 })
             }
             else
@@ -589,7 +587,7 @@ const deleteFile = (req, res) => {
                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
                     if (!success)
                         return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
-                    return Response.sendResponse(res, responseCode.RESOURCE_DELETED, "Successfully deleted");
+                    return Response.sendResponse(res, responseCode.RESOURCE_DELETED, "File deleted successfully ");
                 })
             }
             else

@@ -37,7 +37,7 @@ const signup=(req,res)=>{
 	  if(err)
 	  return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
 	  else if(success)
-	  return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ALREADY_EXISTS);
+	  return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.USER_ALREADY_EXISTS);
 	  else{
 	  let salt = bcrypt.genSaltSync(10);
 	  req.body.password = bcrypt.hashSync(req.body.password, salt)
