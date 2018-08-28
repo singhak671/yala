@@ -44,10 +44,11 @@ module.exports = {
                             from: config.twilio.number // From a valid Twilio number
                         })
                         .then((message) => {
-                            //console.log("@@@@@@@@@@@@@@@@@@",message);
+                            console.log("@@@@@@@@@@@@@@@@@@",message);
                             callback(null, message.sid);
                         })
                         .catch((response) => {
+                            console.log(response)
                             callback(response);
                         })
             },
@@ -299,3 +300,12 @@ module.exports = {
 //     "auth_token": "451f53b7830e5966638e9d283441d42e",
 //     "number":"+18316618705"
 // },
+
+
+
+
+
+
+// "sid": "ACfb9c8be2a8f6f6ec054ad2eccb215911",
+// "auth_token": "cf7330eeba3f29b89b52295d73442189",
+// "number":"(+1720) 513-6474"

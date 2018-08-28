@@ -120,7 +120,7 @@ const verifyOtp=(req,res)=>{
 			})
 		}
 		else{
-			return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.CORRECT_OTP)
+			return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.CORRECT_OTP)
 		}
 	
 	})
