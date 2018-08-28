@@ -100,7 +100,7 @@ const createAlbum = (req, res) => {
                                                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
                                             else {
                                                 Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, responseMsg.MEDIA_CREATED, success)
-                                             
+
                                             }
                                         })
                                     } else {
@@ -119,8 +119,8 @@ const createAlbum = (req, res) => {
                                             arrEmail.push(success[data].playerId.email)
                                         if ((success[data].playerId.competitionNotify.mobile).indexOf("media") != -1)
                                             arrMobile.push(success[data].playerId.countryCode + success[data].playerId.mobileNumber)
-                                        if((success[data].playerId.deviceToken && arr.indexOf(success[data].playerId.deviceToken[0])== -1) && success[data].playerId.deviceToken[0]) 
-                                            arr.push.apply(arr,success[data].playerId.deviceToken);
+                                        if ((success[data].playerId.deviceToken && arr.indexOf(success[data].playerId.deviceToken[0]) == -1) && success[data].playerId.deviceToken[0])
+                                            arr.push.apply(arr, success[data].playerId.deviceToken);
                                         arrId.push(success[data].playerId._id)
                                     }
                                     console.log("I am email mobile Id deviceToken", arrEmail, arrMobile, arrId, arr)
@@ -129,7 +129,7 @@ const createAlbum = (req, res) => {
                                         console.log(success)
                                     }, req.body.organizer)
                                     message.sendSmsToAll(arrMobile, firstName + " " + lastName + " added a new " + req.body.typeOfMedia)
-                                    message.sendPushNotifications(arr,firstName + " " + lastName + " added a new " + req.body.typeOfMedia)
+                                    message.sendPushNotifications(arr, firstName + " " + lastName + " added a new " + req.body.typeOfMedia)
                                     message.saveNotification(arrId, firstName + " " + lastName + " added a new " + req.body.typeOfMedia)
                                 }
                             })
@@ -149,13 +149,13 @@ const createAlbum = (req, res) => {
                                                 arrEmail.push(success[data].playerId.email)
                                             if ((success[data].playerId.competitionNotify.mobile).indexOf("media") != -1)
                                                 arrMobile.push(success[data].playerId.countryCode + success[data].playerId.mobileNumber)
-                                                
-                                            if((success[data].playerId.deviceToken && arr.indexOf(success[data].playerId.deviceToken[0])== -1) && success[data].playerId.deviceToken[0]) 
-                                                arr.push.apply(arr,success[data].playerId.deviceToken);
+
+                                            if ((success[data].playerId.deviceToken && arr.indexOf(success[data].playerId.deviceToken[0]) == -1) && success[data].playerId.deviceToken[0])
+                                                arr.push.apply(arr, success[data].playerId.deviceToken);
 
 
 
-                                                arrId.push(success[data].playerId._id)
+                                            arrId.push(success[data].playerId._id)
                                         }
                                         console.log("I am email mobile Id deviceToken", arrEmail, arrMobile, arrId, arr)
                                         //arr = ['ddMQdHYWfB4:APA91bHmiaJtIJAlonDRDEKSlZFi3-6tvvMJ9qRIs_IBRbZakJG1HUgmOZRkHQJ54uVwvcuPXhGHk-cc3AmZL0Cvnnklx5wC7-nQQXQtAiB5D5ttAOR-RkBZI6ZrjLeOD9uh6SttStoN2g2dmETfBpRqTpqUUhtXqQ']
@@ -163,7 +163,7 @@ const createAlbum = (req, res) => {
                                             console.log(success)
                                         }, req.body.organizer)
                                         message.sendSmsToAll(arrMobile, firstName + " " + lastName + " added a new " + req.body.typeOfMedia);
-                                        message.sendPushNotifications(arr,firstName + " " + lastName + " added a new " + req.body.typeOfMedia);
+                                        message.sendPushNotifications(arr, firstName + " " + lastName + " added a new " + req.body.typeOfMedia);
                                         message.saveNotification(arrId, firstName + " " + lastName + " added a new " + req.body.typeOfMedia);
                                     }
                                 })
@@ -204,17 +204,17 @@ const editMedia = (req, res) => {
                                 console.log("wronggggggg")
                             else if (req.body.image.length == counter) {
                                 console.log("hhjjjjh", imageArray)
-                                mediaUrl=imageArray
-                                console.log("hhhhh",mediaUrl)
-                                for(data in mediaUrl)
-                                req.body.mediaUrls.push(mediaUrl[data])
+                                mediaUrl = imageArray
+                                console.log("hhhhh", mediaUrl)
+                                for (data in mediaUrl)
+                                    req.body.mediaUrls.push(mediaUrl[data])
                                 console.log(req.body.mediaUrls)
                                 let set = {
                                     title: req.body.title,
                                     description: req.body.description,
                                     competitionName: req.body.competitionName,
                                     competitionId: req.body.competitionId,
-                                    mediaUrls: req.body.mediaUrls 
+                                    mediaUrls: req.body.mediaUrls
                                 }
                                 mediaServices.updateMedia({ organizer: req.query.organizer, _id: req.query.mediaId }, set, { new: true }, (err, success) => {
                                     if (err)
@@ -476,7 +476,7 @@ const likeMedia = (req, res) => {
                                                 if (success) {
                                                     console.log("name--->>>", success)
                                                     if ((success.organizerNotification).indexOf("media") != -1) {
-                                                        message.sendPushNotifications(success.deviceToken,name + " likes your post")
+                                                        message.sendPushNotifications(success.deviceToken, name + " likes your post")
                                                         message.saveNotification([organizer], name + " likes your post")
                                                     }
                                                 }
@@ -544,7 +544,7 @@ const commentMedia = (req, res) => {
                                                             if (success) {
                                                                 console.log("$$$$$$$$$$--->>", success.organizerNotification)
                                                                 if ((success.organizerNotification).indexOf("media") != -1) {
-                                                                    message.sendPushNotifications(success.deviceToken,name + " commented on your post")
+                                                                    message.sendPushNotifications(success.deviceToken, name + " commented on your post")
                                                                     message.saveNotification([organizer], name + " commented on your post")
                                                                 }
                                                             }
@@ -582,7 +582,7 @@ const commentMedia = (req, res) => {
                                                             if (success) {
                                                                 console.log("name--->>", (success.organizerNotification))
                                                                 if ((success.organizerNotification).indexOf("media") != -1) {
-                                                                    message.sendPushNotifications(success.deviceToken,name + " commented on your post")
+                                                                    message.sendPushNotifications(success.deviceToken, name + " commented on your post")
                                                                     message.saveNotification([organizer], name + " commented on your post")
                                                                 }
                                                             }
@@ -691,17 +691,29 @@ const mediaDelete = (req, res) => {
             organizer: req.query.userId
         }
         mediaServices.deleteMedia(query, (err, success) => {
-            if (err || !success)
+            if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+            else if (!success)
+                return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.MEDIA_NOT_FOUND)
             else {
                 if (success.mediaUrls) {
                     console.log(success.mediaUrls)
+                    async.forEach(success.mediaUrls, (key, callback) => {
+                        message.deleteUploadedFile(key.public_id, (err, success2) => {
+                            console.log("delete successfully")
+                        });
+                    }, (err) => {
+                        if (err) console.error("error while deleting!!!");
+
+                    });
                 }
+
                 return Response.sendResponse(res, responseCode.RESOURCE_DELETED, responseMsg.MEDIA_DELETED)
             }
         })
     }
 }
+
 module.exports = {
     accessPlanMedia,
     createTry,

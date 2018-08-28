@@ -346,10 +346,10 @@ const updateUser=(req,res)=>{
                             if(err)
                             Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
                             else 
-                            Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,responseMsg.USER_UPDATE_SUCCESS,success)
+                            Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.USER_UPDATE_SUCCESS,success)
                     
                         })
-                    }
+                      }
                     )
 				}
 				else{

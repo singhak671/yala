@@ -24,43 +24,43 @@ const addNewCompetition = (req, res) => {
                 return Response.sendResponse(res, flag[0], flag[1], flag[2]);
 
             else {
-                Competition.competition.count({ organizer: req.body.userId}, (err, success) => {
+                Competition.competition.count({ organizer: req.body.userId }, (err, success) => {
                     console.log("count>>>>>>>>>>", success)
                     if (err)
-                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err);
+                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
                     else {
                         User.findById(req.body.userId, (err2, success2) => {
-                            if(err2 || !success2)
+                            if (err2 || !success2)
                                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
-                            else if(success2.subscription=="oneEvent" && success >= 1)
-                                    return Response.sendResponse(res, responseCode.BAD_REQUEST, "Only one competition is allowed for your plan");
-                                    else{                       
-                                        Competition.competition.findOne({ organizer: req.body.userId, competitionName: req.body.competitionDetails.competitionName }, (err, success) => {
-                                            if (err)
-                                                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
-                                            if (success)
-                                                return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.ALREADY_EXISTS);
-                                            req.body.competitionDetails.organizer = req.body.userId;
-                                            // console.log(req.body);
-                                            Competition.competition.create(req.body.competitionDetails, (err, success) => {
-                                                if (err || !success)
-                                                    return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
-                                                User.findByIdAndUpdate(req.body.userId, { $push: { organizerCompetition: success._id } }, {}, (err, success1) => {
-                                                    if (err || !success1)
-                                                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, "Unable to create competition _id into the User _id");
-                                                    else {
-                                                        User.find({}, )
-                                                        return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, "A new competition created successfully", success);
-                                                    }
-                                                })
-                                            });
-                                        });
-                                    }
-                                })
-                        }
+                            else if (success2.subscription == "oneEvent" && success >= 1)
+                                return Response.sendResponse(res, responseCode.BAD_REQUEST, "Only one competition is allowed for your plan");
+                            else {
+                                Competition.competition.findOne({ organizer: req.body.userId, competitionName: req.body.competitionDetails.competitionName }, (err, success) => {
+                                    if (err)
+                                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+                                    if (success)
+                                        return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.ALREADY_EXISTS);
+                                    req.body.competitionDetails.organizer = req.body.userId;
+                                    // console.log(req.body);
+                                    Competition.competition.create(req.body.competitionDetails, (err, success) => {
+                                        if (err || !success)
+                                            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+                                        User.findByIdAndUpdate(req.body.userId, { $push: { organizerCompetition: success._id } }, {}, (err, success1) => {
+                                            if (err || !success1)
+                                                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, "Unable to create competition _id into the User _id");
+                                            else {
+                                                User.find({})
+                                                return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, "A new competition created successfully", success);
+                                            }
+                                        })
+                                    });
+                                });
+                            }
+                        })
+                    }
                 })
             }
-    })
+        })
 }
 
 
@@ -115,18 +115,17 @@ const filterCompetition = (req, res) => {
             }
         }
         obj.organizer = req.body.userId;
-        if(req.body.filterFields.search)
-        {
-        obj.$or=[
-            { competitionName: {$regex:req.body.filterFields.search, $options: 'i'}},
-            { period: {$regex:req.body.filterFields.search, $options: 'i'} },
-            { sports: {$regex:req.body.filterFields.search, $options: 'i'} },
-            { status: {$regex:req.body.filterFields.search, $options: 'i'} },
-            { venue: {$regex:req.body.filterFields.search, $options: 'i'} },
-            { division: {$regex:req.body.filterFields.search, $options: 'i'} }
-        ]
-    };
-        console.log("i am objetc",obj);
+        if (req.body.filterFields.search) {
+            obj.$or = [
+                { competitionName: { $regex: req.body.filterFields.search, $options: 'i' } },
+                { period: { $regex: req.body.filterFields.search, $options: 'i' } },
+                { sports: { $regex: req.body.filterFields.search, $options: 'i' } },
+                { status: { $regex: req.body.filterFields.search, $options: 'i' } },
+                { venue: { $regex: req.body.filterFields.search, $options: 'i' } },
+                { division: { $regex: req.body.filterFields.search, $options: 'i' } }
+            ]
+        };
+        console.log("i am objetc", obj);
         let query = {
             page: req.body.page || 1,
             limit: req.body.limit || 4,
@@ -197,58 +196,117 @@ const addPrize = (req, res) => {
             return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
         else if (!result)
             return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
-        else{
-        for (let x of result.prize) {
-            if (x.name === req.body.prizeDetails.name)
-                return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.ALREADY_EXISTS);
-        }
-        Competition.competition.findByIdAndUpdate(req.body.competitionId, { $push: { prize: req.body.prizeDetails } }, { new: true }, (err, success) => {
-            if (err)
-                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
-            if (!success)
-                return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
+        else {
+            for (let x of result.prize) {
+                if (x.name === req.body.prizeDetails.name)
+                    return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.ALREADY_EXISTS);
+            }
+            Competition.competition.findByIdAndUpdate(req.body.competitionId, { $push: { prize: req.body.prizeDetails } }, { new: true }, (err, success) => {
+                if (err)
+                    return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
+                if (!success)
+                    return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
 
-            return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, responseMsg.SUCCESSFULLY_DONE, success);
-        });
-    }
+                return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, responseMsg.SUCCESSFULLY_DONE, success);
+            });
+        }
     });
 }
-const getPrizeList=(req,res)=>{
+const getPrizeList = (req, res) => {
     //var arrLength;
     let flag = Validator(req.query, [], [], ["competitionId"])
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
-    var data={
-        page:req.body.page ||1,
-        limit:req.body.limit ||4
+    // var data={
+    //     page:req.body.page ||1,
+    //     limit:req.body.limit ||4
+    // }
+    // skip((query.page - 1) * query.limit)
+    // let options={"prize":  {$slice: [((query.page - 1) * query.limit),query.limit]}}
+
+
+    //console.log(length)
+    let query = {
+        _id: ObjectId(req.query.competitionId)
     }
-       // skip((query.page - 1) * query.limit)
-        // let options={"prize":  {$slice: [((query.page - 1) * query.limit),query.limit]}}
-        
-        
-        //console.log(length)
-    Competition.competition.findById(req.query.competitionId)
-    .select("prize")
-    .select({ 'prize': { '$slice': [((data.page - 1) * data.limit),(data.limit)] } ,file:0})
-    .lean()
-    .exec((err,success)=>{
-        if (err)
-            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err);
-        else if (!success)
-            return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
-            else{
-                Competition.competition.findById(req.query.competitionId,"prize",(err,result)=>{
-                    if(result)
-                    data.total= result.prize.length;              
-               
-                
-                return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, responseMsg.SUCCESSFULLY_DONE, success,data);
-            })
+    if (req.body.search) {
+        let search = new RegExp("^" + req.body.search)
+        query = {
+            _id: ObjectId(req.query.competitionId),
+            $or: [{ "prize.name": { $regex: search, $options: 'i' } }, { "prize.description": { $regex: search, $options: 'i' } }]
         }
-        
+    }
+    console.log("query--->>", query)
+    var aggregate = Competition.competition.aggregate([
+       
+        {
+        $unwind: "$prize"
+    }, {
+        $project: { prize: "$prize", _id: 1 }
+    },
+    {
+       $sort:{"prize.createdAt":-1}
+    },
+    {
+        $match: query
+    },
+    ])
+    //   .exec((err,success)=>{
+    //     if (err)
+    //             return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err);
+    //         else if (!success)
+    //             return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
+    //             else{
+    //                 return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, responseMsg.SUCCESSFULLY_DONE, success,data);
+
+    //         }
+    //   })
+    let option = {
+        page: req.body.page || 1,
+        limit: req.body.limit || 4
+    }
+    Competition.competition.aggregatePaginate(aggregate, option, (err, result, pages, total) => {
+        if (!err) {
+            const success = {
+                "docs": result,
+                "total": total,
+                "limit": option.limit,
+                "page": option.page,
+                "pages": pages,
+            }
+            console.log(success)
+            if (success.docs.length)
+                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success);
+            else
+                return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
+        }
+        else {
+            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+        }
 
     })
-        
+    // Competition.competition.find(query)
+    // .select("prize")
+    // .select({ 'prize': { '$slice': [((data.page - 1) * data.limit),(data.limit)] } ,file:0})
+    // .lean()
+    // .exec((err,success)=>{
+    //     if (err)
+    //         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err);
+    //     else if (!success)
+    //         return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
+    //         else{
+    //             Competition.competition.findById(req.query.competitionId,"prize",(err,result)=>{
+    //                 if(result)
+    //                 data.total= result.prize.length;              
+
+
+    //             return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, responseMsg.SUCCESSFULLY_DONE, success,data);
+    //         })
+    //     }
+
+
+    // })
+
 
 }
 
@@ -259,7 +317,7 @@ const editPrize = (req, res) => {
         return Response.sendResponse(res, flag[0], flag[1]);
     Competition.competition.findOneAndUpdate({ "_id": req.body.competitionId, "prize._id": req.body.prizeDetails._id }, { $set: { "prize.$": req.body.prizeDetails } }, { new: true }, (err, success) => {
         if (err)
-            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err);
+            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
         else if (!success)
             return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
         else {
@@ -272,22 +330,22 @@ const editPrize = (req, res) => {
 
 }
 
-const getAPrize=(req,res)=>{
-    let flag = Validator(req.query, [], [], ["competitionId","prizeId"])
+const getAPrize = (req, res) => {
+    let flag = Validator(req.query, [], [], ["competitionId", "prizeId"])
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
 
-    Competition.competition.findOne({ _id: req.query.competitionId, "prize._id": req.query.prizeId}, { 'prize.$._id': 1 }, (err, result) => {
+    Competition.competition.findOne({ _id: req.query.competitionId, "prize._id": req.query.prizeId }, { 'prize.$._id': 1 }, (err, result) => {
         console.log(result);
         if (err)
             return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
         else if (result == false)
             return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
-            else {
-                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, result);
-            }
+        else {
+            return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, result);
+        }
 
-})
+    })
 }
 
 // const deletePrize=(req,res)=>{
@@ -371,61 +429,109 @@ const addFile = (req, res) => {
         });
     });
 }
-const getFileList=(req,res)=>{
+const getFileList = (req, res) => {
     //var arrLength;
     let flag = Validator(req.query, [], [], ["competitionId"])
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
-    var data={
-        page:req.body.page ||1,
-        limit:req.body.limit ||4
-    }
-       // skip((query.page - 1) * query.limit)
-        // let options={"prize":  {$slice: [((query.page - 1) * query.limit),query.limit]}}
-        
-        
-        //console.log(length)
-    Competition.competition.findById(req.query.competitionId)
-    .select({ 'file': { '$slice': [((data.page - 1) * data.limit),(data.limit)] } ,prize:0})
-    .lean()
-    .exec((err,success)=>{
-        if (err)
-            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err);
-        else if (!success)
-            return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
-            else{
-                Competition.competition.findById(req.query.competitionId,"file",(err,result)=>{
-                    if(result)
-                    data.total= result.file.length;              
-               
-                
-                return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, responseMsg.SUCCESSFULLY_DONE, success,data);
-            })
+        let query = {
+            _id: ObjectId(req.query.competitionId)
         }
+        if (req.body.search) {
+            let search = new RegExp("^" + req.body.search)
+            query["file.name"]=  { $regex: search, $options: 'i' } 
+            
+        }
+        console.log("query--->>", query)
+        var aggregate = Competition.competition.aggregate([
+           
+            {
+            $unwind: "$file"
+        }, {
+            $project: { file: "$file", _id: 1 }
+        },
+        {
+            $sort:{"file.createdAt":-1}
+         },
+        {
+            $match: query
+        },
+        ])
         
+        let option = {
+            page: req.body.page || 1,
+            limit: req.body.limit || 4
+        }
+        Competition.competition.aggregatePaginate(aggregate, option, (err, result, pages, total) => {
+            if (!err) {
+                const success = {
+                    "docs": result,
+                    "total": total,
+                    "limit": option.limit,
+                    "page": option.page,
+                    "pages": pages,
+                }
+                console.log(success)
+                if (success.docs.length)
+                    return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success);
+                else
+                    return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
+            }
+            else {
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+            }
+    
+        })
+    // var data = {
+    //     page: req.body.page || 1,
+    //     limit: req.body.limit || 4
+    // }
+    // // skip((query.page - 1) * query.limit)
+    // // let options={"prize":  {$slice: [((query.page - 1) * query.limit),query.limit]}}
 
-    })
-        
+
+    // //console.log(length)
+    // Competition.competition.findById(req.query.competitionId)
+    //     .select({ 'file': { '$slice': [((data.page - 1) * data.limit), (data.limit)] }, prize: 0 })
+    //     .lean()
+    //     .exec((err, success) => {
+    //         if (err)
+    //             return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+    //         else if (!success)
+    //             return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
+    //         else {
+    //             Competition.competition.findById(req.query.competitionId, "file", (err, result) => {
+    //                 if (result)
+    //                     data.total = result.file.length;
+
+
+    //                 return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, responseMsg.SUCCESSFULLY_DONE, success, data);
+    //             })
+    //         }
+
+
+    //     })
+
 
 }
 
 
-const getAFile=(req,res)=>{
-    let flag = Validator(req.query, [], [], ["competitionId","fileId"])
+const getAFile = (req, res) => {
+    let flag = Validator(req.query, [], [], ["competitionId", "fileId"])
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
 
-    Competition.competition.findOne({ _id: req.query.competitionId, "file._id": req.query.fileId}, { 'file.$._id': 1 }, (err, result) => {
+    Competition.competition.findOne({ _id: req.query.competitionId, "file._id": req.query.fileId }, { 'file.$._id': 1 }, (err, result) => {
         console.log(result);
         if (err)
             return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
         else if (result == false)
             return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
-            else {
-                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, result);
-            }
+        else {
+            return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, result);
+        }
 
-})
+    })
 }
 const editFile = (req, res) => {
     //console.log(req.body.prizeDetails._id,req.body.competitionId)
@@ -863,14 +969,14 @@ const approveCompetition = (req, res) => {
                                 User.findOne({ _id: req.body.playerId }, { "deviceToken": 1, email: 1, competitionNotify: 1, countryCode: 1, mobileNumber: 1 }, (err, success3) => {
                                     if (success3) {
                                         if ((success3.competitionNotify.mobile).indexOf("message") != -1)
-                                        message.sendSMS("You are confirmed by the organizer " + organizerName,success3.countryCode,success3.mobileNumber,(error,result)=>{
-                                            if(err)
-                                            console.log("error in sending SMS")
-                                            else if(result)
-                                            console.log("SMS sent successfully to the organizer!")
-                                        })
-                                       // console.log("&&&&&& anurag &&&&&&", success3)
-                                        message.sendPushNotifications(success3.deviceToken, "You are confirmed by the organizer " + organizerName,(err,suc)=>{})
+                                            message.sendSMS("You are confirmed by the organizer " + organizerName, success3.countryCode, success3.mobileNumber, (error, result) => {
+                                                if (err)
+                                                    console.log("error in sending SMS")
+                                                else if (result)
+                                                    console.log("SMS sent successfully to the organizer!")
+                                            })
+                                        // console.log("&&&&&& anurag &&&&&&", success3)
+                                        message.sendPushNotifications(success3.deviceToken, "You are confirmed by the organizer " + organizerName, (err, suc) => { })
                                         if ((success3.competitionNotify.email).indexOf("message") != -1)
                                             message.sendMail(success3.email, "Yala Sports App ✔", "You are confirmed by the organizer " + organizerName, (err, result) => {
                                                 console.log("send1--->>", result1)

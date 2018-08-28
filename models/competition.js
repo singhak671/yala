@@ -3,9 +3,9 @@ global.Promise = mongoose.Promise;
 const paginate = require('mongoose-paginate');
 var mongooseAggregatePaginate = require('mongoose-aggregate-paginate');
 const Schema = mongoose.Schema;
-const userSchema=require("./user")
-let competitionSchema = new Schema({ 
-  
+const userSchema = require("./user")
+let competitionSchema = new Schema({
+
 
     competitionName: {
         type: String,
@@ -13,19 +13,19 @@ let competitionSchema = new Schema({
     },
     venue: {
         type: String,
-        trim:true
+        trim: true
     },
     division: {
         type: String,
-        trim:true
+        trim: true
     },
     period: {
         type: String,
-        trim:true
+        trim: true
     },
     sports: {
         type: String,
-        trim:true
+        trim: true
     },
     club: {
         type: String,
@@ -33,85 +33,96 @@ let competitionSchema = new Schema({
     },
     privacy: {
         type: String,
-        enum:["public","private"]
+        enum: ["public", "private"]
     },
-    status:{
-        type:String,
-        trim:true,
-        default:"settingUp"
+    status: {
+        type: String,
+        trim: true,
+        default: "settingUp"
     },
-    organizer:{
-      type: Schema.Types.ObjectId, ref:'user'
+    organizer: {
+        type: Schema.Types.ObjectId, ref: 'user'
     },
-    prize:[{
-        
-        name:{
-            type:String,
-            trim:true
+    prize: [{
+
+        name: {
+            type: String,
+            trim: true
         },
-        value:{
-            type:Number,
-            trim:true
+        value: {
+            type: Number,
+            trim: true
         },
-        description:{
-            type:String,
+        description: {
+            type: String,
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now
         }
-            
-        }],
-    allowComment:{
-            type:Boolean,
-            default:true
-        },
-    allowFollow:{
-            type:String,
-            enum:["public,private"]
-        },
-    clubRegistration:{
-            type:Boolean,
-            default:false
-        },
-    startDate:{
-        type:Date,
+
+    }],
+    allowComment: {
+        type: Boolean,
+        default: true
+    },
+    allowFollow: {
+        type: String,
+        enum: ["public,private"]
+    },
+    clubRegistration: {
+        type: Boolean,
+        default: false
+    },
+    startDate: {
+        type: Date,
         //min:Date.now(),
     },
-    endDate:{
-        type:Date,
+    endDate: {
+        type: Date,
         //min:Date.now(),
     },
-    allowPublicToFollow:{
-        type:Boolean,
-        default:false
+    allowPublicToFollow: {
+        type: Boolean,
+        default: false
     },
-    imageURL:{
-        type:String,
-        trim:true
+    imageURL: {
+        type: String,
+        trim: true
     },
-    file:[{
-        
-        fileName:{
-        type:String,
-        trim:true
-                },
-        file:{
-           type:String,
-           trim:true
-       },
-        name:{
-           type:String,
-           trim:true
-       },
-        public_id:{
-           type:String
-       },
-           
-       }],
-    registrationForm:{
-        type:Boolean,
-        default:false
+    file: [{
+
+        fileName: {
+            type: String,
+            trim: true
+        },
+        file: {
+            type: String,
+            trim: true
+        },
+        name: {
+            type: String,
+            trim: true
+        },
+        public_id: {
+            type: String
+        },
+        size:{
+          type:String,
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now
+        }
+
+    }],
+    registrationForm: {
+        type: Boolean,
+        default: false
     },
-    published:{
-        type:Boolean,
-        default:false
+    published: {
+        type: Boolean,
+        default: false
     },
     deviceType: {
         type: String,
@@ -120,15 +131,16 @@ let competitionSchema = new Schema({
     // deviceToken: {
     //     type: String
     // },
-    sportType:{
-        type:String
+    sportType: {
+        type: String
     },
-    playerFollowStatus:{
-        type:Array}
-    
+    playerFollowStatus: {
+        type: Array
+    }
+
 }, {
-    timestamps: true
-});
+        timestamps: true
+    });
 
 competitionSchema.plugin(paginate);
 competitionSchema.plugin(mongooseAggregatePaginate);
@@ -137,48 +149,48 @@ competitionSchema.plugin(mongooseAggregatePaginate);
 var competition = mongoose.model('competition', competitionSchema);
 
 let registrationSchema = new Schema({
-    competitionId:{
-        type: Schema.Types.ObjectId, ref:'competition'
+    competitionId: {
+        type: Schema.Types.ObjectId, ref: 'competition'
     },
-    organizer:{
-        type: Schema.Types.ObjectId, ref:'user'
-      },
-    imageURL:{
-        type:String
+    organizer: {
+        type: Schema.Types.ObjectId, ref: 'user'
     },
-    freeOrPaid:{
-        type:String,
-        trim:true,
-        enum:["free","paid"]
+    imageURL: {
+        type: String
     },
-    registrationFee:{
-        type:Number,
+    freeOrPaid: {
+        type: String,
+        trim: true,
+        enum: ["free", "paid"]
     },
-    paymentInHandDetails:{
-        type:String
+    registrationFee: {
+        type: Number,
     },
-    description:{
-        type:String,
+    paymentInHandDetails: {
+        type: String
     },
-    startDate:{
-        type:Date,
-        
+    description: {
+        type: String,
     },
-    endDate:{
-        type:Date,
-        
+    startDate: {
+        type: Date,
+
     },
-    configTeamField:{
-        type:Array
+    endDate: {
+        type: Date,
+
     },
-    configPlayerField:{
-        type:Array
+    configTeamField: {
+        type: Array
     },
-},{
-    timestamps:true,
-})
+    configPlayerField: {
+        type: Array
+    },
+}, {
+        timestamps: true,
+    })
 registrationSchema.plugin(paginate);
-var competitionReg=mongoose.model("competitionreg",registrationSchema);
+var competitionReg = mongoose.model("competitionreg", registrationSchema);
 
 
 
@@ -224,9 +236,9 @@ var competitionReg=mongoose.model("competitionreg",registrationSchema);
 
 
 
-module.exports={
-    competition:competition,
-    competitionReg:competitionReg,
+module.exports = {
+    competition: competition,
+    competitionReg: competitionReg,
     // createTeamInCompetition:createTeamInCompetition
 
 }
