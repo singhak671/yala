@@ -50,7 +50,7 @@ router.post('/competition/configPlayerFields',competitionController.configPlayer
 router.post('/competition/getPlayerFields',competitionController.getPlayerFields);
 router.post('/competition/createTeamInCompetition',competitionController.createTeamInCompetition);
 
-
+router.post('/competition/searchAndFilterPlayerList',competitionController.searchAndFilterPlayerList)
 
 
 router.post('/addDivision',generalController.addDivision);

@@ -4,6 +4,7 @@ const responseCode = require('../../helper/httpResponseCode')
 const responseMsg = require('../../helper/httpResponseMessage')
 const userServices=require('../services/userApis');
 const media = require("../../global_functions/uploadMedia");
+const Validator = require('../../middlewares/validation').validate_all_request;
 //const Notification = require("../../global_functions/notification")
 const subscriptionValidator = require('../../middlewares/validation').validate_subscription_plan;
 const message = require("../../global_functions/message");
@@ -63,8 +64,7 @@ const addClub=(req,res)=>{
     // return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.PROVIDE_DATA)
     else{
            let query={
-               _id:req.query.userId,
-               role:"ORGANIZER"
+               _id:req.query.userId
            }
            userServices.findUser(query,(err,success)=>{
                if(err)
@@ -89,7 +89,7 @@ const addClub=(req,res)=>{
                            if(req.body.image){
                                 media.uploadImg(req.body.image,(err,success)=>{
                                     if(err){
-                                     return Reponse.sendResponse(res, reponseCode.INTERNAL_SERVER_ERROR, reponseMsg.INTERNAL_SERVER_ERROR,err)
+                                     return Response.sendResponse(res, reponseCode.INTERNAL_SERVER_ERROR, reponseMsg.INTERNAL_SERVER_ERROR,err)
                                     } 
                                     else{
                                        console.log("image.url---->>",success)
@@ -268,9 +268,6 @@ const deleteClub=(req,res)=>{
 }
 //
 const searchClub=(req,res)=>{
-    let flag = Validator(req.body, [], [], ["search"])
-    if (flag)
-        return Response.sendResponse(res, flag[0], flag[1]);
     console.log("req.body-->>",req.body,req.query)
     let search=new RegExp("^"+req.body.search)
        let query={

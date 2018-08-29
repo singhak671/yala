@@ -14,9 +14,9 @@ module.exports = {
 uploadImg:(base64,callback)=>{
 
 cloudinary.v2.uploader.upload(base64 ,(err,result1)=>{
-    console.log("dbnnbnbn",result1.secure_url)
-    if(result1.secure_url){ 
-        console.log("dfdjfdfdjgkfkgkkhfgjkhkgkkhgkjkhgjkkjlgljlhlhklhjkklklk")
+    //console.log("dbnnbnbn",result1.secure_url)
+    if(result1){ 
+       // console.log("dfdjfdfdjgkfkgkkhfgjkhkgkkhgkjkhgjkkjlgljlhlhklhjkklklk")
  callback(null,result1.secure_url)       
 }
 else{
