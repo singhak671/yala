@@ -8,7 +8,7 @@ router.post("/getListOfClub",AUTH.verifyToken,dataController.getListOfClub);
 router.get('/findClub',AUTH.verifyToken,dataController.findClub)
 router.post('/editClub',AUTH.verifyToken,dataController.editClub)
 router.get('/deleteClub',AUTH.verifyToken,dataController.deleteClub)
-router.post('/searchClub',AUTH.verifyToken,dataController.searchClub)
+
 
 router.post('/addSponsors',AUTH.verifyToken,dataController.addSponsors);
 router.post('/getListOfSponsor',AUTH.verifyToken,dataController.getListOfSponsor);
@@ -16,21 +16,21 @@ router.get('/getEditDetailOfSponsor',AUTH.verifyToken,dataController.getEditDeta
 router.post('/editSponsor',AUTH.verifyToken,dataController.editSponsor)
 router.get("/deleteSponsor",AUTH.verifyToken,dataController.deleteSponsor)
 router.get("/selectClub",AUTH.verifyToken,dataController.selectClub)
-router.post("/searchSponsor",AUTH.verifyToken,dataController.searchSponsor)
+
 
 router.post("/addVenue",AUTH.verifyToken,dataController.addVenue);
 router.post('/getListOfVenue',AUTH.verifyToken,dataController.getListOfVenue)
 router.get('/getEditDetailOfVenue',AUTH.verifyToken,dataController.getEditDetailOfVenue)
 router.post('/editVenue',AUTH.verifyToken,dataController.editVenue)
 router.get('/deleteVenue',AUTH.verifyToken,dataController.deleteVenue)
-router.post('/searchVenue',AUTH.verifyToken,dataController.searchVenue)
+
 
 router.post('/addReferee',AUTH.verifyToken,dataController.addReferee)
 router.post('/getListOfReferee',AUTH.verifyToken,dataController.getListOfReferee)
 router.get('/getEditDetailOfReferee',AUTH.verifyToken,dataController.getEditDetailOfReferee)
 router.post('/editReferee',AUTH.verifyToken,dataController.editReferee)
 router.get('/deleteReferee',AUTH.verifyToken,dataController.deleteReferee)
-router.post('/searchReferee',AUTH.verifyToken,dataController.searchReferee)
+
 
 router.get('/selectCompition',AUTH.verifyToken,teamController.selectCompition)
 router.get('/selectVenue',AUTH.verifyToken,teamController.selectVenue)

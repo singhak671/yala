@@ -64,7 +64,8 @@ const addClub=(req,res)=>{
     // return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.PROVIDE_DATA)
     else{
            let query={
-               _id:req.query.userId
+               _id:req.query.userId,
+               role:"ORGANIZER"
            }
            userServices.findUser(query,(err,success)=>{
                if(err)
@@ -89,7 +90,7 @@ const addClub=(req,res)=>{
                            if(req.body.image){
                                 media.uploadImg(req.body.image,(err,success)=>{
                                     if(err){
-                                     return Response.sendResponse(res, reponseCode.INTERNAL_SERVER_ERROR, reponseMsg.INTERNAL_SERVER_ERROR,err)
+                                     return Reponse.sendResponse(res, reponseCode.INTERNAL_SERVER_ERROR, reponseMsg.INTERNAL_SERVER_ERROR,err)
                                     } 
                                     else{
                                        console.log("image.url---->>",success)
@@ -121,6 +122,7 @@ const addClub=(req,res)=>{
 }
 //--------------------------Get Detail of Club-------------------------------------------------------
 const getListOfClub=(req,res)=>{
+    console.log(req.body)
     if(!req.query.userId){
         Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED)
     }
@@ -134,6 +136,14 @@ const getListOfClub=(req,res)=>{
             let query={
                 userId:req.query.userId
              }
+             if(req.body.search){
+                let search=new RegExp("^"+req.body.search)
+                 query={
+                    clubName:{$regex:search,$options:'i'},
+                    userId:req.query.userId
+                }
+            }
+            console.log("query--->>",query)
           let options = {
            page:req.body.page || 1,
            limit:req.body.limit || 4,
@@ -142,7 +152,7 @@ const getListOfClub=(req,res)=>{
           dataServices.getListOfClub(query,options,(err,success)=>{
               if(err)
               return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-              else if(!success.docs.length)
+              else if(!success)
               return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.CLUB_NOT_FOUND)
               else return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.CLUB_LIST,success)
               
@@ -266,28 +276,7 @@ const deleteClub=(req,res)=>{
         })
     }
 }
-//
-const searchClub=(req,res)=>{
-    console.log("req.body-->>",req.body,req.query)
-    let search=new RegExp("^"+req.body.search)
-       let query={
-           clubName:{$regex:search,$options:'i'},
-           userId:req.query.userId
-        }
-            var options={
-                page:req.body.page||1,
-                limit:req.body.limit||10,
-                sort:{ createdAt: -1 }
-            }
-            dataServices.getListOfClub(query,options,(err,success)=>{
-                if(err)
-                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
-                else if(!success.docs.length)
-                return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.CLUB_NOT_FOUND);
-                else
-                return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.LIST_OF_SPONSERS,success)
-         })
-}
+
 //--------------------------Add Sponsers-------------------------------------------------------
 const addSponsors=(req,res)=>{
     console.log("req.body--->>",req.body)
@@ -381,6 +370,14 @@ const getListOfSponsor=(req,res)=>{
                 let query={
                     userId:req.body.userId
                 }
+                if(req.body.search){
+                    let search=new RegExp("^"+req.body.search)
+                     query={
+                        sponsorName:{$regex:search,$options:'i'},
+                        userId:req.body.userId
+                    }
+                }
+                console.log("query--->>",query)
                 let options = {
                     page:req.body.page || 1,
                     limit:req.body.limit || 4,
@@ -389,7 +386,7 @@ const getListOfSponsor=(req,res)=>{
                 dataServices.getListOfSponser(query,options,(err,success)=>{
                     if(err)
                     return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR)
-                    else if(!success.docs.length)
+                    else if(!success)
                     return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.SPONSER_NOT_FOUND)
                     else
                     return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.LIST_OF_SPONSERS,success)
@@ -400,6 +397,7 @@ const getListOfSponsor=(req,res)=>{
 }
 // ------------------------- Get Edit Sponsers------------------------------------------------
 const getEditDetailOfSponsor=(req,res)=>{
+    
     if(!req.query.userId)
     return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED)
     else if(!req.query.sponsorId)
@@ -420,6 +418,7 @@ const getEditDetailOfSponsor=(req,res)=>{
 }
 //------------------------Edit Sponsers----------------------------------
 const editSponsor=(req,res)=>{
+    console.log("req.query--->>",req.query)
     console.log("req.body---->>",req.body)
     if(!req.query.userId)
     return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED)
@@ -506,30 +505,7 @@ const deleteSponsor=(req,res)=>{
         }
     
 }
-//------------------------Search Sponser----------------------------------------
-const searchSponsor=(req,res)=>{
-    let flag = Validator(req.body, [], [], ["search"])
-    if (flag)
-        return Response.sendResponse(res, flag[0], flag[1]);
-    let search=new RegExp("^"+req.body.search)
-       let query={
-           sponserName:{$regex:search,$options:'i'},
-           userId:req.query.userId
-       }
-            var options={
-                page:req.body.page||1,
-                limit:req.body.limit||10,
-                sort:{ createdAt: -1 }
-            }
-            dataServices.getListOfSponser(query,options,(err,success)=>{
-                if(err)
-                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
-                else if(!success.docs.length)
-                return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.SPONSER_NOT_FOUND);
-                else
-                return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.LIST_OF_SPONSERS,success)
-            })
-}
+
 //---------------------------Select club-----------------------
 const selectClub=(req,res)=>{
     if(!req.query.userId){
@@ -577,7 +553,7 @@ const addVenue=(req,res)=>{
     else{
            let query={
                _id:req.query.userId,
-               role:"ORGANIZER"
+
            }
            userServices.findUser(query,(err,success)=>{
                if(err)
@@ -648,6 +624,14 @@ const getListOfVenue=(req,res)=>{
                     let query={
                         userId:req.body.userId
                     }
+                    if(req.body.search){
+                        let search=new RegExp("^"+req.body.search)
+                         query={
+                            venue:{$regex:search,$options:'i'},
+                            userId:req.body.userId
+                        }
+                    }
+                    console.log("query--->>",query)
                     let options = {
                         page:req.body.page || 1,
                         limit:req.body.limit || 4,
@@ -656,7 +640,7 @@ const getListOfVenue=(req,res)=>{
                     dataServices.getListOfVenue(query,options,(err,success)=>{
                         if(err)
                         return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-                        else if(!success.docs.length)
+                        else if(!success)
                         return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.VENUE_NOT_FOUND)
                         else
                         return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.LIST_OF_VENUE,success)
@@ -753,31 +737,7 @@ const deleteVenue=(req,res)=>{
         })
     }
 }
-//-------------------------Search Venue-----------------------
-const searchVenue=(req,res)=>{
-    let flag = Validator(req.body, [], [], ["search"])
-    if (flag)
-        return Response.sendResponse(res, flag[0], flag[1]);
-    console.log("req.body-->>",req.body)
-    let search=new RegExp("^"+req.body.search)
-       let query={
-           venue:{$regex:search,$options:'i'},
-           userId:req.query.userId
-       }
-            var options={
-                page:req.body.page||1,
-                limit:req.body.limit||10,
-                sort:{ createdAt: -1 }
-            }
-            dataServices.getListOfVenue(query,options,(err,success)=>{
-                if(err)
-                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
-                else if(!success.docs.length)
-                return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.VENUE_NOT_FOUND);
-                else
-                return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.LIST_OF_VENUE,success)
-            })
-}
+
 //-----------------------------Add Refree-------------------------------------------------------
 const addReferee=(req,res)=>{
     console.log("req.body----->>",req.body)
@@ -816,7 +776,7 @@ const addReferee=(req,res)=>{
                                    req.body.image=success
                                    dataServices.addRefree(req.body,(err,success)=>{
                                        if(err)
-                                       return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR)
+                                       return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
                                        else 
                                        Response.sendResponse(res,responseCode.NEW_RESOURCE_CREATED,responseMsg.REFREE_ADDED,success)
                                    })
@@ -861,6 +821,14 @@ const getListOfReferee=(req,res)=>{
                 let query={
                     userId:req.body.userId
                 }
+                if(req.body.search){
+                    let search=new RegExp("^"+req.body.search)
+                     query={
+                        name:{$regex:search,$options:'i'},
+                        userId:req.body.userId
+                    }
+                }
+                console.log("query--->>",query)
                 let options = {
                     page:req.body.page || 1,
                     limit:req.body.limit || 4,
@@ -869,7 +837,7 @@ const getListOfReferee=(req,res)=>{
                 dataServices.getListOfRefree(query,options,(err,success)=>{
                     if(err)
                     return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-                    else if(!success.docs.length)
+                    else if(!success)
                     return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.REFREE_NOT_FOUND)
                     else
                     return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.REFREE_LIST,success)
@@ -969,30 +937,7 @@ const deleteReferee=(req,res)=>{
         })
     }
 }
-//-------------------------Search Referee-----------------------
-const searchReferee=(req,res)=>{
-    let flag = Validator(req.body, [], [], ["search"])
-    if (flag)
-        return Response.sendResponse(res, flag[0], flag[1]);
-    let search=new RegExp("^"+req.body.search)
-       let query={
-           name:{$regex:search,$options:'i'},
-           userId:req.query.userId
-       }
-            var options={
-                page:req.body.page||1,
-                limit:req.body.limit||10,
-                sort:{ createdAt: -1 }
-            }
-            dataServices.getListOfRefree(query,options,(err,success)=>{
-                if(err)
-                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
-                else if(!success.docs.length)
-                return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.REFREE_NOT_FOUND);
-                else
-                return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.REFREE_LIST,success)
-            })
-}
+
 module.exports={
     accessPlanData,
     tryyyy,
@@ -1001,24 +946,20 @@ module.exports={
     findClub,
     editClub,
     deleteClub,
-    searchClub,
     addSponsors,
     getListOfSponsor,
     getEditDetailOfSponsor,
     editSponsor,
     deleteSponsor,
-    searchSponsor,
     selectClub,
     addVenue,
     getListOfVenue,
     getEditDetailOfVenue,
     editVenue,
     deleteVenue,
-    searchVenue,
     addReferee,
     getListOfReferee,
     getEditDetailOfReferee,
     editReferee,
-    deleteReferee,
-    searchReferee
+    deleteReferee
 }

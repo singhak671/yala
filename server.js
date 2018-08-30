@@ -76,4 +76,7 @@ app.use('/api/v1/media',require('./routes/media'));
 //         console.error(err);
 //     })
 
+
+
+
 app.listen(app.get('port'),()=>console.log('Server running on ' + app.get('port')));

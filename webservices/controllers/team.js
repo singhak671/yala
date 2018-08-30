@@ -196,6 +196,7 @@ const filterTeam = (req, res) => {
                         if (req.body.search) {
                             let search = new RegExp("^" + req.body.search)
                             query = {
+                                organizer: ObjectId(req.body.organizer),
                                 $or: [{ teamName: {$regex:search,$options:'i'} }, { email: {$regex:search,$options:'i'} }, { competitionName: {$regex:search,$options:'i'} }, { venue: {$regex:search,$options:'i'} }, { sports: {$regex:search,$options:'i'} }, { status: {$regex:search,$options:'i'} }]
                             }
                         }
@@ -488,6 +489,8 @@ const getListOfPlayer = (req, res) => {
                 if (req.body.search) {
                     let search = new RegExp("^" + req.body.search)
                     query = {
+                        organizer: ObjectId(req.body.organizer),
+                        "registration": true,
                         $or: [{ teamName: {$regex:search,$options:'i'} }, { "Comp.competitionName": {$regex:search,$options:'i'} }, { "Player.gender": {$regex:search,$options:'i'} }, { status: {$regex:search,$options:'i'} }, { "Player.firstName": {$regex:search,$options:'i'} }, { "Comp.division": {$regex:search,$options:'i'} }, { "Player.email": {$regex:search,$options:'i'} }]
                     }
                 }
@@ -555,7 +558,6 @@ const getListOfPlayer = (req, res) => {
                 })
             }
         })
-
     }
 }
 

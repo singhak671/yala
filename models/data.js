@@ -52,8 +52,7 @@ let refereeSchema=new Schema({
             type:String
         },
         gender:{
-            type:String,
-           enum:["Male","Female"],
+            type:String
         },
         activities:{
             type:String

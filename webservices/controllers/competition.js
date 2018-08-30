@@ -231,12 +231,14 @@ const getPrizeList = (req, res) => {
     }
     if (req.body.search) {
         let search = new RegExp("^" + req.body.search)
-        query = {
-            _id: ObjectId(req.query.competitionId),
-            $or: [{ "prize.name": { $regex: search, $options: 'i' } }, { "prize.description": { $regex: search, $options: 'i' } }]
-        }
+        query.$or= [
+                { "prize.name": { $regex: search, $options: 'i' } }, 
+                { "prize.description": { $regex: search, $options: 'i' } }, 
+                //{$where: `${search}.*/.test("this.prize.value")`}
+            ]
+        
     }
-    // `"${data}" is not accessible by you !`
+ 
     console.log("query--->>", query)
     var aggregate = Competition.competition.aggregate([
 
@@ -383,10 +385,9 @@ const deletePrize = (req, res) => {
 }
 
 const optionCompetition = (req, res) => {
-    console.log(req.body)
     if (!req.query.competitionId)
         return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.REQUIRED_DATA);
-    Competition.competition.findByIdAndUpdate(req.query.competitionId, req.body, {new:true},(err, result) => {
+    Competition.competition.findByIdAndUpdate(req.query.competitionId, req.body, (err, result) => {
         if (err)
             return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
         if (!result)
@@ -398,7 +399,7 @@ const optionCompetition = (req, res) => {
 
 const addFile = (req, res) => {
     console.log("req.body--->>",req.body)
-    let flag = Validator(req.body, ["fileDetails"], ["file","name"], ["competitionId"])
+    let flag = Validator(req.body, ["fileDetails"], ["file", "name"], ["competitionId"])
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     Competition.competition.findById(req.body.competitionId, (err, result) => {
@@ -534,7 +535,7 @@ const getAFile = (req, res) => {
 }
 const editFile = (req, res) => {
     //console.log(req.body.prizeDetails._id,req.body.competitionId)
-    let flag = Validator(req.body, ["fileDetails"], ["_id", "file", "name"], ["competitionId"]);
+    let flag = Validator(req.body, ["fileDetails"], ["_id","file", "name"], ["competitionId"]);
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     Competition.competition.findOne({ _id: req.body.competitionId, "file._id": req.body.fileDetails._id }, { 'file.$._id': 1 }, (err, result) => {
@@ -908,31 +909,16 @@ const getPlayerList = (req, res) => {
             else if (!success)
                 return Response.sendResponse(res, responseCode.NOT_FOUND, "Competition not found !");
             else {
-                let query1={
-                    organizer: req.body.userId, competitionId: req.body.competitionId 
-                }
-               
-                if(req.body.search){
-                    let search = new RegExp("^" + req.body.search)
-                    query1={
-                     organizer: req.body.userId, competitionId: req.body.competitionId,
-                    $or: [{ "playerId.firstName": {$regex:search,$options:'i'} }, {"playerId.mobileNumber":{$regex:search,$options:'i'}},{ "playerId.email": {$regex:search,$options:'i'} }, { teamName: {$regex:search,$options:'i'} }, { "competitionId.sports": {$regex:search,$options:'i'} }, { followStatus: {$regex:search,$options:'i'} }, { "competitionId.venue": {$regex:search,$options:'i'} }]
-                    }
-                }
-                if(req.body.followStatus){
-                    query1.followStatus=req.body.followStatus
-                }
-                console.log("xxxxxxx",query1)
                 let query = {
                     page: req.body.page || 1,
                     limit: req.body.limit || 4
                 };
                 followComp.competitionFollow.find({ organizer: req.body.userId, competitionId: req.body.competitionId }).count({}, (err, result) => {
                     query.total = result;
-                   console.log(query)
+                    console.log(query)
 
                 });
-                followComp.competitionFollow.find(query1).sort({ "createdAt": -1 }).populate({
+                followComp.competitionFollow.find({ organizer: req.body.userId, competitionId: req.body.competitionId }).sort({ "createdAt": -1 }).populate({
                     path: 'playerId',
                     select: "firstName lastName countryCode mobileNumber email createdAt"
                 })
@@ -952,8 +938,11 @@ const getPlayerList = (req, res) => {
 
                     })
             }
-    })
+
+        })
 }
+
+
 const searchAndFilterPlayerList=(req,res)=>{
     let flag = Validator(req.body, [], [], ["userId", "competitionId"]);
     if (flag)
@@ -987,11 +976,11 @@ const searchAndFilterPlayerList=(req,res)=>{
                         from: "users",
                         localField: "playerId",
                         foreignField: "_id",
-                        as: "Players"
+                        as: "Player"
                       }
                    },
                    {
-                       $unwind:"$Players"
+                       $unwind:"$Player"
                    },
                    
                    {
@@ -999,11 +988,11 @@ const searchAndFilterPlayerList=(req,res)=>{
                         from: "competitions",
                         localField: "competitionId",
                         foreignField: "_id",
-                        as: "Comps"
+                        as: "Comp"
                       }
                    },
                    {
-                       $unwind:"$Comps"
+                       $unwind:"$Comp"
                    },
                   
                  {
@@ -1034,6 +1023,8 @@ const searchAndFilterPlayerList=(req,res)=>{
             }
     })
 }
+
+
 const approveCompetition = (req, res) => {
     let flag = Validator(req.body, [], [], ["approvalId", "userId", "competitionId", "playerId", "followStatus"]);
     if (flag)
@@ -1111,7 +1102,6 @@ module.exports = {
     publishCompetition,
     unPublishCompetition,
     getRegistrationDetail,
-
 
     searchAndFilterPlayerList
 

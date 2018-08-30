@@ -1035,12 +1035,6 @@ const competitionNotification = (req, res) => {
         query = { $set: { "competitionNotify.mobile": req.body.compMobileNotify } }
     else if (req.body.compEmailNotify && req.body.compMobileNotify)
         query = { $set: { "competitionNotify.mobile": req.body.compMobileNotify, "competitionNotify.email": req.body.compEmailNotify } };
-
-
-
-
-
-
     User.findByIdAndUpdate(req.body.userId, query, { new: true, safe: true }, (err, success) => {
         if (err)
             return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err1);

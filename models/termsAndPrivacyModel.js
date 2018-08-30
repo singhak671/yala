@@ -12,6 +12,9 @@ const termsPrivacySchema = new Schema({
         role:{
            type:String,
            default:"PLAYER"
+        },
+        aboutUs:{
+            type:String
         }
     },
     ORGANIZER:{
@@ -24,6 +27,9 @@ const termsPrivacySchema = new Schema({
         role:{
            type:String,
            default:"ORGANIZER"
+        },
+        aboutUs:{
+            type:String
         }
     },
     VENUE:{
@@ -36,6 +42,24 @@ const termsPrivacySchema = new Schema({
         role:{
            type:String,
            default:"VENUE"
+        },
+        aboutUs:{
+            type:String
+        }
+    },
+    NONE:{
+        termsAndConditions: {
+            type: String
+        },
+        privacyPolicy: {
+            type: String
+        },
+        role:{
+           type:String,
+           default:"NONE"
+        },
+        aboutUs:{
+            type:String
         }
     }
     
@@ -58,7 +82,8 @@ mongoose.model('termsAndPrivacy',termsPrivacySchema).findOne({"PLAYER.role":"PLA
             privacyPolicy: `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostr
             ud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pari
             atur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.`,
-            role:"PLAYER"
+            role:"PLAYER",
+            aboutUs : "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostr",
         },
         ORGANIZER:{
             termsAndConditions: `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostr
@@ -67,7 +92,8 @@ mongoose.model('termsAndPrivacy',termsPrivacySchema).findOne({"PLAYER.role":"PLA
             privacyPolicy: `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostr
             ud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pari
             atur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.`,
-            role:"ORGANIZER"
+            role:"ORGANIZER",
+            aboutUs : "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostr",
         },
         VENUE:{
             termsAndConditions: `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostr
@@ -76,7 +102,18 @@ mongoose.model('termsAndPrivacy',termsPrivacySchema).findOne({"PLAYER.role":"PLA
             privacyPolicy: `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostr
             ud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pari
             atur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.`,
-            role:"VENUE"
+            role:"VENUE",
+            aboutUs : "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostr",
+        },
+        NONE:{
+            termsAndConditions: `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostr
+            ud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pari
+            atur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.`,
+            privacyPolicy: `Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostr
+            ud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pari
+            atur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.`,
+            role:"NONE",
+            aboutUs : "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostr",
         }
     }
           

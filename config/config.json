@@ -8,12 +8,12 @@
 		"host":"",
 		"name":"yala"		
 	},
+   
     "twilio": {
-        "sid": "AC6de757441666da8f511cdee2251d74dc",
-        "auth_token": "3cf7b9a45f8692c5e8fe86da9e0fc382",
-        "number":"(+1814) 277-5455"
-       
-    },
+        "sid": "ACf786a64203b2524f8ee2878ee632bbe7",
+        "auth_token": "0f53e378507e1543cd5e2ddfcf5389a1",
+        "number":"(855) 572-8559"
+        },
     "nexmo":{
         "apiKey":"",
         "apiSecret":"",
