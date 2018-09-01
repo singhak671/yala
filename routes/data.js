@@ -40,8 +40,8 @@ router.post('/filterTeam',AUTH.verifyToken,teamController.filterTeam)
 router.get('/selectTeam',AUTH.verifyToken,teamController.selectTeam)
 
 router.post('/listOfTeam',AUTH.verifyToken,teamController.listOfTeam)
-
 router.post('/listOfPlayer',AUTH.verifyToken,teamController.listOfPlayer)
+router.post('/listOfClub',AUTH.verifyToken,dataController.listOfClub)
 
 router.post('/addPlayer',AUTH.verifyToken,teamController.addPlayer)
 router.post('/getListOfPlayer',AUTH.verifyToken,teamController.getListOfPlayer)

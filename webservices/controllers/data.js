@@ -8,6 +8,7 @@ const Validator = require('../../middlewares/validation').validate_all_request;
 //const Notification = require("../../global_functions/notification")
 const subscriptionValidator = require('../../middlewares/validation').validate_subscription_plan;
 const message = require("../../global_functions/message");
+const Data=require("../../models/data")
 const tryyyy=(req,res)=>{
     // deviceToken=['ddMQdHYWfB4:APA91bHmiaJtIJAlonDRDEKSlZFi3-6tvvMJ9qRIs_IBRbZakJG1HUgmOZRkHQJ54uVwvcuPXhGHk-cc3AmZL0Cvnnklx5wC7-nQQXQtAiB5D5ttAOR-RkBZI6ZrjLeOD9uh6SttStoN2g2dmETfBpRqTpqUUhtXqQ']
     // notify={
@@ -153,6 +154,46 @@ const getListOfClub=(req,res)=>{
            sort:{ createdAt: -1 }
         }
           dataServices.getListOfClub(query,options,(err,success)=>{
+              if(err)
+              return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+              else if(!success)
+              return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.CLUB_NOT_FOUND)
+              else return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.CLUB_LIST,success)
+              
+           })
+         }
+       })
+   }
+}
+//----------List of Club without pagination-----
+const listOfClub=(req,res)=>{
+    console.log(req.body)
+    if(!req.query.userId){
+        Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORGANIZER_IS_REQUIRED)
+    }
+   else{
+       userServices.findUser({_id:req.query.userId},(err,success)=>{
+           if(err||!success)
+           return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+           else{
+            if(success.employeeRole=='COORDINATOR'||success.employeeRole=="ADMINSTRATOR")
+            req.query.userId=success.employeerId
+            let query={
+                userId:req.query.userId
+             }
+             if(req.body.search){
+                let search=new RegExp("^"+req.body.search)
+                query.$or=[
+                    {clubName:{$regex:search,$options:'i'}},
+                    {phone:{$regex:search,$options:'i'}},
+                    {email:{$regex:search,$options:'i'}},
+                    {headquaters:{$regex:search,$options:'i'}},
+                    {status:{$regex:search,$options:'i'}}
+                 ]
+            }
+            console.log("query--->>",query)
+        
+           Data.club.find(query,(err,success)=>{
               if(err)
               return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
               else if(!success)
@@ -973,5 +1014,7 @@ module.exports={
     getListOfReferee,
     getEditDetailOfReferee,
     editReferee,
-    deleteReferee
+    deleteReferee,
+
+    listOfClub
 }
