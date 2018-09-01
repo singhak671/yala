@@ -32,531 +32,636 @@ const getAllCompetitions = (req, res) => {
 }
 
 
+// const filterCompetitions = (req, res) => {
+//     // console.log("i am nody]]]]]]]]]]]]]]]]][[[[[[[[[[[[[[[[[[")
+//     console.log("i am body>>>>>>", req.body)
+//     let flag = Validator(req.body, [], [], [])
+//     if (flag)
+//         return Response.sendResponse(res, flag[0], flag[1]);
+//     else {
+//         let obj = {};
+//         if (req.body.filterFields) {
+//             console.log("xxxxxxxxx--->>>", req.body.filterFields)
+//             let array = ["sports", "status", "followStatus"];
+//             for (let key of array) {
+//                 for (let data in req.body.filterFields) {
+//                     if (key == data && req.body.filterFields[data])
+//                         obj[key] = req.body.filterFields[key];
+//                     console.log(obj[key])
+//                 }
+//             }
+//         }
+//         console.log("i am object>>>>>>", obj)
+//         let query = {
+//             page: req.body.page || 1,
+//             limit: req.body.limit || 4,
+//             // lean:true,
+//             // populate:{path:"competitionId",model:"competitions",match:{"status":obj.status}}
+//         }
+//         if (obj.followStatus) {
+//             console.log("11111111111111111111");
+//             let query2;
+//             if (obj.followStatus && !obj.sports && !obj.status)
+//                 query2 = {};
+//             else if (obj.sports && !obj.status) {
+//                 query2 = { sports: { $in: obj.sports }, published: true }
+//                 console.log("111query>>>>>>>>>>>", query2);
+//             }
+//             else if (obj.status && obj.sports) {
+//                 query2 = { $and: [{ sports: { $in: obj.sports } }, { status: obj.status }, { published: true }] }
+//                 console.log("222query>>>>>", query2)
+//             }
+//             else if (obj.status && !obj.sports) {
+//                 query2 = { status: obj.status, published: true };
+//                 console.log("222query>>>>>", query2)
+//             }
+//             if (req.body.filterFields)
+//                 if (req.body.filterFields.search) {
+//                     query2.$or = [
+//                         { competitionName: { $regex: req.body.filterFields.search, $options: 'i' } },
+//                         { period: { $regex: req.body.filterFields.search, $options: 'i' } },
+//                         { sports: { $regex: req.body.filterFields.search, $options: 'i' } },
+//                         { status: { $regex: req.body.filterFields.search, $options: 'i' } },
+//                         { venue: { $regex: req.body.filterFields.search, $options: 'i' } },
+//                         { division: { $regex: req.body.filterFields.search, $options: 'i' } }
+//                     ]
+//                 }
+//             let option = {
+//                 populate: [{
+//                     path: "competitionId",
+//                     select: "competitionName _id createdAt organizer division period sports status published venue imageURL sportType published registrationForm",
+
+//                     match: query2
+//                 },
+//                 {
+//                     path: 'organizer',
+
+//                     select: "firstName lastName"
+//                 }],
+//                 sort: { createdAt: -1 },
+//                 lean: false
+//             };
+
+//             console.log("i am final object with FOLLOW STATUS", query2)
+//             followComp.competitionFollow.paginate({ playerId: req.body.userId, followStatus: obj.followStatus }, option, (err, success) => {
+
+//                 if (err)
+//                     return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+//                 else if (!success)
+//                     return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
+
+//                 else {
+//                     return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success);
+//                 }
+//             })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//             // followComp.competitionFollow.find({playerId:req.body.userId,followStatus:obj.followStatus}).populate(
+//             //     // here array is for our memory. 
+//             //     // because may need to populate multiple things
+//             //     {
+//             //         path: 'competitionId',              
+//             //     select:"competitionName _id createdAt organizer division period sports status venue",
+
+//             //     match:query2
+//             //     }
+//             // ).
+//             // populate({
+//             //     path: 'organizer',
+
+//             // select:"firstName lastName"}).
+//             // sort({createdAt:-1}).
+//             //     skip((query.page-1)*query.limit).
+//             //     limit(query.limit).
+//             // lean().
+//             // exec((err,result)=>{
+//             //     if(err)
+//             //         return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+//             //     else if(!result)
+//             //             return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
+
+//             //             else
+//             //                             {
+//             //                                 return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,result,query);
+//             //                             }
+//             // })
+//             //    console.log("i am object>2",obj);
+//             //    if(obj.followStatus && !obj.status && !obj.sports)
+//             //    {
+//             //        followComp.competitionFollow.find({playerId:req.body.userId,followStatus:obj.followStatus}).populate("competitionId").exec((err,success)=>{
+//             //            if(err)
+//             //                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+//             //            else if(!success)
+//             //                    return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
+//             //                else
+//             //                {
+//             //                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success);
+//             //                }
+
+
+//             //        })
+//             //    }
+//             //    else
+//             //        if(obj.followStatus && obj.status && !obj.sports){
+//             //            followComp.competitionFollow.find({playerId:req.body.userId,followStatus:obj.followStatus}).populate("competitionId").exec((err1,success1)=>{
+//             //                if(err1)
+//             //                    return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err1);
+//             //                else if(!success1)
+//             //                        return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
+//             //                    else
+//             //                    {   
+//             //                        let arr=[];                            
+//             //                        for(let data of success1){
+//             //                           // console.log(data.competitionId);
+//             //                            for(let key1 in data.competitionId){
+
+//             //                                if(key1=="status" && data.competitionId.status==obj.status)
+//             //                                arr.push(data.competitionId);
+//             //                            }
+//             //                        }                            
+//             //                        return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,arr);
+//             //                    }   
+//             //            })
+//             //        }
+//             //        else if(obj.followStatus && obj.status && obj.sports){
+//             //            console.log("333333333",obj);
+//             //            followComp.competitionFollow.find({playerId:req.body.userId,followStatus:obj.followStatus}).populate("competitionId").exec((err2,success2)=>{
+//             //                if(err2)
+//             //                    return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err2);
+//             //                else if(!success2)
+//             //                        return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
+//             //                    else
+//             //                    {   
+//             //                        let arr1=[];
+//             //                        for(let data of success2){
+//             //                            for(let key in data.competitionId){
+//             //                                if(key=="status" && data.competitionId.status==obj.status && data.competitionId.sports==obj.sports)
+//             //                                arr1.push(data.competitionId)
+//             //                            }
+//             //                        }                            
+//             //                        return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,arr1);
+//             //                    }   
+//             //            })
+//             //        }
+
+//             //        else if(obj.followStatus && !obj.status && obj.sports){
+//             //         console.log("44444444",obj);
+//             //            followComp.competitionFollow.find({playerId:req.body.userId,followStatus:obj.followStatus}).populate("competitionId").exec((err2,success2)=>{
+//             //                if(err2)
+//             //                    return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err2);
+//             //                else if(!success2)
+//             //                        return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
+//             //                    else
+//             //                    {   
+//             //                        let arr1=[];
+//             //                        for(let data of success2){
+//             //                            for(let key in data.competitionId){
+//             //                                if(key=="sports" && data.competitionId.sports==obj.sports)
+//             //                                arr1.push(data.competitionId)
+//             //                            }
+//             //                        }
+
+//             //                        function paginate (array, page_size, page_number) {
+//             //                         --page_number; // because pages logically start with 1, but technically with 0
+//             //                         return array.slice(page_number * page_size, (page_number + 1) * page_size);
+//             //                       }
+//             //                       let arr2=[];
+//             //                       //console.log(paginate([1, 2, 3, 4, 5, 6], 2, 2));
+//             //                       console.log(query)
+//             //                       arr2=paginate(arr1, query.limit, query.page);
+//             //                       console.log(arr2)
+//             //                       arr2.populate("organizer").exec((err,reqq)=>{
+//             //                           console.log(reqq)
+//             //                       })
+
+
+
+
+
+
+
+//             //                        return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,arr2);
+//             //                    }   
+//             //            })
+//             //        }
+//         }
+//         else {
+//             //    let query={
+//             //        page:req.body.page || 1,
+//             //        limit : req.body.limit ||4,
+//             //        lean:true,
+//             //        populate:{path:"organizer",select:"firstName lastName"}};
+//             // console.log("i am 1st obj", obj);
+//             obj.published = true;
+
+//             let query1;
+//             if (!obj.sports && !obj.status)
+//                 query1 = obj;
+//             else if (obj.sports && !obj.status) {
+//                 query1 = { sports: { $in: obj.sports }, published: true }
+//                 console.log("111query>>>>>>>>>>>", query1);
+//             }
+//             else if (obj.status && obj.sports) {
+//                 query1 = { $and: [{ sports: { $in: obj.sports } }, { status: obj.status }, { published: true }] };
+
+//                 console.log("22 query>>>>>", query1)
+//             }
+//             else if (obj.status && !obj.sports) {
+//                 query1 = obj;
+//                 console.log("33 query>>>>>", query1)
+//             }
+
+//             //condition for searching 
+//             if (req.body.filterFields)
+//                 if (req.body.filterFields.search) {
+//                     query1.$or = [
+//                         { competitionName: { $regex: req.body.filterFields.search, $options: 'i' } },
+//                         { period: { $regex: req.body.filterFields.search, $options: 'i' } },
+//                         { sports: { $regex: req.body.filterFields.search, $options: 'i' } },
+//                         { status: { $regex: req.body.filterFields.search, $options: 'i' } },
+//                         { venue: { $regex: req.body.filterFields.search, $options: 'i' } },
+//                         { division: { $regex: req.body.filterFields.search, $options: 'i' } }
+//                     ]
+//                 }
+//             console.log("i am NEW FINAL obj", query1);
+
+//             // aggregate
+//             //     .match(query1)
+//             //     .unwind({
+//             //         path: '$playerFollowStatus',
+//             //         preserveNullAndEmptyArrays: true,
+//             //     }
+//             //     )
+//             // .group({
+//             //                 _id: "$_id",
+//             //                 "period": { "$first": "$period" },
+//             //                 // period:"$period",
+//             //                 "status": { "$first": "$status" },
+//             //                 "sports": { "$first": "$sports" },
+//             //                 "published": { "$first": "$published" },
+//             //                 "venue": { "$first": "$venue" },
+//             //                 "division": { "$first": "$division" },
+//             //                 "competitionName": { "$first": "$competitionName" },
+//             //                 "organizer": { "$first": "$organizer" },
+//             //                 "createdAt": { "$first": "$createdAt" },
+//             //                 "registrationForm":{"$first":"$registrationForm"},
+//             //                 "imageURL": { "$first": "$imageURL" },
+//             //                 "sportType": { "$first": "$sportType" },
+//             //                 "playerFollowStatus": {"$first": "$playerFollowStatus"},
+
+//             //         })
+
+//             // aggregate.lookup({
+//             //             from:"users",
+//             //             localField:"organizer",
+//             //             foreignField:"_id",
+//             //             as:"organizer"
+//             //         }).unwind({       path: '$playerFollowStatus',
+//             //         preserveNullAndEmptyArrays: true,
+//             //    })
+//             //     aggregate.project(
+//             //         {
+//             //                         _id: 1,
+//             //                         playerFollowStatus: {
+//             //                             $cond: {
+//             //                                 if: {
+//             //                                     $eq: ['$playerFollowStatus.playerId', req.body.userId]
+//             //                                 },
+//             //                                 then: "$playerFollowStatus",
+//             //                                 else: "NOT FOLLOWED",
+//             //                             }
+//             //                         },
+//             //                         division: 1,
+//             //                         period: 1,
+//             //                         sports: 1,
+//             //                         status: 1,
+//             //                         venue: 1,
+//             //                         sportType: 1,
+//             //                         published:1,
+//             //                         competitionName: 1,
+//             //                         organizer: 1,
+//             //                         createdAt: 1,
+//             //                         registrationForm:1,
+//             //                         imageURL: 1
+//             //                     }
+//             //     )
+//             aggregate = Competition.competition.aggregate([
+//                 {
+//                     $match: query1
+//                 },
+//                 {
+//                     $unwind: {
+//                         path: '$playerFollowStatus',
+//                         preserveNullAndEmptyArrays: true,
+//                     }
+//                 },
+//                 {
+//                     $lookup: {
+//                         from: "users",
+//                         localField: "organizer",
+//                         foreignField: "_id",
+//                         as: "organizer"
+//                     }
+//                 },{
+//                    $unwind:"$organizer"
+//                 } ,{
+//                     $project: {
+//                         _id: 1,
+//                         playerFollowStatus: {
+//                             $cond: {
+//                                 if: {
+//                                     $eq: ['$playerFollowStatus.playerId', req.body.userId]
+//                                 },
+//                                 then: "$playerFollowStatus",
+//                                 else: "NOT FOLLOWED",
+//                             }
+//                         },
+//                         division: 1,
+//                         period: 1,
+//                         sports: 1,
+//                         status: 1,
+//                         venue: 1,
+//                         sportType: 1,
+//                         published: 1,
+//                         competitionName: 1,
+//                         organizer: 1,
+//                         createdAt: 1,
+//                         registrationForm: 1,
+//                         imageURL: 1
+//                     }
+//                 }])
+//             var option = { page: query.page, limit: query.limit }
+
+//             // Competition.competition.aggregatePaginate(aggregate, options, function(err, results, pageCount, count) {
+//             //     if(err) 
+//             //     {
+//             //      return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+//             //     }
+//             //     else
+//             //     { console.log("pageCount",pageCount);
+//             //     console.log("count",count);
+//             //       res.send(results)
+//             //     }
+//             //   })
+
+
+//             Competition.competition.aggregatePaginate(aggregate, option, (err, result, pages, total) => {
+//                 if (!err) {
+//                     const success = {
+//                         "docs": result,
+//                         "total": total,
+//                         "limit": option.limit,
+//                         "page": option.page,
+//                         "pages": pages,
+//                     }
+//                     console.log(success)
+//                     if (success.docs.length)
+//                         return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.LIST_OF_COMPETITION, success)
+//                     else
+//                         return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.COMPETITION_NOT_FOUND)
+//                 }
+//                 else {
+//                     return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+//                 }
+//             })
+
+
+//             // Competition.competition.aggregate([
+//             //     {
+//             //         "$match": query1
+//             //     },
+//             //     {
+//             //         "$unwind": {
+//             //             path: '$playerFollowStatus',
+//             //             preserveNullAndEmptyArrays: true,
+//             //         }
+//             //     },
+//             //     {
+//             //         $group: {
+//             //             _id: "$_id",
+//             //             "period": { "$first": "$period" },
+//             //             // period:"$period",
+//             //             "status": { "$first": "$status" },
+//             //             "sports": { "$first": "$sports" },
+//             //             "published": { "$first": "$published" },
+//             //             "venue": { "$first": "$venue" },
+//             //             "division": { "$first": "$division" },
+//             //             "competitionName": { "$first": "$competitionName" },
+//             //             "organizer": { "$first": "$organizer" },
+//             //             "createdAt": { "$first": "$createdAt" },
+//             //             "registrationForm":{"$first":"$registrationForm"},
+//             //             "imageURL": { "$first": "$imageURL" },
+//             //             "sportType": { "$first": "$sportType" },
+//             //             "playerFollowStatus": {"$first": "$playerFollowStatus"},
+
+//             //         }
+//             //     },
+
+
+//             //     // {
+//             //     //     "$project": {
+//             //     //         _id: 1,
+//             //     //         playerFollowStatus: {
+//             //     //             $cond: {
+//             //     //                 if: {
+//             //     //                     $eq: ['$playerFollowStatus.playerId', req.body.userId]
+//             //     //                 },
+//             //     //                 then: "$playerFollowStatus",
+//             //     //                 else: "NOT FOLLOWED",
+//             //     //             }
+//             //     //         },
+//             //     //         division: 1,
+//             //     //         period: 1,
+//             //     //         sports: 1,
+//             //     //         status: 1,
+//             //     //         venue: 1,
+//             //     //         sportType: 1,
+//             //     //         published:1,
+//             //     //         competitionName: 1,
+//             //     //         organizer: 1,
+//             //     //         createdAt: 1,
+//             //     //         registrationForm:1,
+//             //     //         imageURL: 1
+//             //     //     }
+//             //     // },
+//             //     { '$sort': { 'createdAt': -1 } },
+
+//             //     {
+//             //         '$facet': {
+//             //             pageInfo: [{ $count: "total" }, { $addFields: { page: query.page, limit: query.limit } }],
+//             //             data: [{ $skip: ((query.page - 1) * query.limit) }, { $limit: query.limit }] // add projection here wish you re-shape the docs
+//             //         }
+//             //     }
+
+
+
+
+//             // ]).exec((err, result) => {
+//             //    // console.log("query }}}}}}}}}}}}}}}}}}}}}", query)
+//             //     if (err || !result)
+//             //         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+
+
+
+//             //     User.populate(result[0].data, { path: "organizer", select: "firstName lastName", option: { lean: true } }, (errrr, succcc) => {
+
+
+//             //         if (errrr)
+//             //             return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err, errrr);
+
+
+//             //        // console.log("iam result>>>", result)
+
+
+
+
+
+//             //         //    Competition.competition.find({"playerFollowStatus.playerId":req.body.userId},(err,result)=>{
+//             //         //    if (err)
+//             //         //        return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+//             //         //    else if(!result)
+//             //         //        return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
+//             //         //    else{
+//             //         //let newResult=result;
+//             //         //    for( let data of result.docs){
+//             //         //        if(data.playerFollowStatus)
+//             //         //     for (let data1 of data.playerFollowStatus){
+//             //         //         if(data1.playerId==req.body.userId)
+//             //         //             {
+//             //         //                 data.playerStatus=data1;
+//             //         //                 delete data["playerFollowStatus"];
+//             //         //             }
+
+//             //         //              else
+//             //         //              {
+//             //         //                  data.player=null;
+//             //         //             delete data["playerFollowStatus"];
+//             //         //         }
+//             //         //    }}
+
+
+//             //         return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, succcc, result[0].pageInfo);
+//             //     })
+//             // })
+
+//         }
+//     }
+//  }
+
 const filterCompetitions = (req, res) => {
-    // console.log("i am nody]]]]]]]]]]]]]]]]][[[[[[[[[[[[[[[[[[")
-    console.log("i am body>>>>>>", req.body)
-    let flag = Validator(req.body, [], [], [])
-    if (flag)
-        return Response.sendResponse(res, flag[0], flag[1]);
+    console.log(req.body)
+    if (!req.body.userId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.USER_IS_REQ)
     else {
-        let obj = {};
-        if (req.body.filterFields) {
-            console.log("xxxxxxxxx--->>>", req.body.filterFields)
-            let array = ["sports", "status", "followStatus"];
-            for (let key of array) {
-                for (let data in req.body.filterFields) {
-                    if (key == data && req.body.filterFields[data])
-                        obj[key] = req.body.filterFields[key];
-                    console.log(obj[key])
-                }
-            }
-        }
-        console.log("i am object>>>>>>", obj)
         let query = {
-            page: req.body.page || 1,
-            limit: req.body.limit || 4,
-            // lean:true,
-            // populate:{path:"competitionId",model:"competitions",match:{"status":obj.status}}
+            published: true
         }
-        if (obj.followStatus) {
-            console.log("11111111111111111111");
-            let query2;
-            if (obj.followStatus && !obj.sports && !obj.status)
-                query2 = {};
-            else if (obj.sports && !obj.status) {
-                query2 = { sports: { $in: obj.sports }, published: true }
-                console.log("111query>>>>>>>>>>>", query2);
-            }
-            else if (obj.status && obj.sports) {
-                query2 = { $and: [{ sports: { $in: obj.sports } }, { status: obj.status }, { published: true }] }
-                console.log("222query>>>>>", query2)
-            }
-            else if (obj.status && !obj.sports) {
-                query2 = { status: obj.status, published: true };
-                console.log("222query>>>>>", query2)
-            }
-            if (req.body.filterFields)
-                if (req.body.filterFields.search) {
-                    query2.$or = [
-                        { competitionName: { $regex: req.body.filterFields.search, $options: 'i' } },
-                        { period: { $regex: req.body.filterFields.search, $options: 'i' } },
-                        { sports: { $regex: req.body.filterFields.search, $options: 'i' } },
-                        { status: { $regex: req.body.filterFields.search, $options: 'i' } },
-                        { venue: { $regex: req.body.filterFields.search, $options: 'i' } },
-                        { division: { $regex: req.body.filterFields.search, $options: 'i' } }
-                    ]
+        if (req.body.filterFields) {
+            if (req.body.filterFields.followStatus) {
+                query.playerFollowStatus= {
+                    playerId:req.body.userId,
+                    followStatus:req.body.filterFields.followStatus
                 }
-            let option = {
-                populate: [{
-                    path: "competitionId",
-                    select: "competitionName _id createdAt organizer division period sports status published venue imageURL sportType published registrationForm",
-
-                    match: query2
-                },
-                {
-                    path: 'organizer',
-
-                    select: "firstName lastName"
-                }],
-                sort: { createdAt: -1 },
-                lean: false
-            };
-
-            console.log("i am final object with FOLLOW STATUS", query2)
-            followComp.competitionFollow.paginate({ playerId: req.body.userId, followStatus: obj.followStatus }, option, (err, success) => {
-
-                if (err)
-                    return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
-                else if (!success)
-                    return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
-
-                else {
-                    return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success);
-                }
-            })
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            // followComp.competitionFollow.find({playerId:req.body.userId,followStatus:obj.followStatus}).populate(
-            //     // here array is for our memory. 
-            //     // because may need to populate multiple things
-            //     {
-            //         path: 'competitionId',              
-            //     select:"competitionName _id createdAt organizer division period sports status venue",
-
-            //     match:query2
-            //     }
-            // ).
-            // populate({
-            //     path: 'organizer',
-
-            // select:"firstName lastName"}).
-            // sort({createdAt:-1}).
-            //     skip((query.page-1)*query.limit).
-            //     limit(query.limit).
-            // lean().
-            // exec((err,result)=>{
-            //     if(err)
-            //         return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
-            //     else if(!result)
-            //             return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
-
-            //             else
-            //                             {
-            //                                 return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,result,query);
-            //                             }
-            // })
-            //    console.log("i am object>2",obj);
-            //    if(obj.followStatus && !obj.status && !obj.sports)
-            //    {
-            //        followComp.competitionFollow.find({playerId:req.body.userId,followStatus:obj.followStatus}).populate("competitionId").exec((err,success)=>{
-            //            if(err)
-            //                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
-            //            else if(!success)
-            //                    return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
-            //                else
-            //                {
-            //                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success);
-            //                }
-
-
-            //        })
-            //    }
-            //    else
-            //        if(obj.followStatus && obj.status && !obj.sports){
-            //            followComp.competitionFollow.find({playerId:req.body.userId,followStatus:obj.followStatus}).populate("competitionId").exec((err1,success1)=>{
-            //                if(err1)
-            //                    return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err1);
-            //                else if(!success1)
-            //                        return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
-            //                    else
-            //                    {   
-            //                        let arr=[];                            
-            //                        for(let data of success1){
-            //                           // console.log(data.competitionId);
-            //                            for(let key1 in data.competitionId){
-
-            //                                if(key1=="status" && data.competitionId.status==obj.status)
-            //                                arr.push(data.competitionId);
-            //                            }
-            //                        }                            
-            //                        return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,arr);
-            //                    }   
-            //            })
-            //        }
-            //        else if(obj.followStatus && obj.status && obj.sports){
-            //            console.log("333333333",obj);
-            //            followComp.competitionFollow.find({playerId:req.body.userId,followStatus:obj.followStatus}).populate("competitionId").exec((err2,success2)=>{
-            //                if(err2)
-            //                    return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err2);
-            //                else if(!success2)
-            //                        return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
-            //                    else
-            //                    {   
-            //                        let arr1=[];
-            //                        for(let data of success2){
-            //                            for(let key in data.competitionId){
-            //                                if(key=="status" && data.competitionId.status==obj.status && data.competitionId.sports==obj.sports)
-            //                                arr1.push(data.competitionId)
-            //                            }
-            //                        }                            
-            //                        return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,arr1);
-            //                    }   
-            //            })
-            //        }
-
-            //        else if(obj.followStatus && !obj.status && obj.sports){
-            //         console.log("44444444",obj);
-            //            followComp.competitionFollow.find({playerId:req.body.userId,followStatus:obj.followStatus}).populate("competitionId").exec((err2,success2)=>{
-            //                if(err2)
-            //                    return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err2);
-            //                else if(!success2)
-            //                        return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NOT_FOUND);
-            //                    else
-            //                    {   
-            //                        let arr1=[];
-            //                        for(let data of success2){
-            //                            for(let key in data.competitionId){
-            //                                if(key=="sports" && data.competitionId.sports==obj.sports)
-            //                                arr1.push(data.competitionId)
-            //                            }
-            //                        }
-
-            //                        function paginate (array, page_size, page_number) {
-            //                         --page_number; // because pages logically start with 1, but technically with 0
-            //                         return array.slice(page_number * page_size, (page_number + 1) * page_size);
-            //                       }
-            //                       let arr2=[];
-            //                       //console.log(paginate([1, 2, 3, 4, 5, 6], 2, 2));
-            //                       console.log(query)
-            //                       arr2=paginate(arr1, query.limit, query.page);
-            //                       console.log(arr2)
-            //                       arr2.populate("organizer").exec((err,reqq)=>{
-            //                           console.log(reqq)
-            //                       })
-
-
-
-
-
-
-
-            //                        return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,arr2);
-            //                    }   
-            //            })
-            //        }
+            }
+            if (req.body.filterFields.sports) {
+                query.sports = { $in: req.body.filterFields.sports }
+            }
+            if (req.body.filterFields.status) {
+                query.status = req.body.filterFields.status
+            }
+            if (req.body.filterFields.search) {
+                let search = new RegExp("^" + req.body.filterFields.search)
+                query.$or = [
+                    { competitionName: { $regex: search, $options: 'i' } },
+                    { period: { $regex: search, $options: 'i' } },
+                    { sports: { $regex: search, $options: 'i' } },
+                    { status: { $regex: search, $options: 'i' } },
+                    { venue: { $regex: search, $options: 'i' } },
+                    { division: { $regex: search, $options: 'i' } }
+                ]
+            }
         }
-        else {
-            //    let query={
-            //        page:req.body.page || 1,
-            //        limit : req.body.limit ||4,
-            //        lean:true,
-            //        populate:{path:"organizer",select:"firstName lastName"}};
-            // console.log("i am 1st obj", obj);
-            obj.published = true;
 
-            let query1;
-            if (!obj.sports && !obj.status)
-                query1 = obj;
-            else if (obj.sports && !obj.status) {
-                query1 = { sports: { $in: obj.sports }, published: true }
-                console.log("111query>>>>>>>>>>>", query1);
-            }
-            else if (obj.status && obj.sports) {
-                query1 = { $and: [{ sports: { $in: obj.sports } }, { status: obj.status }, { published: true }] };
-
-                console.log("22 query>>>>>", query1)
-            }
-            else if (obj.status && !obj.sports) {
-                query1 = obj;
-                console.log("33 query>>>>>", query1)
-            }
-
-            //condition for searching 
-            if (req.body.filterFields)
-                if (req.body.filterFields.search) {
-                    query1.$or = [
-                        { competitionName: { $regex: req.body.filterFields.search, $options: 'i' } },
-                        { period: { $regex: req.body.filterFields.search, $options: 'i' } },
-                        { sports: { $regex: req.body.filterFields.search, $options: 'i' } },
-                        { status: { $regex: req.body.filterFields.search, $options: 'i' } },
-                        { venue: { $regex: req.body.filterFields.search, $options: 'i' } },
-                        { division: { $regex: req.body.filterFields.search, $options: 'i' } }
-                    ]
+        console.log("query-->>", query)
+        var aggregate = Competition.competition.aggregate([
+           
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "organizer",
+                    foreignField: "_id",
+                    as: "organizer"
                 }
-            console.log("i am NEW FINAL obj", query1);
+            },
+            {
+                $unwind: "$organizer"
+            },
+             
+                { '$sort': { 'createdAt': -1 } },
 
-            // aggregate
-            //     .match(query1)
-            //     .unwind({
-            //         path: '$playerFollowStatus',
-            //         preserveNullAndEmptyArrays: true,
-            //     }
-            //     )
-            // .group({
-            //                 _id: "$_id",
-            //                 "period": { "$first": "$period" },
-            //                 // period:"$period",
-            //                 "status": { "$first": "$status" },
-            //                 "sports": { "$first": "$sports" },
-            //                 "published": { "$first": "$published" },
-            //                 "venue": { "$first": "$venue" },
-            //                 "division": { "$first": "$division" },
-            //                 "competitionName": { "$first": "$competitionName" },
-            //                 "organizer": { "$first": "$organizer" },
-            //                 "createdAt": { "$first": "$createdAt" },
-            //                 "registrationForm":{"$first":"$registrationForm"},
-            //                 "imageURL": { "$first": "$imageURL" },
-            //                 "sportType": { "$first": "$sportType" },
-            //                 "playerFollowStatus": {"$first": "$playerFollowStatus"},
-
-            //         })
-
-            // aggregate.lookup({
-            //             from:"users",
-            //             localField:"organizer",
-            //             foreignField:"_id",
-            //             as:"organizer"
-            //         }).unwind({       path: '$playerFollowStatus',
-            //         preserveNullAndEmptyArrays: true,
-            //    })
-            //     aggregate.project(
-            //         {
-            //                         _id: 1,
-            //                         playerFollowStatus: {
-            //                             $cond: {
-            //                                 if: {
-            //                                     $eq: ['$playerFollowStatus.playerId', req.body.userId]
-            //                                 },
-            //                                 then: "$playerFollowStatus",
-            //                                 else: "NOT FOLLOWED",
-            //                             }
-            //                         },
-            //                         division: 1,
-            //                         period: 1,
-            //                         sports: 1,
-            //                         status: 1,
-            //                         venue: 1,
-            //                         sportType: 1,
-            //                         published:1,
-            //                         competitionName: 1,
-            //                         organizer: 1,
-            //                         createdAt: 1,
-            //                         registrationForm:1,
-            //                         imageURL: 1
-            //                     }
-            //     )
-            aggregate = Competition.competition.aggregate([
-                {
-                    $match: query1
-                },
-                {
-                    $unwind: {
-                        path: '$playerFollowStatus',
-                        preserveNullAndEmptyArrays: true,
-                    }
-                },
-                {
-                    $lookup: {
-                        from: "users",
-                        localField: "organizer",
-                        foreignField: "_id",
-                        as: "organizer"
-                    }
-                },{
-                   $unwind:"$organizer"
-                } ,{
-                    $project: {
-                        _id: 1,
-                        playerFollowStatus: {
-                            $cond: {
-                                if: {
-                                    $eq: ['$playerFollowStatus.playerId', req.body.userId]
-                                },
-                                then: "$playerFollowStatus",
-                                else: "NOT FOLLOWED",
+            {
+                $match: query
+            }
+        ])
+        let option = {
+            limit: req.body.limit || 10,
+            page: req.body.page || 1
+        }
+        Competition.competition.aggregatePaginate(aggregate, option, (err, result, pages, total) => {
+            if (!err) {
+                const success = {
+                    "docs": result,
+                    "total": total,
+                    "limit": option.limit,
+                    "page": option.page,
+                    "pages": pages,
+                }
+                if (success) {
+                    for(i=0;i<success.docs.length;i++){
+                        if(success.docs[i].playerFollowStatus.length){
+                            for(data in success.docs[i].playerFollowStatus){
+                                if(success.docs[i].playerFollowStatus[data].playerId==req.body.userId){
+                                    if(success.docs[i].playerFollowStatus[data].followStatus=="APPROVED"){
+                                        success.docs[i].playerFollow="APPROVED"
+                                        break;
+                                    }
+                                    if(success.docs[i].playerFollowStatus[data].followStatus=="PENDING"){
+                                        success.docs[i].playerFollow="PENDING";
+                                        break
+                                    }
+                                }
+                                else{
+                                    console.log("hhhhhhhh")
+                                    success.docs[i].playerFollow="NOT FOLLOWED"
+                                }
                             }
-                        },
-                        division: 1,
-                        period: 1,
-                        sports: 1,
-                        status: 1,
-                        venue: 1,
-                        sportType: 1,
-                        published: 1,
-                        competitionName: 1,
-                        organizer: 1,
-                        createdAt: 1,
-                        registrationForm: 1,
-                        imageURL: 1
+                            
+                        }
+                        else{
+                            console.log("aaaaaaaa")
+                            success.docs[i].playerFollow="NOT FOLLOWED"
+                        }
+                        
                     }
-                }])
-            var option = { page: query.page, limit: query.limit }
-
-            // Competition.competition.aggregatePaginate(aggregate, options, function(err, results, pageCount, count) {
-            //     if(err) 
-            //     {
-            //      return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-            //     }
-            //     else
-            //     { console.log("pageCount",pageCount);
-            //     console.log("count",count);
-            //       res.send(results)
-            //     }
-            //   })
-
-
-            Competition.competition.aggregatePaginate(aggregate, option, (err, result, pages, total) => {
-                if (!err) {
-                    const success = {
-                        "docs": result,
-                        "total": total,
-                        "limit": option.limit,
-                        "page": option.page,
-                        "pages": pages,
-                    }
-                    console.log(success)
-                    if (success.docs.length)
-                        return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.LIST_OF_COMPETITION, success)
-                    else
-                        return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.COMPETITION_NOT_FOUND)
+                    return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.LIST_OF_COMPETITION, success)
                 }
-                else {
-                    return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
-                }
-            })
-
-
-            // Competition.competition.aggregate([
-            //     {
-            //         "$match": query1
-            //     },
-            //     {
-            //         "$unwind": {
-            //             path: '$playerFollowStatus',
-            //             preserveNullAndEmptyArrays: true,
-            //         }
-            //     },
-            //     {
-            //         $group: {
-            //             _id: "$_id",
-            //             "period": { "$first": "$period" },
-            //             // period:"$period",
-            //             "status": { "$first": "$status" },
-            //             "sports": { "$first": "$sports" },
-            //             "published": { "$first": "$published" },
-            //             "venue": { "$first": "$venue" },
-            //             "division": { "$first": "$division" },
-            //             "competitionName": { "$first": "$competitionName" },
-            //             "organizer": { "$first": "$organizer" },
-            //             "createdAt": { "$first": "$createdAt" },
-            //             "registrationForm":{"$first":"$registrationForm"},
-            //             "imageURL": { "$first": "$imageURL" },
-            //             "sportType": { "$first": "$sportType" },
-            //             "playerFollowStatus": {"$first": "$playerFollowStatus"},
-
-            //         }
-            //     },
-
-
-            //     // {
-            //     //     "$project": {
-            //     //         _id: 1,
-            //     //         playerFollowStatus: {
-            //     //             $cond: {
-            //     //                 if: {
-            //     //                     $eq: ['$playerFollowStatus.playerId', req.body.userId]
-            //     //                 },
-            //     //                 then: "$playerFollowStatus",
-            //     //                 else: "NOT FOLLOWED",
-            //     //             }
-            //     //         },
-            //     //         division: 1,
-            //     //         period: 1,
-            //     //         sports: 1,
-            //     //         status: 1,
-            //     //         venue: 1,
-            //     //         sportType: 1,
-            //     //         published:1,
-            //     //         competitionName: 1,
-            //     //         organizer: 1,
-            //     //         createdAt: 1,
-            //     //         registrationForm:1,
-            //     //         imageURL: 1
-            //     //     }
-            //     // },
-            //     { '$sort': { 'createdAt': -1 } },
-
-            //     {
-            //         '$facet': {
-            //             pageInfo: [{ $count: "total" }, { $addFields: { page: query.page, limit: query.limit } }],
-            //             data: [{ $skip: ((query.page - 1) * query.limit) }, { $limit: query.limit }] // add projection here wish you re-shape the docs
-            //         }
-            //     }
-
-
-
-
-            // ]).exec((err, result) => {
-            //    // console.log("query }}}}}}}}}}}}}}}}}}}}}", query)
-            //     if (err || !result)
-            //         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
-
-
-
-            //     User.populate(result[0].data, { path: "organizer", select: "firstName lastName", option: { lean: true } }, (errrr, succcc) => {
-
-
-            //         if (errrr)
-            //             return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err, errrr);
-
-
-            //        // console.log("iam result>>>", result)
-
-
-
-
-
-            //         //    Competition.competition.find({"playerFollowStatus.playerId":req.body.userId},(err,result)=>{
-            //         //    if (err)
-            //         //        return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
-            //         //    else if(!result)
-            //         //        return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
-            //         //    else{
-            //         //let newResult=result;
-            //         //    for( let data of result.docs){
-            //         //        if(data.playerFollowStatus)
-            //         //     for (let data1 of data.playerFollowStatus){
-            //         //         if(data1.playerId==req.body.userId)
-            //         //             {
-            //         //                 data.playerStatus=data1;
-            //         //                 delete data["playerFollowStatus"];
-            //         //             }
-
-            //         //              else
-            //         //              {
-            //         //                  data.player=null;
-            //         //             delete data["playerFollowStatus"];
-            //         //         }
-            //         //    }}
-
-
-            //         return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, succcc, result[0].pageInfo);
-            //     })
-            // })
-
-        }
+            }
+            else {
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+            }
+        })
     }
 }
 

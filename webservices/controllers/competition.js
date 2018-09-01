@@ -231,14 +231,14 @@ const getPrizeList = (req, res) => {
     }
     if (req.body.search) {
         let search = new RegExp("^" + req.body.search)
-        query.$or= [
-                { "prize.name": { $regex: search, $options: 'i' } }, 
-                { "prize.description": { $regex: search, $options: 'i' } }, 
-                //{$where: `${search}.*/.test("this.prize.value")`}
-            ]
-        
+        query.$or = [
+            { "prize.name": { $regex: search, $options: 'i' } },
+            { "prize.description": { $regex: search, $options: 'i' } },
+            //{$where: `${search}.*/.test("this.prize.value")`}
+        ]
+
     }
- 
+
     console.log("query--->>", query)
     var aggregate = Competition.competition.aggregate([
 
@@ -279,7 +279,7 @@ const getPrizeList = (req, res) => {
             }
             console.log(success)
             if (success)
-                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK,"Prize list", success);
+                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Prize list", success);
         }
         else {
             return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
@@ -325,7 +325,7 @@ const editPrize = (req, res) => {
             for (let x of success.prize)
                 if (x._id == req.body.prizeDetails._id)
                     success = x;
-            return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK,"Prize detail updated successfully", success);
+            return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Prize detail updated successfully", success);
         }
     })
 
@@ -343,7 +343,7 @@ const getAPrize = (req, res) => {
         else if (result == false)
             return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
         else {
-            return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK,"Detail of prize", result);
+            return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Detail of prize", result);
         }
 
     })
@@ -398,7 +398,7 @@ const optionCompetition = (req, res) => {
 
 
 const addFile = (req, res) => {
-    console.log("req.body--->>",req.body)
+    console.log("req.body--->>", req.body)
     let flag = Validator(req.body, ["fileDetails"], ["file", "name"], ["competitionId"])
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
@@ -423,7 +423,7 @@ const addFile = (req, res) => {
                 result.save((err, success) => {
                     if (err || !success)
                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
-                    return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED,"File added successfully.");
+                    return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, "File added successfully.");
                 });
             }
             else
@@ -475,7 +475,7 @@ const getFileList = (req, res) => {
             }
             console.log(success)
             if (success)
-                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK,"File list", success);
+                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "File list", success);
         }
         else {
             return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
@@ -528,14 +528,14 @@ const getAFile = (req, res) => {
         else if (result == false)
             return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
         else {
-            return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK,"File Detail", result);
+            return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "File Detail", result);
         }
 
     })
 }
 const editFile = (req, res) => {
     //console.log(req.body.prizeDetails._id,req.body.competitionId)
-    let flag = Validator(req.body, ["fileDetails"], ["_id","file", "name"], ["competitionId"]);
+    let flag = Validator(req.body, ["fileDetails"], ["_id", "file", "name"], ["competitionId"]);
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     Competition.competition.findOne({ _id: req.body.competitionId, "file._id": req.body.fileDetails._id }, { 'file.$._id': 1 }, (err, result) => {
@@ -557,7 +557,7 @@ const editFile = (req, res) => {
                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
                     if (!success)
                         return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
-                    return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK,"File updated successfully", success.file);
+                    return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "File updated successfully", success.file);
                 })
             }
             else
@@ -864,7 +864,7 @@ const getPlayerFields = (req, res) => {
 }
 
 const createTeamInCompetition = (req, res) => {
-    let flag = Validator(req.body, [], [], ["competitionId", "organizer", "teamName", "venue", "phone", "email", "division", "status", "image"]);
+    let flag = Validator(req.body, [], [], ["competitionId", "organizer", "teamName", "email", "status", "image"]);
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else
@@ -873,11 +873,11 @@ const createTeamInCompetition = (req, res) => {
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
             else if (!success)
                 return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
-            Team.findOne({ competitionId: req.body.competitionId, organizer: req.body.organizer, teamName: req.body.teamName }, (err, success1) => {
+            Team.findOne({ competitionId: req.body.competitionId, organizer: req.body.organizer, email: req.body.email }, (err, success1) => {
                 if (err)
                     return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
                 else if (success1)
-                    return Response.sendResponse(res, responseCode.BAD_REQUEST, "Team name already exists");
+                    return Response.sendResponse(res, responseCode.BAD_REQUEST, "Team already exists");
                 else
                     message.uploadImg(req.body.image, (err, result) => {
                         console.log("err", err, "result", result);
@@ -891,11 +891,90 @@ const createTeamInCompetition = (req, res) => {
                             if (err2 || !success2)
                                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err2);
                             else
-                                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success2);
+                                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Team added successfully", success2);
                         })
                     })
             })
         })
+}
+
+const getTeamInCompetition = (req, res) => {
+    if (!req.query.userId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.ORGANIZER_IS_REQUIRED)
+    if (!req.query.competitionId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, "Competition is required")
+    else {
+        User.findById(req.query.userId, (err, success) => {
+            if (err)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+            else if (!success)
+                return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.ORGANIZER_NOT_FOUND)
+            else {
+                let query = {
+                    organizer: req.query.userId,
+                    competitionId: req.query.competitionId,
+                    visibleStatus: "ACTIVE"
+                }
+                if (req.body.search) {
+                    let search = new RegExp("^" + req.body.search)
+                    query.$or = [
+                        { teamName: { $regex: search, $options: 'i' } },
+                        { email: { $regex: search, $options: 'i' } },
+                        { "teamDynamicDetail.venue": { $regex: search, $options: 'i' } },
+                        { status: { $regex: search, $options: 'i' } },
+                        { "teamDynamicDetail.mobileNumber": { $regex: search, $options: 'i' } }
+                    ]
+                }
+                let options = {
+                    page: req.body.page || 1,
+                    limit: req.body.limit || 4,
+                    sort: { createdAt: -1 },
+                    populate: { path: "competitionId", model: Competition.competition, select: { "competitionName": 1, "division": 1 } },
+                    lean: true
+                }
+                Team.paginate(query, options, (err, success) => {
+                    if (err)
+                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                    else {
+                        for (i = 0; i < success.docs.length; i++) {
+                            success.docs[i].playerCount = success.docs[i].playerId.length
+                        }
+                        return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "List of teams", success)
+                    }
+                })
+            }
+        })
+    }
+}
+//-------------------Delete Team-------------------
+const deleteTeam = (req, res) => {
+    if (!req.query.userId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.ORG_IS_REQ)
+    else if (!req.query.competitionId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, "Competition is required")
+    else if (!req.query.teamId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.TEAM_IS_REQUIRED)
+    else {
+        let query = {
+            organizer: req.query.userId,
+            competitionId: req.query.competitionId,
+            _id: req.query.teamId
+        }
+        let set = {
+            visibleStatus: "INACTIVE"
+        }
+        let option = {
+            new: true
+        }
+        Team.findOneAndUpdate(query, set, option, (err, success) => {
+            if (err)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+            else if (!success)
+                return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NO_TEAM_FOUND)
+            else
+                return Response.sendResponse(res, responseCode.RESOURCE_DELETED, "Team deleted successfully")
+        })
+    }
 }
 
 const getPlayerList = (req, res) => {
@@ -943,7 +1022,7 @@ const getPlayerList = (req, res) => {
 }
 
 
-const searchAndFilterPlayerList=(req,res)=>{
+const searchAndFilterPlayerList = (req, res) => {
     let flag = Validator(req.body, [], [], ["userId", "competitionId"]);
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
@@ -954,74 +1033,74 @@ const searchAndFilterPlayerList=(req,res)=>{
             else if (!success)
                 return Response.sendResponse(res, responseCode.NOT_FOUND, "Competition not found !");
             else {
-                let query1={
+                let query1 = {
                     organizer: ObjectId(req.body.userId),
-                     competitionId: ObjectId(req.body.competitionId)
+                    competitionId: ObjectId(req.body.competitionId)
                 }
-               
-                if(req.body.search){
+
+                if (req.body.search) {
                     let search = new RegExp("^" + req.body.search)
-                    query1={
-                     organizer: ObjectId(req.body.userId), competitionId: ObjectId(req.body.competitionId),
-                    $or: [{ "Player.firstName": {$regex:search,$options:'i'} }, {"Player.mobileNumber":{$regex:search,$options:'i'}},{ "Player.email": {$regex:search,$options:'i'} }, { teamName: {$regex:search,$options:'i'} }, { "Comp.sports": {$regex:search,$options:'i'} }, { followStatus: {$regex:search,$options:'i'} }, { "Comp.venue": {$regex:search,$options:'i'} }]
+                    query1 = {
+                        organizer: ObjectId(req.body.userId), competitionId: ObjectId(req.body.competitionId),
+                        $or: [{ "Player.firstName": { $regex: search, $options: 'i' } }, { "Player.mobileNumber": { $regex: search, $options: 'i' } }, { "Player.email": { $regex: search, $options: 'i' } }, { teamName: { $regex: search, $options: 'i' } }, { "Comp.sports": { $regex: search, $options: 'i' } }, { followStatus: { $regex: search, $options: 'i' } }, { "Comp.venue": { $regex: search, $options: 'i' } }]
                     }
                 }
-                if(req.body.followStatus){
-                    query1.followStatus=req.body.followStatus
+                if (req.body.followStatus) {
+                    query1.followStatus = req.body.followStatus
                 }
-                console.log("xxxxxxx",query1)
-                var aggregate=followComp.competitionFollow.aggregate([
+                console.log("xxxxxxx", query1)
+                var aggregate = followComp.competitionFollow.aggregate([
                     {
-                      $lookup:{
-                        from: "users",
-                        localField: "playerId",
-                        foreignField: "_id",
-                        as: "Player"
-                      }
-                   },
-                   {
-                       $unwind:"$Player"
-                   },
-                   
-                   {
-                    $lookup:{
-                        from: "competitions",
-                        localField: "competitionId",
-                        foreignField: "_id",
-                        as: "Comp"
-                      }
-                   },
-                   {
-                       $unwind:"$Comp"
-                   },
-                  
-                 {
-                       $match:query1
-                   }
-              ])
-              let option = {
-                limit: req.body.limit || 10,
-                page: req.body.page || 1
-            }
-              followComp.competitionFollow.aggregatePaginate(aggregate, option, (err, result, pages, total) => {
-                if (!err) {
-                    const success = {
-                        "docs": result,
-                        "total": total,
-                        "limit": option.limit,
-                        "page": option.page,
-                        "pages": pages,
+                        $lookup: {
+                            from: "users",
+                            localField: "playerId",
+                            foreignField: "_id",
+                            as: "Player"
+                        }
+                    },
+                    {
+                        $unwind: "$Player"
+                    },
+
+                    {
+                        $lookup: {
+                            from: "competitions",
+                            localField: "competitionId",
+                            foreignField: "_id",
+                            as: "Comp"
+                        }
+                    },
+                    {
+                        $unwind: "$Comp"
+                    },
+
+                    {
+                        $match: query1
                     }
-                    console.log(success)
-                    if (success)
-                        return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.TEAM_DETAIL, success)
+                ])
+                let option = {
+                    limit: req.body.limit || 10,
+                    page: req.body.page || 1
                 }
-                else {
-                    return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
-                }
-            })
+                followComp.competitionFollow.aggregatePaginate(aggregate, option, (err, result, pages, total) => {
+                    if (!err) {
+                        const success = {
+                            "docs": result,
+                            "total": total,
+                            "limit": option.limit,
+                            "page": option.page,
+                            "pages": pages,
+                        }
+                        console.log(success)
+                        if (success)
+                            return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.TEAM_DETAIL, success)
+                    }
+                    else {
+                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                    }
+                })
             }
-    })
+        })
 }
 
 
@@ -1074,6 +1153,95 @@ const approveCompetition = (req, res) => {
         })
 }
 
+
+
+//-----------------Edit Team In Competition------------
+const editTeamInCompetition = (req, res) => {
+    if (!req.query.userId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.ORG_IS_REQ)
+    else if (!req.query.competitionId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, "Competition is required")
+    else if (!req.query.teamId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.TEAM_IS_REQUIRED)
+    else
+        Competition.competition.findById({ _id: req.query.competitionId, organizer: req.query.userId }, (err, success) => {
+            if (err)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
+            else if (!success)
+                return Response.sendResponse(res, responseCode.NOT_FOUND, "Competition not found");
+            Team.findOne({ competitionId: req.query.competitionId, organizer: req.query.userId, _id: req.query.teamId }, (err, success1) => {
+                if (err)
+                    return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
+                else if (!success1)
+                    return Response.sendResponse(res, responseCode.BAD_REQUEST, "Team Not Found");
+                else
+                    message.uploadImg(req.body.image, (err, result) => {
+                        console.log("err", err, "result", result);
+                        if (err || !result.secure_url)
+                            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, "Image not uploaded successfully");
+                        else
+                            if (result.secure_url)
+                                req.body.imageURL = result.secure_url;
+
+                        Team.findOneAndUpdate({ competitionId: req.query.competitionId, organizer: req.query.userId, _id: req.query.teamId }, req.body, { new: true }, (err2, success2) => {
+                            if (err2 || !success2)
+                                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err2);
+                            else
+                                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Team detail updated successfully", success2);
+                        })
+                    })
+            })
+        })
+}
+
+//Get List of Player of A team
+const getListOfPlayerInTeam = (req, res) => {
+    // let flag = Validator(req.body, [], [], ["teamId", "userId", "competitionId"]);
+    // if (flag)
+    //     return Response.sendResponse(res, flag[0], flag[1]);
+    // else {
+    //     let query = {
+    //         _id: ObjectId(req.body.teamId),
+    //         organizer: ObjectId(req.body.userId),
+    //         competitionId: ObjectId(req.body.competitionId),
+    //         visibleStatus: "ACTIVE"
+    //     }
+    //     Team.findOne(query, (err, success) => {
+    //         if (err)
+    //             return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+    //         else if (!success)
+    //             return Response.sendResponse(res, responseCode.NOT_FOUND, "Team not found")
+    //         else {
+    //             Team.aggregate([
+    //                 {
+    //                     $match: query
+    //                 },
+    //                 {
+    //                     $unwind: "$playerId"
+    //                 },
+    //                 {
+    //                     $lookup: {
+    //                         from: "users",
+    //                         localField: "playerId",
+    //                         foreignField: "_id",
+    //                         as: "Player"
+    //                     }
+    //                 },
+    //                 {
+    //                     $unwind:"$Player"
+    //                 },
+    //                 {
+    //                     $project:{
+    //                         Player
+    //                     }
+    //                 }
+    //             ]).exec((err, success) => {
+    //                 res.send(success)
+    //             })
+    //         }
+    //     })
+    // }
+}
 module.exports = {
     addNewCompetition,
     getACompetition,
@@ -1103,6 +1271,12 @@ module.exports = {
     unPublishCompetition,
     getRegistrationDetail,
 
-    searchAndFilterPlayerList
+    searchAndFilterPlayerList,
+
+    getTeamInCompetition,
+    deleteTeam,
+    editTeamInCompetition,
+
+    getListOfPlayerInTeam
 
 }

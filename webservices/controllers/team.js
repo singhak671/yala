@@ -11,6 +11,7 @@ const ObjectId = mongoose.Types.ObjectId;
 const Follow = require("../../models/compFollowOrgPlay");
 const General = require("../../models/generalSchema.js")
 const subscriptionValidator = require('../../middlewares/validation').validate_subscription_plan;
+const media = require("../../global_functions/uploadMedia");
 //---------------------------Select competiton----------------------------------------------
 const selectCompition = (req, res) => {
     console.log("ghfghdhfh", req.query.userId)
@@ -88,7 +89,8 @@ const createTeam = (req, res) => {
                             req.body.organizer = req.query.userId
                         let query = {
                             organizer: req.body.organizer,
-                            email: req.body.email
+                            email: req.body.email,
+                            deleteStatus:"ACTIVE"
                         }
                         teamServices.findTeam(query, (err, success) => {
                             if (err)
@@ -98,7 +100,7 @@ const createTeam = (req, res) => {
                             else {
                                 message.uploadImg(req.body.imageURL, (err, result) => {
                                     if (result) {
-                                        console.log("iiiiiiiiiiiiiiiiiiii", result.secure_url)
+                                        console.log("iiiiiiiiiiiiiiiiiiii", result)
                                         req.body.imageURL = result.secure_url
                                         console.log("req.body---->>>", req.body)
                                         teamServices.addTeam(req.body, (err, success) => {
@@ -141,7 +143,8 @@ const getDetailOfTeam = (req, res) => {
                             req.body.organizer = req.query.userId
                         let query = {
                             _id: ObjectId(req.query.teamId),
-                            organizer: ObjectId(req.body.organizer)
+                            organizer: ObjectId(req.body.organizer),
+                            visibleStatus:"ACTIVE"
                         }
                         console.log(query)
                         Team.aggregate([
@@ -191,13 +194,15 @@ const filterTeam = (req, res) => {
                         else
                             req.body.organizer = req.query.userId
                         let query = {
-                            organizer: ObjectId(req.body.organizer)
+                            organizer: ObjectId(req.body.organizer),
+                            visibleStatus:"ACTIVE"
                         }
                         if (req.body.search) {
                             let search = new RegExp("^" + req.body.search)
                             query = {
                                 organizer: ObjectId(req.body.organizer),
-                                $or: [{ teamName: {$regex:search,$options:'i'} }, { email: {$regex:search,$options:'i'} }, { competitionName: {$regex:search,$options:'i'} }, { venue: {$regex:search,$options:'i'} }, { sports: {$regex:search,$options:'i'} }, { status: {$regex:search,$options:'i'} }]
+                                visibleStatus:"ACTIVE",
+                                $or: [{ teamName: {$regex:search,$options:'i'} }, { email: {$regex:search,$options:'i'} }, { competitionName: {$regex:search,$options:'i'} }, { "teamDynamicDetail.venue": {$regex:search,$options:'i'} }, { "Comp.sports": {$regex:search,$options:'i'} }, { status: {$regex:search,$options:'i'} }]
                             }
                         }
                         if (req.body.status)
@@ -243,7 +248,7 @@ const filterTeam = (req, res) => {
                                     "pages": pages,
                                 }
                                 console.log(success)
-                                if (success.docs.length)
+                                if (success)
                                     return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.TEAM_DETAIL, success)
                                 else
                                     return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NO_TEAM_FOUND)
@@ -259,7 +264,77 @@ const filterTeam = (req, res) => {
         }
     })
 }
+//----------------------Print Team Details----------------
+const listOfTeam = (req, res) => {
+            if (!req.query.userId)
+                return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.ORGANIZER_IS_REQUIRED)
+            else {
+                userServices.findUser({ _id: req.query.userId }, (err, success) => {
+                    if (err || !success)
+                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                    else {
+                        if (success.employeeRole == 'COORDINATOR' || success.employeeRole == "ADMINSTRATOR")
+                            req.body.organizer = success.employeerId
+                        else
+                            req.body.organizer = req.query.userId
+                        let query = {
+                            organizer: ObjectId(req.body.organizer),
+                            visibleStatus:"ACTIVE"
+                        }
+                        if (req.body.search) {
+                            let search = new RegExp("^" + req.body.search)
+                            query = {
+                                organizer: ObjectId(req.body.organizer),
+                                visibleStatus:"ACTIVE",
+                                $or: [{ teamName: {$regex:search,$options:'i'} }, { email: {$regex:search,$options:'i'} }, { competitionName: {$regex:search,$options:'i'} }, { venue: {$regex:search,$options:'i'} }, { sports: {$regex:search,$options:'i'} }, { status: {$regex:search,$options:'i'} }]
+                            }
+                        }
+                        if (req.body.status)
+                            query.status = req.body.status
+                        if (req.body.competitionName)
+                            query.competitionName = req.body.competitionName
+                        if (req.body.division)
+                            query["Comp.division"] = { $in: req.body.division }
+                        if (req.body.sports)
+                            query["Comp.sports"] = { $in: req.body.sports }
+                        if (req.body.venue)
+                            query.venue = req.body.venue
+                        if (req.body.competitionStatus)
+                            query["Comp.status"] = req.body.competitionStatus
+                        if (req.body.period)
+                            query["Comp.period"] = req.body.period
+                        console.log("query-->>", query)
+                        let option = {
+                            limit: req.body.limit || 10,
+                            page: req.body.page || 1
+                        }
+                         Team.aggregate([
+                            {
+                                $lookup: {
+                                    from: "competitions",
+                                    localField: "competitionId",
+                                    foreignField: "_id",
+                                    as: "Comp"
+                                }
+                            }, {
+                                $unwind: "$Comp"
+                            },
+                            { $match: query },
+                            { $sort: { createdAt: -1 } }
+                        ]).exec((err,success)=>{
+                            if(err)
+                            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                            else if(!success)
+                            return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NO_TEAM_FOUND)
+                            else
+                            return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.TEAM_DETAIL, success)
+                        })
+                    }
+                })
 
+            }
+    }
+  
 //------------------------Select Team---------------------------------------
 const selectTeam = (req, res) => {
     if (!req.query.userId)
@@ -274,7 +349,8 @@ const selectTeam = (req, res) => {
                 else
                     req.body.organizer = req.query.userId
                 let query = {
-                    organizer: req.body.organizer
+                    organizer: req.body.organizer,
+                    visibleStatus:"ACTIVE"
                 }
                 let select = {
                     teamName: 1
@@ -293,41 +369,7 @@ const selectTeam = (req, res) => {
     }
 }
 const tryyyy = (req, res) => {
-    // teamServices.findTeam({_id:req.body.teamId},(err,success)=>{
-    //     if(err||!success)
-    //     return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-    //     else{
-    //         console.log(new Date(req.body.dob))
-    //         General.division.aggregate([ 
-    //             {
-    //                 $match:{
-    //                    divisionName:success.division
-    //                 }
-    //             },
-    //             { $project: { dateDifference: { $divide: [ { $subtract: [ "$date",new Date(req.body.dob) ] }, (60*60*24*1000*366) ] } ,gender:1,minAge:1,maxAge:1,divisionName:1}},
-    //         ],(err,success)=>{
-    //             console.log(success[0])
-    //             if(err||!success)
-    //             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-    //             else{
-    //                 if(success[0].gender=="male"||success[0].gender=="female"||success[0].gender=="co-ed"){
-    //                     if(req.body.gender!=success[0].gender&&success[0].gender!="co-ed")
-    //                     return Response.sendResponse(res,responseCode.BAD_REQUEST,`"${success[0].gender}" are allowed only for division "${success[0].divisionName}" !`)
-    //                   else{
-    //                       console.log("yieepieee")
-    //                       console.log("dsffj",parseInt(success[0].dateDifference))
-    //                       if(success[0].dateDifference<success[0].minAge||success[0].dateDifference>success[0].maxAge)
-    //                       return Response.sendResponse(res,responseCode.BAD_REQUEST,`"${parseInt(success[0].dateDifference)}" year age players are not allowed for  division "${success[0].divisionName}" !`)
-    //                       else{
-    //                           console.log("yippieee")
-    //                       }
-    //                   }
-    //                 }
-    //             }
-    //         })
-
-    //     }
-    // })
+ 
 }
 //---------------------------Add player-----------------------------------------------
 const addPlayer = (req, res) => {
@@ -389,8 +431,10 @@ const addPlayer = (req, res) => {
                                                         req.body.playerDetail.role = ["PLAYER"],
                                                             req.body.playerDetail.phoneVerified = true
                                                         message.uploadImg(req.body.playerDetail.image, (err, res1) => {
+                                                            console.log("res--->>",res1)
                                                             if (res1) {
                                                                 req.body.playerDetail.image = res1.secure_url
+                                                                console.log(req.body.playerDetail)
                                                                 userServices.addUser(req.body.playerDetail, (err, success) => {
                                                                     if (err)
                                                                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
@@ -506,6 +550,8 @@ const getListOfPlayer = (req, res) => {
                     query["Comp.status"] = req.body.competitionStatus
                 if (req.body.division)
                     query["Comp.division"] = { $in: req.body.division }
+                if(req.body.sports)
+                query["Comp.sports"]={$in:req.body.sports}
                 console.log("query-->>", query)
                 let option = {
                     limit: req.body.limit || 10,
@@ -547,7 +593,7 @@ const getListOfPlayer = (req, res) => {
                             "pages": pages,
                         }
                         console.log(success)
-                        if (success.docs.length)
+                        if (success)
                             return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.LIST_OF_PLAYER, success)
                         else
                             return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.PLAYER_NOT_FOUND)
@@ -556,6 +602,82 @@ const getListOfPlayer = (req, res) => {
                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
                     }
                 })
+            }
+        })
+    }
+}
+//------------------List of Player Without pagination for Print--------
+const listOfPlayer=(req,res)=>{
+        if (!req.query.userId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.ORGANIZER_IS_REQUIRED)
+    else {
+        userServices.findUser({ _id: req.query.userId }, (err, success) => {
+            if (err || !success)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+            else {
+                if (success.employeeRole == 'COORDINATOR' || success.employeeRole == "ADMINSTRATOR")
+                    req.body.organizer = success.employeerId
+                else
+                    req.body.organizer = req.query.userId
+                let query = {
+                    organizer: ObjectId(req.body.organizer),
+                    "registration": true,
+                }
+                if (req.body.search) {
+                    let search = new RegExp("^" + req.body.search)
+                    query = {
+                        organizer: ObjectId(req.body.organizer),
+                        "registration": true,
+                        $or: [{ teamName: {$regex:search,$options:'i'} }, { "Comp.competitionName": {$regex:search,$options:'i'} }, { "Player.gender": {$regex:search,$options:'i'} }, { status: {$regex:search,$options:'i'} }, { "Player.firstName": {$regex:search,$options:'i'} }, { "Comp.division": {$regex:search,$options:'i'} }, { "Player.email": {$regex:search,$options:'i'} }]
+                    }
+                }
+                if (req.body.teamName)
+                    query["teamName"] = req.body.teamName
+                if (req.body.status)
+                    query["status"] = req.body.status
+                if (req.body.competitionName)
+                    query["Comp.competitionName"] = req.body.competitionName
+                if (req.body.gender)
+                    query["Player.gender"] = req.body.gender
+                if (req.body.competitionStatus)
+                    query["Comp.status"] = req.body.competitionStatus
+                if (req.body.division)
+                    query["Comp.division"] = { $in: req.body.division }
+                if(req.body.sports)
+                query["Comp.sports"]={$in:req.body.sports}
+                console.log("query-->>", query)
+                Follow.competitionFollow.aggregate([
+                    {
+                        $lookup: {
+                            from: "users",
+                            localField: "playerId",
+                            foreignField: "_id",
+                            as: "Player"
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: "competitions",
+                            localField: "competitionId",
+                            foreignField: "_id",
+                            as: "Comp"
+                        }
+                    },
+                    {
+                        $unwind: "$Comp"
+                    },
+                    { $unwind: "$Player" },
+                    { $match: query },
+                    { $sort: { createdAt: -1 } }
+                ]).exec((err,success)=>{
+                    if(err)
+                    return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+                    else if(!success.length)
+                    return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.PLAYER_NOT_FOUND)
+                    else
+                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.LIST_OF_PLAYER,success)
+                })
+               
             }
         })
     }
@@ -629,6 +751,9 @@ module.exports = {
     addPlayer,
     getListOfPlayer,
     getDetailOfPlayer,
+
+    listOfTeam,
+    listOfPlayer
 }
 
 

@@ -138,10 +138,13 @@ const getListOfClub=(req,res)=>{
              }
              if(req.body.search){
                 let search=new RegExp("^"+req.body.search)
-                 query={
-                    clubName:{$regex:search,$options:'i'},
-                    userId:req.query.userId
-                }
+                query.$or=[
+                    {clubName:{$regex:search,$options:'i'}},
+                    {phone:{$regex:search,$options:'i'}},
+                    {email:{$regex:search,$options:'i'}},
+                    {headquaters:{$regex:search,$options:'i'}},
+                    {status:{$regex:search,$options:'i'}}
+                 ]
             }
             console.log("query--->>",query)
           let options = {
@@ -372,10 +375,14 @@ const getListOfSponsor=(req,res)=>{
                 }
                 if(req.body.search){
                     let search=new RegExp("^"+req.body.search)
-                     query={
-                        sponsorName:{$regex:search,$options:'i'},
-                        userId:req.body.userId
-                    }
+                    query.$or=[
+                        {sponsorName:{$regex:search,$options:'i'}},
+                        {description:{$regex:search,$options:'i'}},
+                        {link:{$regex:search,$options:'i'}},
+                        {status:{$regex:search,$options:'i'}},
+                        {$where: `/^${req.body.search}.*/.test(this.position)`},
+                        {"visibleIn.competitionName":{$regex:search,$options:'i'}},
+                     ]
                 }
                 console.log("query--->>",query)
                 let options = {
@@ -626,10 +633,11 @@ const getListOfVenue=(req,res)=>{
                     }
                     if(req.body.search){
                         let search=new RegExp("^"+req.body.search)
-                         query={
-                            venue:{$regex:search,$options:'i'},
-                            userId:req.body.userId
-                        }
+                         query.$or=[
+                            {venue:{$regex:search,$options:'i'}},
+                           { status:{$regex:search,$options:'i'}},
+                            {"club.clubName":{$regex:search,$options:'i'}}
+                         ]
                     }
                     console.log("query--->>",query)
                     let options = {
@@ -823,10 +831,14 @@ const getListOfReferee=(req,res)=>{
                 }
                 if(req.body.search){
                     let search=new RegExp("^"+req.body.search)
-                     query={
-                        name:{$regex:search,$options:'i'},
-                        userId:req.body.userId
-                    }
+                    query.$or=[
+                        {name:{$regex:search,$options:'i'}},
+                        {mobileNumber:{$regex:search,$options:'i'}},
+                        {email:{$regex:search,$options:'i'}},
+                        {dob:{$regex:search,$options:'i'}},
+                        {gender:{$regex:search,$options:'i'}},
+                        {activities:{$regex:search,$options:'i'}},
+                     ]
                 }
                 console.log("query--->>",query)
                 let options = {

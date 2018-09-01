@@ -54,7 +54,7 @@ const sendMessage = (req, res) => {
                     else if (success==false)
                         return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
                     else {  console.log("}}}}}}}}}}}}}77}}}}}",success1.playerId.email)
-                       Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success1);
+                       Response.sendResponse(res, responseCode.EVERYTHING_IS_OK,"Message send successfully", success1);
 
                        //================save notifications============== 
                        obj.message=`You have a new message from ${success1.organizerId.firstName+" "+success1.organizerId.lastName} in your YALA account`;
@@ -100,7 +100,7 @@ const sendMessage = (req, res) => {
                         return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
                     else {
                         //console.log("anurag")
-                        Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success1);
+                        Response.sendResponse(res, responseCode.EVERYTHING_IS_OK,"Message send successfully", success1);
                         obj.message=`You have a new message from ${success1.playerId.firstName+" "+success1.playerId.lastName} in your YALA account`;
                         Notification.findOneAndUpdate({userId:req.body.organizerId},{$push:{notification:obj}},{new:true,multi:true,upsert:true},(err,success)=>{});
                         console.log("}}}}}}}}}}}}}}}}}}",success1.organizerId.email)

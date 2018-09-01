@@ -50,8 +50,11 @@ router.post('/competition/configPlayerFields',competitionController.configPlayer
 router.post('/competition/getPlayerFields',competitionController.getPlayerFields);
 router.post('/competition/createTeamInCompetition',competitionController.createTeamInCompetition);
 
+router.post('/competition/getTeamInCompetition',competitionController.getTeamInCompetition)
+router.get('/competition/deleteTeam',AUTH.verifyToken,competitionController.deleteTeam)
+router.post('/competition/editTeamInCompetition',competitionController.editTeamInCompetition)
 
-
+router.post('/competition/getListOfPlayerInTeam',competitionController.getListOfPlayerInTeam)
 
 router.post('/addDivision',generalController.addDivision);
 router.post('/getDivision',generalController.getDivision);

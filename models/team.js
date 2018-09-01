@@ -48,6 +48,10 @@ let createTeamInComp = new Schema({
     },
     teamDynamicDetail:{
         type:Object
+    },
+    visibleStatus:{
+        type:String,
+        default:"ACTIVE"
     }
 }, {
         timestamps: true

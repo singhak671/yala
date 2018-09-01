@@ -29,12 +29,7 @@ module.exports = {
                 if (!request_body['email']){                  
                     return [responseCode.BAD_REQUEST,responseMsg.EMAIL_IS_REQ];
                 }
-                // else {                                    
-                //     if(!validator.isEmail(request_body['email'])){
-                //         return [responseCode.BAD_REQUEST,responseMsg.CORRECT_EMAIL_ID];
-                //     }
-                //     return false;
-                // }
+               
                 break;
             case 'newPassword':
             if (!request_body['newPassword']) {
@@ -70,6 +65,11 @@ module.exports = {
             case 'userId':
             if(!request_body['userId']){
                 return [responseCode.BAD_REQUEST,responseMsg.USER_IS_REQ]
+            }
+            break;
+            case 'teamId':
+            if(!request_body['teamId']){
+                return [responseCode.BAD_REQUEST,"Team is required"]
             }
             break;
             case 'cardDetails':
@@ -165,7 +165,7 @@ validate_communication_credentials:(userId,access_parameters,callback)=>{
                 if(err)
                     return callback(err,[responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err]);
                 else if(!success)
-                        return callback(err,[responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS]);
+                        return callback(err,[responseCode.NOT_FOUND,"Please setup your SMTP credentials first"]);
                     else if( !success.smtpUsername || !success.smtpPassword)
                             return callback(err,[responseCode.BAD_REQUEST,"Please setup your SMTP credentials first"]);
                         else{
