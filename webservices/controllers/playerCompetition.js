@@ -1152,6 +1152,41 @@ const competitionNotification = (req, res) => {
 
 
 }
+
+
+
+//------------Competition Follow or Pending------------
+const numberOfPendingApproveComp=(req,res)=>{
+    if(!req.query.userId)
+    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.USER_IS_REQ)
+    else{
+        let query={
+            playerId:req.query.userId,
+            followStatus:"APPROVED"
+        }
+        followComp.competitionFollow.count(query,(err,success)=>{
+            if(err)
+            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+            else{
+                let queryPending={
+                    playerId:req.query.userId,
+                    followStatus:"PENDING"
+                }
+               followComp.competitionFollow.count(queryPending,(err,successPending)=>{
+                   if(err)
+                   return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+                   else{
+                       let numberRequest={
+                          "approvedRequest":success,
+                          "pendingRequest":successPending
+                       }
+                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Number of approved and pending request",numberRequest)
+                   }
+               })
+            }
+        })
+    }
+}
 module.exports = {
     getAllCompetitions,
     filterCompetitions,
@@ -1162,5 +1197,6 @@ module.exports = {
     competitionNotification,
     getRegisterFormOrNot,
 
-    searchCompetition
+    searchCompetition,
+    numberOfPendingApproveComp
 }

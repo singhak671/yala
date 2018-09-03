@@ -17,4 +17,7 @@ router.post('/competition/confirmRegistration',AUTH.verifyToken,playerCompetitio
 router.post('/competition/competitionNotification',AUTH.verifyToken,playerCompetitionController.competitionNotification);
 router.post('/competition/getRegisterFormOrNot',AUTH.verifyToken,playerCompetitionController.getRegisterFormOrNot);
 router.get('/competition/searchCompetition',AUTH.verifyToken,playerCompetitionController.searchCompetition);
+
+
+router.get('/competition/numberOfPendingApproveComp',playerCompetitionController.numberOfPendingApproveComp)
 module.exports=router;
