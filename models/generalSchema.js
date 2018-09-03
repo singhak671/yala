@@ -66,7 +66,7 @@ let sportSchema=new Schema({
     divisionSchema.plugin(paginate);
     const division=mongoose.model('division',divisionSchema);
 
-
+//----------Smtp Mail and Message schema---------
     let mailMessageSchema=Schema({
         organizer:{
             type:Schema.Types.ObjectId,
@@ -80,7 +80,36 @@ let sportSchema=new Schema({
     });
     const mailMessage=mongoose.model("mailMessage",mailMessageSchema);
 
-
+//--------Payment gatway and sms schema----------
+let paymentSchema=Schema({
+    organizer:{
+        type:Schema.Types.ObjectId,
+        ref:"user"
+    },
+    paymentDetails:{
+        allowCashPayment:{type:Boolean,default:false},
+        allowPaymentOnline:{type:Boolean,default:true},
+        privateKey:String,
+        publicKey:String,
+        sellerId:String,
+        createdAt: {
+            type: Date,
+            default: Date.now
+        }
+    },
+    smsDetail:{
+        sid:String,
+        auth_token:String,
+        number:String,
+        createdAt: {
+            type: Date,
+            default: Date.now
+        }
+    }},
+    {
+        timestamps:true
+   });
+   const paymentSms=mongoose.model("paymentSms",paymentSchema);
 
     //=========================CHAT SCHEMA ==================================
     let chatSchema = new Schema({ 
@@ -119,5 +148,7 @@ let sportSchema=new Schema({
         period:period,
         division:division,
         mailMessage:mailMessage,
-        chat:chat
+        chat:chat,
+        paymentSms:paymentSms
+        
     }

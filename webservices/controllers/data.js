@@ -22,10 +22,15 @@ const tryyyy=(req,res)=>{
         // else
         // return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.EVERYTHING_IS_OK,success)
     // })
-    var mailList=["shrivastavaankita21sept@gmail.com","anny71014.shrivastava@gmail.com","anny71014.shrivastav@gmail.com"]
-   message.sendMailToAll(mailList,"hIIIII",(err,success)=>{
-       console.log(success)
-   },"5b55721fd6e47a46a4516f87")
+//     var mailList=["shrivastavaankita21sept@gmail.com","anny71014.shrivastava@gmail.com","anny71014.shrivastav@gmail.com"]
+//    message.sendMailToAll(mailList,"hIIIII",(err,success)=>{
+//        console.log(success)
+//    },"5b55721fd6e47a46a4516f87")
+ message.getPrivateKey((req.query.userId),(err,success)=>{
+   if(success){
+     console.log("success--->>",success)
+    }
+ })
 }
 const accessPlanData=(req,res)=>{
     subscriptionValidator(req.query,["data"],(err,flag)=>{

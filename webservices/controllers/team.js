@@ -442,7 +442,7 @@ const addPlayer = (req, res) => {
                                                                         let set = {
                                                                             $push: {
                                                                                 playerFollowStatus: {
-                                                                                    playerId: success._id,
+                                                                                    playerId: (success._id).toString(),
                                                                                     followStatus: "APPROVED"
                                                                                 }
                                                                             }

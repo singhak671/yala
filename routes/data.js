@@ -47,7 +47,7 @@ router.post('/addPlayer',AUTH.verifyToken,teamController.addPlayer)
 router.post('/getListOfPlayer',AUTH.verifyToken,teamController.getListOfPlayer)
 router.get('/getDetailOfPlayer',AUTH.verifyToken,teamController.getDetailOfPlayer)
 
-// router.post('/addSport',AUTH.verifyToken,dataController.addSport)
+router.post('/tryyyy',AUTH.verifyToken,dataController.tryyyy)
 // router.post("/getListOfSport",AUTH.verifyToken,dataController.getListOfSport)
 // router.get('/findSport',AUTH.verifyToken,dataController.findSport)
 // router.post('/editSport',AUTH.verifyToken,dataController.editSport)

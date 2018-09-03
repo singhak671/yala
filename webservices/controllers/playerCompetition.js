@@ -643,14 +643,12 @@ const filterCompetitions = (req, res) => {
                                     }
                                 }
                                 else{
-                                    console.log("hhhhhhhh")
                                     success.docs[i].playerFollow="NOT FOLLOWED"
                                 }
                             }
                             
                         }
                         else{
-                            console.log("aaaaaaaa")
                             success.docs[i].playerFollow="NOT FOLLOWED"
                         }
                         
@@ -1154,7 +1152,6 @@ const competitionNotification = (req, res) => {
 }
 
 
-
 //------------Competition Follow or Pending------------
 const numberOfPendingApproveComp=(req,res)=>{
     if(!req.query.userId)
@@ -1198,5 +1195,7 @@ module.exports = {
     getRegisterFormOrNot,
 
     searchCompetition,
+
+
     numberOfPendingApproveComp
 }

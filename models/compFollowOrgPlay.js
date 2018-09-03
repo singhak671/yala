@@ -20,8 +20,7 @@ let competitionFollowSchema = new Schema({
     },
     status:{
         type:String,
-        default:"CONFIRMED",
-        uppercase:true
+        default:"confirmed",
     },
     teamId:{
         type:Schema.Types.ObjectId,ref:"createTeamInCompetition"

@@ -55,6 +55,8 @@ router.get('/competition/deleteTeam',AUTH.verifyToken,competitionController.dele
 router.post('/competition/editTeamInCompetition',competitionController.editTeamInCompetition)
 
 router.post('/competition/getListOfPlayerInTeam',competitionController.getListOfPlayerInTeam)
+router.post('/competition/editPlayerInComp',AUTH.verifyToken,competitionController.editPlayerInComp)
+router.get('/competition/deletePlayer',AUTH.verifyToken,competitionController.deletePlayer)
 
 router.post('/addDivision',generalController.addDivision);
 router.post('/getDivision',generalController.getDivision);
@@ -83,6 +85,9 @@ router.post('/deleteSport',AUTH.verifyToken,generalController.deleteSport);
 
 router.post('/addSmtpDetails',AUTH.verifyToken,generalController.addSMTPDetails);
 router.post('/getMailMessageDetails',generalController.getMailMessageDetails);
+
+router.post('/addPaymentDetail',AUTH.verifyToken,generalController.addPaymentDetail)
+router.post('/getPublicKey',AUTH.verifyToken,generalController.getPublicKey)
 
 
 

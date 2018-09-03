@@ -34,29 +34,62 @@ module.exports = {
     //                 callback(response);
     //             })
     // },
-    sendSMS: (message, code, number, callback) => {
-        console.log("Mobile number", code + number)
-        var a = 52;
-        let client = new twilio(config.twilio.sid, config.twilio.auth_token);
-        client.messages.create({
-            body: message,
-            to: code + number, // Text this number
-            from: config.twilio.number // From a valid Twilio number
-        })
-            .then((message) => {
-                console.log("@@@@@@@@@@@@@@@@@@", message);
-                callback(null, message.sid);
+    sendSMS: (message, code, number, callback, userId) => {
+        if (userId) {
+            General.paymentSms.findOne({ organizer: userId }, { smsDetail: 1 }, (err, success) => {
+                console.log(success.smsDetail)
+                if (success) {
+                    let client = new twilio(success.smsDetail.sid, success.smsDetail.auth_token)
+                    client.messages.create({
+                        body: message,
+                        to: code + number, // Text this number
+                        from: success.smsDetail.number // From a valid Twilio number
+                    })
+                        .then((message) => {
+                            console.log("@@@@@@@@@@@@@@@@@@", message);
+                            callback(null, message.sid);
+                        })
+                        .catch((response) => {
+                            console.log(response)
+                            callback(response);
+                        })
+                }
             })
-            .catch((response) => {
-                console.log(response)
-                callback(response);
+        }
+        else {
+            console.log("Mobile number", code + number)
+            var a = 52;
+            let client = new twilio(config.twilio.sid, config.twilio.auth_token);
+            client.messages.create({
+                body: message,
+                to: code + number, // Text this number
+                from: config.twilio.number // From a valid Twilio number
             })
+                .then((message) => {
+                    console.log("@@@@@@@@@@@@@@@@@@", message);
+                    console.log("message sent successfully", message);
+                    callback(null, message.sid);
+                })
+                .catch((response) => {
+                    console.log(response)
+                    callback(response);
+                })
+        }
+
     },
     getOTP: () => {
         var val = Math.floor(100000 + Math.random() * 9000);
         console.log(val);
         return val;
 
+    },
+    getPrivateKey:(userId,callback)=>{
+       General.paymentSms.findOne({organizer:userId},{paymentDetails:1},(err,success)=>{
+           console.log(success)
+           if(success){
+              callback(err,success);
+           }
+       })
     },
     sendMail: (email, subject, text, callback, userId) => {
         console.log("I have comed for email*********************_____________________", email)
@@ -118,7 +151,7 @@ module.exports = {
             else
                 cb(true, null)
         }, {
-            resource_type: 'auto',
+                resource_type: 'auto',
             });
     },
     genratePassword: () => {
@@ -139,7 +172,7 @@ module.exports = {
             else
                 cb(true, null)
         }, {
-            resource_type: 'auto', public_id: publicId
+                resource_type: 'auto', public_id: publicId
             });
     },
     deleteUploadedFile: (publicId, cb) => {
@@ -180,7 +213,7 @@ module.exports = {
             notification: {
                 title: 'YALA Sports App',
                 body: messageBody,
-                data:{
+                data: {
                     "message": messageBody
                 },
             }
@@ -249,7 +282,7 @@ module.exports = {
     //     // raw response
     //     //console.log(response);
     //     });
-        
+
     sendMailToAll: (maillist, message, callback, userId) => {
         console.log(maillist)
         var mailBody = {
@@ -329,23 +362,49 @@ module.exports = {
         });
 
     },
-    sendSmsToAll: (mobileNumber, body) => {
-        let client = new twilio(config.twilio.sid, config.twilio.auth_token)
-        const numbers = mobileNumber
-        console.log(numbers)
-        Promise.all(
-            numbers.map(number => {
-                return client.messages.create({
-                    body: body,
-                    to: number, // Text this number
-                    from: config.twilio.number // From a valid Twilio number
-                });
+    sendSmsToAll: (mobileNumber, body, userId) => {
+
+        if (userId) {
+            General.paymentSms.findOne({ organizer: userId }, { smsDetail: 1 }, (err, success) => {
+                console.log(success.smsDetail)
+                if (success) {
+                    let client = new twilio(success.smsDetail.sid, success.smsDetail.auth_token)
+                    const numbers = mobileNumber
+                    console.log(numbers)
+                    Promise.all(
+                        numbers.map(number => {
+                            return client.messages.create({
+                                body: body,
+                                to: number, // Text this number
+                                from: success.smsDetail.number // From a valid Twilio number
+                            });
+                        })
+                    )
+                        .then(messages => {
+                            console.log('Messages sent!', messages);
+                        })
+                        .catch(err => console.error(err));
+                }
             })
-        )
-            .then(messages => {
-                console.log('Messages sent!', messages);
-            })
-            .catch(err => console.error(err));
+        }
+        else {
+            let client = new twilio(config.twilio.sid, config.twilio.auth_token)
+            const numbers = mobileNumber
+            console.log(numbers)
+            Promise.all(
+                numbers.map(number => {
+                    return client.messages.create({
+                        body: body,
+                        to: number, // Text this number
+                        from: config.twilio.number // From a valid Twilio number
+                    });
+                })
+            )
+                .then(messages => {
+                    console.log('Messages sent!', messages);
+                })
+                .catch(err => console.error(err));
+        }
     },
 }
 
@@ -356,7 +415,7 @@ module.exports = {
 //     "sid": "AC6de757441666da8f511cdee2251d74dc",
 //     "auth_token": "3cf7b9a45f8692c5e8fe86da9e0fc382",
 //     "number":"(+1814) 277-5455"
-   
+
 // },
 
 
@@ -373,7 +432,7 @@ module.exports = {
 //     "sid": "AC6de757441666da8f511cdee2251d74dc",
 //     "auth_token": "3cf7b9a45f8692c5e8fe86da9e0fc382",
 //     "number":"(+1814) 277-5455"
-   
+
 // },
 
 
