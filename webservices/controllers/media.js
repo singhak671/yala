@@ -355,7 +355,7 @@ const mediaList = (req, res) => {
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
             else if (!success)
-                return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.USER_NOT_EXISTS)
+                return Response.sendResponse(res, responseCode.NOT_FOUND, "User not found")
             else {
                 let query = {
                     competitionId: req.query.competitionId

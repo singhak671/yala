@@ -89,14 +89,14 @@ const getAllCompetition = (req, res) => {
         if (err)
             return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
         else if (!succ)
-            return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.USER_NOT_EXISTS);
+            return Response.sendResponse(res, responseCode.NOT_FOUND, "User not foun");
 
         else
             Competition.competition.paginate({ organizer: req.body.userId }, { page: req.body.page, limit: req.body.limit }, (err, success) => {
                 if (err)
                     return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
                 if (!success)
-                    return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.USER_NOT_EXISTS);
+                    return Response.sendResponse(res, responseCode.NOT_FOUND,"User not found");
                 return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success)
             });
     })
@@ -139,7 +139,7 @@ const filterCompetition = (req, res) => {
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
             else if (!result)
-                return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.USER_NOT_EXISTS);
+                return Response.sendResponse(res, responseCode.NOT_FOUND,"User not found");
             else
                 return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, result);
         })
@@ -779,7 +779,7 @@ const configTeamFields = (req, res) => {
             // })
         }
         else {
-            return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.USER_NOT_EXISTS);
+            return Response.sendResponse(res, responseCode.NOT_FOUND,"User not found");
         }
     })
 }
@@ -852,7 +852,7 @@ const configPlayerFields = (req, res) => {
             // })
         }
         else {
-            return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.USER_NOT_EXISTS);
+            return Response.sendResponse(res, responseCode.NOT_FOUND,"User not found");
         }
     })
 }

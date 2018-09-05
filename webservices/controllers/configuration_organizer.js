@@ -17,7 +17,7 @@ const addStanding=(req,res)=>{
         if(err)
             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR);
         if(!success)
-            return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS);
+            return Response.sendResponse(res,responseCode.NOT_FOUND,"User not found");
     
         configOrganizer.standing.findOne({$or:[{userId:req.body.userId,standingName:req.body.standingName},{userId:req.body.userId,sport:req.body.sport}]},(err,success1)=>{
             console.log(err,"success1>>>>",success1);

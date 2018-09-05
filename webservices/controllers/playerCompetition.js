@@ -704,7 +704,7 @@ const followCompetition = (req, res) => {
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
             else if (!success)
-                return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.USER_NOT_EXISTS);
+                return Response.sendResponse(res, responseCode.NOT_FOUND, "User not found");
             else {
                 let firstName = success.firstName;
                 let lastName = success.lastName;
@@ -879,7 +879,7 @@ const unFollowCompetition = (req, res) => {
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
             else if (!success)
-                return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.USER_NOT_EXISTS);
+                return Response.sendResponse(res, responseCode.NOT_FOUND,"User not found");
             else
                 Competition.competition.findOneAndUpdate({ _id: req.body.competitionId, "playerFollowStatus.playerId": req.body.userId }, { $pull: { playerFollowStatus: { playerId: req.body.userId } } }, { safe: true, new: true }).lean().exec((err1, success1) => {
                     if (err1)

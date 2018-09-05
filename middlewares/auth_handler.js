@@ -27,7 +27,7 @@ const auth = {
                                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR)
                             else if(!result){
                                 console.log("User not found")
-                                return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS)
+                                return Response.sendResponse(res,responseCode.UNAUTHORIZED,responseMsg.USER_NOT_EXISTS) 
                             }
                             else{                                
                                     next();                              
