@@ -1257,20 +1257,20 @@ const getListOfPlayerInTeam = (req, res) => {
                     { $unwind: "$Player" },
                     { $match: query },
                     { $sort: { createdAt: -1 } },
-                    {
-                        $project: {
+                    // {
+                    //     $project: {
 
-                            "Player.password": 0,
-                            "Player.cardDetails": 0,
-                            "Player.competitionNotify": 0,
-                            "Player.membershipNotify": 0,
-                            "Player.venueNotify": 0,
-                            "Player.employeePermissionForCoordinator": 0,
-                            "Player.employeePermissionForAdminstartor": 0,
-                            "Player.autoRenewPlan": 0,
+                    //         "Player.password": 0,
+                    //         "Player.cardDetails": 0,
+                    //         "Player.competitionNotify": 0,
+                    //         "Player.membershipNotify": 0,
+                    //         "Player.venueNotify": 0,
+                    //         "Player.employeePermissionForCoordinator": 0,
+                    //         "Player.employeePermissionForAdminstartor": 0,
+                    //         "Player.autoRenewPlan": 0,
 
-                        }
-                    },
+                    //     }
+                    // },
 
                 ])
                 followComp.competitionFollow.aggregatePaginate(aggregate, option, (err, result, pages, total) => {
