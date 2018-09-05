@@ -352,6 +352,10 @@ const selectTeam = (req, res) => {
                     organizer: req.body.organizer,
                     visibleStatus:"ACTIVE"
                 }
+                if(req.query.competitionId){
+                    query.competitionId=req.query.competitionId
+                }
+                console.log(query)
                 let select = {
                     teamName: 1
                 }
@@ -458,7 +462,8 @@ const addPlayer = (req, res) => {
                                                                                     registration: true,
                                                                                     status: req.body.status,
                                                                                     followStatus: "APPROVED",
-                                                                                    teamName: req.body.teamName
+                                                                                    teamName: req.body.teamName,
+                                                                                    teamId:req.body.teamId
                                                                                 }
                                                                                 teamServices.addCompetitonFollow(obj, (err, success2) => {
                                                                                     if (err || !success2)

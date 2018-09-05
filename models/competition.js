@@ -75,11 +75,11 @@ let competitionSchema = new Schema({
         default: false
     },
     startDate: {
-        type: Date,
+        type: String,
         //min:Date.now(),
     },
     endDate: {
-        type: Date,
+        type: String,
         //min:Date.now(),
     },
     allowPublicToFollow: {

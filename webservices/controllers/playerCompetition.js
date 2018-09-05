@@ -570,9 +570,9 @@ const filterCompetitions = (req, res) => {
         }
         if (req.body.filterFields) {
             if (req.body.filterFields.followStatus) {
-                query.playerFollowStatus= {
-                    playerId:req.body.userId,
-                    followStatus:req.body.filterFields.followStatus
+                query.playerFollowStatus = {
+                    playerId: req.body.userId,
+                    followStatus: req.body.filterFields.followStatus
                 }
             }
             if (req.body.filterFields.sports) {
@@ -596,7 +596,7 @@ const filterCompetitions = (req, res) => {
 
         console.log("query-->>", query)
         var aggregate = Competition.competition.aggregate([
-           
+
             {
                 $lookup: {
                     from: "users",
@@ -608,8 +608,8 @@ const filterCompetitions = (req, res) => {
             {
                 $unwind: "$organizer"
             },
-             
-                { '$sort': { 'createdAt': -1 } },
+
+            { '$sort': { 'createdAt': -1 } },
 
             {
                 $match: query
@@ -629,29 +629,29 @@ const filterCompetitions = (req, res) => {
                     "pages": pages,
                 }
                 if (success) {
-                    for(i=0;i<success.docs.length;i++){
-                        if(success.docs[i].playerFollowStatus.length){
-                            for(data in success.docs[i].playerFollowStatus){
-                                if(success.docs[i].playerFollowStatus[data].playerId==req.body.userId){
-                                    if(success.docs[i].playerFollowStatus[data].followStatus=="APPROVED"){
-                                        success.docs[i].playerFollow="APPROVED"
+                    for (i = 0; i < success.docs.length; i++) {
+                        if (success.docs[i].playerFollowStatus.length) {
+                            for (data in success.docs[i].playerFollowStatus) {
+                                if (success.docs[i].playerFollowStatus[data].playerId == req.body.userId) {
+                                    if (success.docs[i].playerFollowStatus[data].followStatus == "APPROVED") {
+                                        success.docs[i].playerFollow = "APPROVED"
                                         break;
                                     }
-                                    if(success.docs[i].playerFollowStatus[data].followStatus=="PENDING"){
-                                        success.docs[i].playerFollow="PENDING";
+                                    if (success.docs[i].playerFollowStatus[data].followStatus == "PENDING") {
+                                        success.docs[i].playerFollow = "PENDING";
                                         break
                                     }
                                 }
-                                else{
-                                    success.docs[i].playerFollow="NOT FOLLOWED"
+                                else {
+                                    success.docs[i].playerFollow = "NOT FOLLOWED"
                                 }
                             }
-                            
+
                         }
-                        else{
-                            success.docs[i].playerFollow="NOT FOLLOWED"
+                        else {
+                            success.docs[i].playerFollow = "NOT FOLLOWED"
                         }
-                        
+
                     }
                     return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.LIST_OF_COMPETITION, success)
                 }
@@ -662,8 +662,38 @@ const filterCompetitions = (req, res) => {
         })
     }
 }
-
-
+//---For player--------
+// const getACompetition = (req, res) => {
+//     console.log(req.body)
+//     let flag = Validator(req.body, ['userId'], [], ["competitionId"])
+//     if (flag)
+//         return Response.sendResponse(res, flag[0], flag[1]);
+//     Competition.competition.findOne({ published:true, _id: req.body.competitionId }, (err, success) => {
+//         if (err)
+//             return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+//         else if (!success)
+//             return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
+//         else {
+//             if(success.playerFollowStatus.length){
+//               for(data in suplayerFollowStatus){
+//                   if(success.playerFollowStatus[data].playerId==req.body.userId){
+//                      if(success.playerFollowStatus[data].followStatus=="PENDING")
+//                      success.playerFollow="PENDING"
+//                      if(success.playerFollowStatus[data].followStatus=="APPROVED")
+//                      success.playerFollow="APPROVED"
+//                   }
+//                   else{
+//                     success.playerFollow="NOT FOLLOWED"
+//                   }
+//               }
+//             }
+//             else{
+//                 success.playerFollow="NOT FOLLOWED"
+//             }
+//             return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success);
+//         }
+//     });
+// }
 const followCompetition = (req, res) => {
     console.log(req.body)
     let flag = Validator(req.body, [], [], ["userId", "competitionId"])
@@ -712,8 +742,13 @@ const followCompetition = (req, res) => {
                                     .exec((error, result5) => {
                                         if (error || !result5)
                                             return Response.sendResponse(res, responseCode.BAD_REQUEST, "Player has already followed the competition", error);
-                                        else
-                                            Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success2);
+                                        else{
+                                            if(obj.followStatus=="PENDING")
+                                             Response.sendResponse(res, responseCode.EVERYTHING_IS_OK,"Request sent successfully", success2);
+                                            if(obj.followStatus=="APPROVED")
+                                            Response.sendResponse(res, responseCode.EVERYTHING_IS_OK,"Competition followed successfully", success2);
+                                        }
+                                           
                                         // User.findOne({ _id: success2.organizer },(err, success) => {
                                         //  console.log("successssssss------>>>>>.", success2.organizer);
 
@@ -858,12 +893,11 @@ const unFollowCompetition = (req, res) => {
                             else if (!success2)
                                 return Response.sendResponse(res, responseCode.NOT_FOUND, "Competition not found !");
                             else
-                                return Response.sendResponse(res, responseCode.RESOURCE_DELETED, "Successfully deleted");
+                                return Response.sendResponse(res, responseCode.RESOURCE_DELETED, "Competition unfollowed successfully");
                         })
                     }
                 })
         })
-
 }
 
 const confirmRegistration = (req, res) => {
@@ -1011,8 +1045,6 @@ const confirmRegistration = (req, res) => {
                                                                                 })
                                                                             }
                                                                         })
-
-
                                                                 }
 
                                                             })
@@ -1118,7 +1150,7 @@ const getRegisterFormOrNot = (req, res) => {
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
             else if (!success)
-                return Response.sendResponse(res, responseCode.NOT_FOUND, "data");
+                return Response.sendResponse(res, responseCode.NOT_FOUND, "Player not found");
             else {
                 return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success);
 
@@ -1147,39 +1179,37 @@ const competitionNotification = (req, res) => {
             return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Success!");
         }
     })
-
-
 }
 
 
 //------------Competition Follow or Pending------------
-const numberOfPendingApproveComp=(req,res)=>{
-    if(!req.query.userId)
-    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.USER_IS_REQ)
-    else{
-        let query={
-            playerId:req.query.userId,
-            followStatus:"APPROVED"
+const numberOfPendingApproveComp = (req, res) => {
+    if (!req.query.userId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.USER_IS_REQ)
+    else {
+        let query = {
+            playerId: req.query.userId,
+            followStatus: "APPROVED"
         }
-        followComp.competitionFollow.count(query,(err,success)=>{
-            if(err)
-            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-            else{
-                let queryPending={
-                    playerId:req.query.userId,
-                    followStatus:"PENDING"
+        followComp.competitionFollow.count(query, (err, success) => {
+            if (err)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+            else {
+                let queryPending = {
+                    playerId: req.query.userId,
+                    followStatus: "PENDING"
                 }
-               followComp.competitionFollow.count(queryPending,(err,successPending)=>{
-                   if(err)
-                   return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-                   else{
-                       let numberRequest={
-                          "approvedRequest":success,
-                          "pendingRequest":successPending
-                       }
-                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Number of approved and pending request",numberRequest)
-                   }
-               })
+                followComp.competitionFollow.count(queryPending, (err, successPending) => {
+                    if (err)
+                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                    else {
+                        let numberRequest = {
+                            "approvedRequest": success,
+                            "pendingRequest": successPending
+                        }
+                        return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Number of approved and pending request", numberRequest)
+                    }
+                })
             }
         })
     }

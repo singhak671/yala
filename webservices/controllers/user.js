@@ -31,7 +31,8 @@ const signup = (req, res) => {
 		return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.PROVIDE_DATA)
 	else {
 		var query = {
-			email: req.body.email
+			email: req.body.email,
+			mobileNumber:req.body.mobileNumber
 		}
 		userServices.findUser(query, (err, success) => {
 			if (err)
@@ -43,7 +44,7 @@ const signup = (req, res) => {
 				req.body.password = bcrypt.hashSync(req.body.password, salt)
 
 				message.sendSMS("Your verification code is " + otp, req.body.countryCode, req.body.mobileNumber, (error, sent) => {
-					if (error) {
+					if (error||!sent) {
 						console.log(error);
 						console.log("invaliddddd")
 						return Response.sendResponse(res, responseCode.UNAUTHORIZED, responseMsg.WRONG_PHONE)
@@ -221,7 +222,6 @@ const login = (req, res) => {
 						}
 					}
 				})
-
 			}
 		})
 	}
@@ -473,9 +473,7 @@ const logOut = (req, res) => {
 		query = {
 			_id: req.query._id
 		}
-		set = {
-			deviceToken: ''
-		}
+		
 		options = {
 			new: true
 		}
@@ -730,7 +728,7 @@ const getCard = (req, res) => {
 			$and: [{ _id: req.body._id }, { "cardDetails._id": req.body.cardDetails._id }]
 		}
 		console.log("gehwdgdggg", query)
-		User.findOne(query, (err, success) => {
+		User.findOne(query,{ 'cardDetails.$._id': 1 }, (err, success) => {
 			if (err)
 				return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
 			else if (!success)

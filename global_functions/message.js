@@ -9,7 +9,6 @@ var newArray = [];
 var generator = require('generate-password');
 const General = require("../models/generalSchema.js")
 var fs = require('fs');
-let pwd, usr;
 const Notification = require('../models/notification.js')
 var async = require("async");
 cloudinary.config({
@@ -18,22 +17,7 @@ cloudinary.config({
     api_secret: config.cloudinary.api_secret
 })
 module.exports = {
-    //     sendSMS: (message, number, callback) => {
-
-    //         let client = new twilio(config.twilio.sid, config.twilio.auth_token);
-    //         client.messages.create({
-    //                 body: message,
-    //                 to: "+91"+number, // Text this number
-    //                 from: config.twilio.number // From a valid Twilio number
-    //             })
-    //             .then((message) => {
-    //                 console.log("@@@@@@@@@@@@@@@@@@",message);
-    //                 callback(null, message.sid);
-    //             })
-    //             .catch((response) => {
-    //                 callback(response);
-    //             })
-    // },
+    
     sendSMS: (message, code, number, callback, userId) => {
         if (userId) {
             General.paymentSms.findOne({ organizer: userId }, { smsDetail: 1 }, (err, success) => {
@@ -83,13 +67,13 @@ module.exports = {
         return val;
 
     },
-    getPrivateKey:(userId,callback)=>{
-       General.paymentSms.findOne({organizer:userId},{paymentDetails:1},(err,success)=>{
-           console.log(success)
-           if(success){
-              callback(err,success);
-           }
-       })
+    getPrivateKey: (userId, callback) => {
+        General.paymentSms.findOne({ organizer: userId }, { paymentDetails: 1 }, (err, success) => {
+            console.log(success)
+            if (success) {
+                callback(err, success);
+            }
+        })
     },
     sendMail: (email, subject, text, callback, userId) => {
         console.log("I have comed for email*********************_____________________", email)
@@ -105,18 +89,11 @@ module.exports = {
         if (userId) {
             General.mailMessage.findOne({ organizer: userId }, (err, success) => {
                 if (success) {
-                    usr = success.smtpUsername;
-                    pwd = success.smtpPassword;
-
-                    console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%", pwd, usr);
-
-
-
                     mailer.createTransport({
                         service: 'GMAIL',
                         auth: {
-                            user: usr,
-                            pass: pwd
+                            user: success.smtpUsername,
+                            pass: success.smtpPassword
                         },
                         port: 587,
                         host: 'smtp.gmail.com'
@@ -127,7 +104,7 @@ module.exports = {
         }
 
         else {
-            console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%", config.nodemailer.user, config.nodemailer.pass);
+            console.log("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%", config.nodemailer.user, config.nodemailer.pass);
             mailer.createTransport({
                 service: 'GMAIL',
 
@@ -237,51 +214,7 @@ module.exports = {
     },
 
 
-    // var args = {
-    //     data: { 
-    //     "notification":{
-    //     "title":title,
-    //     "body":msg,
-    //     "sound":"default",
-    //     "click_action":"FCM_PLUGIN_ACTIVITY",
-    //     //"color":"#00ff00",
-    //     "icon":"icon"
-    //     },
-    //     "data":{
-    //     "param1":userId,
-    //     "param2":"valdfgdfgdfue2"
-    //     },
-    //     // "to":"ebdbZ0Zgmkc:APA91bHbHeBbT__0Oor-nZunfGBWCUw23gkBLm1FvhQ7u30dfEdEzFxKDVe71SHkt9_Y68eueGCZ7yVuGdJN_SELrJgfeYf4nz9esINvts9My8-phyFqKuFXispIuCXQq1waroXvMNP7iJz6ORYCFTNlBdp28L55Qg",
-    //     "to":token,
-    //     //"registration_ids": idArr,
-    //     "priority":"high",
-    //     "restricted_package_name":""
-    //     },
-    //     headers: { "Content-Type": "application/json", 
-    //     "Authorization":"key=AAAA846YsLE:APA91bGs1fLIptDjeCpaBamcXH1DCyebUY_EdBmtqc1vRVj5X45aI66KulP28JH5bs8g6DFtpkWbLmUPROd0FOC7oBX72Y8SglgQOFI7fLN143GDxS7aatPbPa1zmbbFpaFAeC7qoJNiM2ReM-3Z9_xsNjXtXz0rHQ"
-    //     }
-    //     };
-    //     client.post("https://fcm.googleapis.com/fcm/send", args, function (data, response) {
-    //     // parsed response body as js object
-    //     if(data.success){
-    //     console.log(`Object of noti ${JSON.stringify(data)}`);
-    //     let obj = {
-    //     userIds:[{uid:custId}],
-    //     adminID:{aid:storeId},
-    //     noti_type: 'Order', 
-    //     content: msg
-    //     };
-    //     let noti = new Noti(obj);
-    //     noti.save((er1,ress)=>{
-    //     console.log(`Error is ${JSON.stringify(er1)} result is ${JSON.stringify(ress)}`)
-    //     //response.sendResponseWithData(res, responseCode.EVERYTHING_IS_OK, 'Order has been placed successfully and confirmation code send to your mobile number.',result)
-    //     })
-    //     }else{
-    //     console.log(`Object of noti ${JSON.stringify(data)}`);
-    //     }
-    //     // raw response
-    //     //console.log(response);
-    //     });
+    
 
     sendMailToAll: (maillist, message, callback, userId) => {
         console.log(maillist)
@@ -426,8 +359,6 @@ module.exports = {
 
 
 
-
-
 // "twilio": {
 //     "sid": "AC6de757441666da8f511cdee2251d74dc",
 //     "auth_token": "3cf7b9a45f8692c5e8fe86da9e0fc382",
@@ -436,6 +367,10 @@ module.exports = {
 // },
 
 
+
 // "cloud_name": "singhanurag400", 
 // "api_key": "646765743427282", 
 // "api_secret": "HwwLwgp1zjKjZKv8_FCNMB3Vi54"
+
+
+

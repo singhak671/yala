@@ -12,8 +12,9 @@ const Team = require("../../models/team")
 const followComp = require("../../models/compFollowOrgPlay.js");
 const General = require("../../models/generalSchema.js")
 const ObjectId = mongoose.Types.ObjectId;
-
-
+const media = require("../../global_functions/uploadMedia");
+const teamServices = require('../services/teamApis');
+//------Create a competition--------------
 const addNewCompetition = (req, res) => {
     let flag = Validator(req.body, ['userId'], [], [])
     if (flag)
@@ -63,8 +64,9 @@ const addNewCompetition = (req, res) => {
         })
 }
 
-
+//------Get a detail of competition------
 const getACompetition = (req, res) => {
+    console.log(req.body)
     let flag = Validator(req.body, ['userId'], [], ["competitionId"])
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
@@ -78,6 +80,7 @@ const getACompetition = (req, res) => {
         }
     });
 }
+//--------Get List of all competition--------
 const getAllCompetition = (req, res) => {
     let flag = Validator(req.body, ['userId'], [])
     if (flag)
@@ -98,7 +101,7 @@ const getAllCompetition = (req, res) => {
             });
     })
 }
-
+//-----------Filter competition------------
 const filterCompetition = (req, res) => {
     let flag = Validator(req.body, ['userId'], [], [])
     if (flag)
@@ -164,7 +167,7 @@ const searchCompetition = (req, res) => {
     })
 }
 
-
+//--------Configure competition------------
 const configureCompetition = (req, res) => {
     // console.lo
     let flag = Validator(req.body, [], [], ["competitionId", "competitionName", "venue", "division", "period", "sports", "startDate", "endDate", "status", "club", "imageURL"])
@@ -187,6 +190,7 @@ const configureCompetition = (req, res) => {
         })
     })
 }
+//--------Add Prize-----------------
 const addPrize = (req, res) => {
     let flag = Validator(req.body, ["prizeDetails"], ["name", "value", "description"], ["competitionId"])
     if (flag)
@@ -212,6 +216,7 @@ const addPrize = (req, res) => {
         }
     });
 }
+//--------Get prize list with search---------
 const getPrizeList = (req, res) => {
     //var arrLength;
     let flag = Validator(req.query, [], [], ["competitionId"])
@@ -310,7 +315,7 @@ const getPrizeList = (req, res) => {
 
 
 }
-
+//----Edit a prize-----
 const editPrize = (req, res) => {
     //console.log(req.body.prizeDetails._id,req.body.competitionId)
     let flag = Validator(req.body, ["prizeDetails"], ["_id", "name", "value", "description"], ["competitionId"])
@@ -330,7 +335,7 @@ const editPrize = (req, res) => {
     })
 
 }
-
+//---------Get a prize-----
 const getAPrize = (req, res) => {
     let flag = Validator(req.query, [], [], ["competitionId", "prizeId"])
     if (flag)
@@ -368,7 +373,7 @@ const getAPrize = (req, res) => {
 //     })
 // }) 
 // }
-
+//-------Delete a Prize------
 const deletePrize = (req, res) => {
     let flag = Validator(req.body, ["prizeDetails"], ["_id"], ["competitionId"])
     if (flag)
@@ -383,7 +388,7 @@ const deletePrize = (req, res) => {
     })
 
 }
-
+//-----Option competition-------
 const optionCompetition = (req, res) => {
     if (!req.query.competitionId)
         return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.REQUIRED_DATA);
@@ -396,7 +401,7 @@ const optionCompetition = (req, res) => {
     })
 }
 
-
+//--------Add file --------------
 const addFile = (req, res) => {
     console.log("req.body--->>", req.body)
     let flag = Validator(req.body, ["fileDetails"], ["file", "name"], ["competitionId"])
@@ -431,6 +436,7 @@ const addFile = (req, res) => {
         });
     });
 }
+//----------Get file list----------
 const getFileList = (req, res) => {
     //var arrLength;
     let flag = Validator(req.query, [], [], ["competitionId"])
@@ -515,7 +521,7 @@ const getFileList = (req, res) => {
 
 }
 
-
+//--------------Get a file--------
 const getAFile = (req, res) => {
     let flag = Validator(req.query, [], [], ["competitionId", "fileId"])
     if (flag)
@@ -533,6 +539,7 @@ const getAFile = (req, res) => {
 
     })
 }
+//----------Edit a file---------------
 const editFile = (req, res) => {
     //console.log(req.body.prizeDetails._id,req.body.competitionId)
     let flag = Validator(req.body, ["fileDetails"], ["_id", "file", "name"], ["competitionId"]);
@@ -569,7 +576,7 @@ const editFile = (req, res) => {
 
 
 
-
+//----------Delete File------------
 const deleteFile = (req, res) => {
     //console.log(req.body.prizeDetails._id,req.body.competitionId)
     let flag = Validator(req.body, ["fileDetails"], ["_id"], ["competitionId"]);
@@ -608,11 +615,11 @@ const competitionRegistration = (req, res) => {
         if (flag1)
             return Response.sendResponse(res, flag1[0], flag1[1]);
     }
-    Competition.competition.findOne({ _id: req.body.competitionId, registrationForm: false }, (err, success2) => {
+    Competition.competition.findOne({ _id: req.body.competitionId }, (err, success2) => {
         if (err)
             return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
         else if (!success2)
-            return Response.sendResponse(res, responseCode.NOT_FOUND, "competitionId not found or registration has already done!");
+            return Response.sendResponse(res, responseCode.NOT_FOUND, "competition not found or registration has already done!");
         else
             if (success2.organizer == req.body.userId) {
                 req.body.organizer = req.body.userId;
@@ -1252,6 +1259,7 @@ const getListOfPlayerInTeam = (req, res) => {
                     { $sort: { createdAt: -1 } },
                     {
                         $project: {
+
                             "Player.password": 0,
                             "Player.cardDetails": 0,
                             "Player.competitionNotify": 0,
@@ -1260,7 +1268,7 @@ const getListOfPlayerInTeam = (req, res) => {
                             "Player.employeePermissionForCoordinator": 0,
                             "Player.employeePermissionForAdminstartor": 0,
                             "Player.autoRenewPlan": 0,
-                            _id: 0
+
                         }
                     },
 
@@ -1290,144 +1298,203 @@ const getListOfPlayerInTeam = (req, res) => {
 }
 
 //----------Edit Player in Competition-----------
-const editPlayerInComp=(req,res)=>{
-    if(!req.query.userId)
-    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORG_IS_REQ)
-    else if(!req.query.playerId)
-    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.PLAYER_IS_REQUIRED)
-    else if(!req.body.competitionId)
-    return Response.sendResponse(res,responseCode.BAD_REQUEST,"Competition is required")
-    else{
-        Competition.competition.findOne({_id:req.body.competitionId},{},(err,success)=>{
+
+const editPlayerInComp = (req, res) => {
+    console.log(req.body)
+    if (!req.query.userId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.ORG_IS_REQ)
+    else if (!req.query.playerId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.PLAYER_IS_REQUIRED)
+    else if (!req.query._id)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, "Player id is required")
+    else {
+        followComp.competitionFollow.findOne({ playerId: req.query.playerId, organizer: req.query.userId, _id: req.query._id }, (err, success) => {
             if (err || !success)
-            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
-            else{
-                console.log(new Date(req.body.playerDetail.dob))
-                General.division.aggregate([
-                    {
-                        $match: {
-                            divisionName: success.division
-                        }
-                    },
-                    { $project: { dateDifference: { $divide: [{ $subtract: ["$date", new Date(req.body.playerDetail.dob)] }, (60 * 60 * 24 * 1000 * 366)] }, gender: 1, minAge: 1, maxAge: 1, divisionName: 1 } },
-                ], (err, success) => {
-                    console.log(success[0])
-                    if (err || !success)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR)
+            else {
+                Competition.competition.findOneAndUpdate({ _id: success.competitionId }, { $pull: { playerFollowStatus: { playerId: req.query.playerId } } }, { new: true }, (err, success1) => {
+                    if (err || !success1)
                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
                     else {
-                        if (success[0].gender == "male" || success[0].gender == "female" || success[0].gender == "co-ed") {
-                            if (req.body.playerDetail.gender != success[0].gender && success[0].gender != "co-ed")
-                                return Response.sendResponse(res, responseCode.BAD_REQUEST, `"${success[0].gender}" are allowed only for Competition "${req.body.competitionName}" !`)
+                        if (success.teamId) {
+                            Team.findOneAndUpdate({ _id: success.teamId }, { $pull: { playerId: req.query.playerId } }, { new: true }, (err, success2) => {
+                                if (err)
+                                    console.log(err)
+                                else
+                                    console.log("success")
+                            })
+                        }
+                        Competition.competition.findOne({ _id: req.body.competitionId }, {}, (err, success) => {
+                            if (err || !success)
+                                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
                             else {
-                                console.log("yieepieee")
-                                console.log("dsffj", parseInt(success[0].dateDifference))
-                                if (success[0].dateDifference < success[0].minAge || success[0].dateDifference > (success[0].maxAge) + 1)
-                                    return Response.sendResponse(res, responseCode.BAD_REQUEST, `"${success[0].minAge}" to "${success[0].maxAge}" year age players are allowed for Competition "${req.body.competitionName}" !`)
-                                else {
-                                    message.uploadImg(req.body.playerDetail.image, (err, result) => {
-                                        if (result) {
-                                            console.log("iiiiiiiiiiiiiiiiiiii", result)
-                                            req.body.playerDetail.imageL = result.secure_url
-                                            User.findOneAndUpdate({_id:req.query.playerId},req.body.playerDetail,{new:true},(err,success)=>{
-                                                if(err)
-                                                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-                                                else if(!success)
-                                                return Response.sendResponse(res,responseCode.NOT_MODIFIED,"Not updated successfully")
-                                                else{
-                                                    let set={
-                                                        status:req.body.status
-                                                    }
-                                                    followComp.competitionFollow.findOneAndUpdate({playerId:req.query.playerId,organizer:req.query.userId,competitionId:req.body.competitionId},set,{new:true},(err,success)=>{
-                                                        if(err)
-                                                        return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-                                                        else if(!success)
-                                                        return Response.sendResponse(res,responseCode.NOT_MODIFIED,"Not updated successfully")
-                                                        else
-                                                        return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Player Detail updated successfully")
+                                console.log(new Date(req.body.playerDetail.dob))
+                                General.division.aggregate([
+                                    {
+                                        $match: {
+                                            divisionName: success.division
+                                        }
+                                    },
+                                    { $project: { dateDifference: { $divide: [{ $subtract: ["$date", new Date(req.body.playerDetail.dob)] }, (60 * 60 * 24 * 1000 * 366)] }, gender: 1, minAge: 1, maxAge: 1, divisionName: 1 } },
+                                ], (err, success) => {
+                                    console.log(success[0])
+                                    if (err || !success)
+                                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                                    else {
+                                        if (success[0].gender == "male" || success[0].gender == "female" || success[0].gender == "co-ed") {
+                                            if (req.body.playerDetail.gender != success[0].gender && success[0].gender != "co-ed")
+                                                return Response.sendResponse(res, responseCode.BAD_REQUEST, `"${success[0].gender}" are allowed only for Competition "${req.body.competitionName}" !`)
+                                            else {
+                                                console.log("yieepieee")
+                                                console.log("dsffj", parseInt(success[0].dateDifference))
+                                                if (success[0].dateDifference < success[0].minAge || success[0].dateDifference > (success[0].maxAge) + 1)
+                                                    return Response.sendResponse(res, responseCode.BAD_REQUEST, `"${success[0].minAge}" to "${success[0].maxAge}" year age players are allowed for Competition "${req.body.competitionName}" !`)
+                                                else {
+                                                    message.uploadImg(req.body.playerDetail.image, (err, result) => {
+                                                        if (result) {
+                                                            console.log("image", result)
+                                                            req.body.playerDetail.imageL = result.secure_url
+                                                            User.findOneAndUpdate({ _id: req.query.playerId }, req.body.playerDetail, { new: true }, (err, success) => {
+                                                                if (err)
+                                                                    return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                                                                else if (!success)
+                                                                    return Response.sendResponse(res, responseCode.NOT_MODIFIED, "Not updated successfully")
+                                                                else {
+                                                                    let set = {
+                                                                        status: req.body.status,
+                                                                        teamName: req.body.teamName,
+                                                                        teamId: req.body.teamId,
+                                                                        competitionId: req.body.competitionId,
+                                                                        registration: true,
+                                                                        followStatus: "APPROVED",
+                                                                        playerId: req.query.playerId,
+                                                                        organizer: req.query.userId
+
+                                                                    }
+                                                                    followComp.competitionFollow.findOneAndUpdate({ playerId: req.query.playerId, organizer: req.query.userId, _id: req.query._id }, set, { new: true }, (err, success) => {
+                                                                        if (err)
+                                                                            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                                                                        else if (!success)
+                                                                            return Response.sendResponse(res, responseCode.NOT_MODIFIED, "Not updated successfully")
+                                                                        else {
+                                                                            if (req.body.teamName) {
+                                                                                let set = {
+                                                                                    $addToSet: {
+                                                                                        playerId: req.query.playerId
+                                                                                    }
+                                                                                }
+                                                                                teamServices.updateTeam({ _id: req.body.teamId }, set, { new: true }, (err, success3) => {
+                                                                                    if (err || !success3)
+                                                                                        console.log("Not Success", err)
+                                                                                    else {
+                                                                                        console.log("success")
+                                                                                    }
+                                                                                })
+                                                                            }
+                                                                            let set = {
+                                                                                $push: {
+                                                                                    playerFollowStatus: {
+                                                                                        playerId: (req.query.playerId).toString(),
+                                                                                        followStatus: "APPROVED"
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                            Competition.competition.findOneAndUpdate({ _id: req.body.competitionId }, set, (err, success4) => {
+                                                                                if (err || !success4)
+                                                                                    return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                                                                                else
+                                                                                    return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, "Player Detail updated successfully")
+                                                                            })
+
+                                                                        }
+
+                                                                    })
+                                                                }
+                                                            })
+                                                        }
+                                                        else {
+                                                            return Response.sendResponse(res, responseCode.NOT_MODIFIED, "Error while uploading image ")
+                                                        }
                                                     })
+
                                                 }
-                                            })
+                                            }
                                         }
-                                        else {
-                                            return Response.sendResponse(res,responseCode.NOT_MODIFIED,"Error while uploading image ")
-                                        }
-                                    })
-                                    
-                                }
+                                    }
+                                })
                             }
+                        })
+                    }
+                })
+            }
+        })
+    }
+}
+//----------------Delete Player in Competition-----------------
+const deletePlayer = (req, res) => {
+    if (!req.query.userId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.ORG_IS_REQ)
+    else if (!req.query.playerId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.PLAYER_IS_REQUIRED)
+    else if (!req.query.competitionId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, "Competition Id is required")
+    else {
+        let query = {
+            playerId: req.query.playerId,
+            competitionId: req.query.competitionId,
+            organizer: req.query.userId
+        }
+        followComp.competitionFollow.findOne(query, (err, success) => {
+            if (err || !success)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+            else if (!success)
+                return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.PLAYER_NOT_FOUND)
+            else {
+                console.log("success--->>>", success)
+                Competition.competition.findOneAndUpdate({ _id: req.query.competitionId }, { $pull: { playerFollowStatus: { playerId: req.query.playerId } } }, { safe: true, new: true }, (err, success1) => {
+                    if (err || !success1)
+                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                    else {
+                        if (success.teamId) {
+                            Team.findOneAndUpdate({ _id: success.teamId }, { $pull: { playerId: req.query.playerId } }, { new: true }, (err, success2) => {
+                                if (err || !success2)
+                                    return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                                else {
+                                    let query1 = {
+                                        playerId: req.query.playerId,
+                                        competitionId: req.query.competitionId,
+                                        organizer: req.query.userId
+                                    }
+                                    followComp.competitionFollow.findOneAndRemove(query1, (err, success3) => {
+                                        if (err || !success3)
+                                            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                                        else
+                                            return Response.sendResponse(res, responseCode.RESOURCE_DELETED, "Player deleted successfully")
+                                    })
+                                }
+                            })
+                        }
+                        else {
+                            let query1 = {
+                                playerId: req.query.playerId,
+                                competitionId: req.query.competitionId,
+                                organizer: req.query.userId
+                            }
+                            followComp.competitionFollow.findOneAndRemove(query1, (err, success3) => {
+                                if (err || !success3)
+                                    return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                                else
+                                    return Response.sendResponse(res, responseCode.RESOURCE_DELETED, "Player deleted successfully")
+                            })
                         }
                     }
                 })
             }
         })
-       
     }
 }
 
 
-//----------------Delete Player in Competition-----------------
-const deletePlayer=(req,res)=>{
-    if(!req.query.userId)
-    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORG_IS_REQ)
-    else if(!req.query.playerId)
-    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.PLAYER_IS_REQUIRED)
-    else if(!req.query.competitionId)
-    return Response.sendResponse(res,responseCode.BAD_REQUEST,"Competition Id is required")
-    else{
-        let query={
-            playerId:req.query.playerId,
-            competitionId:req.query.competitionId,
-            organizer:req.query.userId
-        }
-        followComp.competitionFollow.findOne(query,(err,success)=>{
-           if(err||!success)
-           return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-           else if(!success)
-           return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.PLAYER_NOT_FOUND)
-           else{
-              console.log("success--->>>",success)
-              Competition.competition.findOneAndUpdate({_id:req.query.competitionId},{ $pull: { playerFollowStatus: { playerId: req.query.playerId } } },{safe:true,new:true},(err,success1)=>{
-               if(err||!success1)
-               return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-               else{
-                     if(success.teamId){
-                         Team.findOneAndUpdate({_id:success.teamId},{$pull:{playerId:req.query.playerId}},{new:true},(err,success2)=>{
-                            if(err||!success2)
-                            return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-                            else{
-                                let query1={
-                                    playerId:req.query.playerId,
-                                    competitionId:req.query.competitionId,
-                                    organizer:req.query.userId
-                                }
-                               followComp.competitionFollow.findOneAndRemove(query1,(err,success3)=>{
-                                   if(err||!success3)
-                                   return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-                                   else
-                                   return Response.sendResponse(res,responseCode.RESOURCE_DELETED,"Player deleted successfully")
-                               })
-                             }
-                         })
-                     }
-                     else{
-                        let query1={
-                            playerId:req.query.playerId,
-                            competitionId:req.query.competitionId,
-                            organizer:req.query.userId
-                        }
-                       followComp.competitionFollow.findOneAndRemove(query1,(err,success3)=>{
-                           if(err||!success3)
-                           return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-                           else
-                           return Response.sendResponse(res,responseCode.RESOURCE_DELETED,"Player deleted successfully")
-                       })
-                     }
-                  }
-              })
-            }
-        })
-    }
-}
 module.exports = {
     addNewCompetition,
     getACompetition,

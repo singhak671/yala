@@ -10,30 +10,30 @@ cloudinary.config({
 
 module.exports = {
 
-//function to upload image
-uploadImg:(base64,callback)=>{
+    //function to upload image
+    uploadImg: (base64, callback) => {
 
-cloudinary.v2.uploader.upload(base64 ,(err,result1)=>{
-    console.log("dbnnbnbn",result1.secure_url)
-    if(result1.secure_url){ 
-        console.log("dfdjfdfdjgkfkgkkhfgjkhkgkkhgkjkhgjkkjlgljlhlhklhjkklklk")
- callback(null,result1.secure_url)       
-}
-else{
-    callback(true,null);
- }
-})
-},
-uploadMedia:(base64,callback)=>{
-    console.log(base64)
-    cloudinary.v2.uploader.upload(base64 ,(err,result1)=>{
-        console.log("dbnnbnbn",err)
-        if(result1.secure_url){   
-        callback(null,result1)       
-     }
-    else{
-       callback(true,null);
-     }
-    })
-}
+        cloudinary.v2.uploader.upload(base64, (err, result1) => {
+            console.log("dbnnbnbn", result1.secure_url)
+            if (result1.secure_url) {
+
+                callback(null, result1.secure_url)
+            }
+            else {
+                callback(true, null);
+            }
+        })
+    },
+    uploadMedia: (base64, callback) => {
+        console.log(base64)
+        cloudinary.v2.uploader.upload(base64, (err, result1) => {
+            console.log("dbnnbnbn", err)
+            if (result1.secure_url) {
+                callback(null, result1)
+            }
+            else {
+                callback(true, null);
+            }
+        })
+    }
 }

@@ -35,6 +35,7 @@ const updateTermsAndPrivacy=(req,res)=>{
      else{
         success[req.body.role].termsAndConditions=req.body.termsAndConditions;
         success[req.body.role].privacyPolicy=req.body.privacyPolicy;
+        success[req.body.role].aboutUs=req.body.aboutUs;
         success.save((err,result)=>{
             if(err)
              return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR)
