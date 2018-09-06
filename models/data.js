@@ -55,7 +55,7 @@ let refereeSchema=new Schema({
             type:String
         },
         activities:{
-            type:String
+            type:Array
         },
         image:{
             type:String
@@ -109,11 +109,11 @@ let refereeSchema=new Schema({
                 position:{
                   type:String
                 },
-                visibleIn:{
+                visibleIn:[{
                      _id:{type:Schema.Types.ObjectId,ref:"competitions"},
                      competitionName:String,
                      sportType:String
-                },
+                }],
                 status:{
                     type:String
                 },

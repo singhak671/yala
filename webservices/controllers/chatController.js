@@ -147,7 +147,14 @@ const getMessages = (req, res) => {
     let flag = Validator(req.body, [], [], [])
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
-    User.find({ _id: req.body.organizerId, _id: req.body.senderId, _id: req.body.playerId }, (err, success) => {
+        let query={
+            $or:[
+                {_id: req.body.organizerId},
+                { _id: req.body.senderId},
+                {_id: req.body.playerId }
+            ]
+        }
+    User.find(query, (err, success) => {
         if (err)
             return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
         else if (success==false)
@@ -187,7 +194,7 @@ const getMessages = (req, res) => {
                 if (err1)
                     return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
                 else if (success1==false)
-                    return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
+                    return Response.sendResponse(res, responseCode.NOT_FOUND,"Message not found");
                 else {
                     return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success1);
                 }

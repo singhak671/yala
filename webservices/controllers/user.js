@@ -51,36 +51,45 @@ const signup = (req, res) => {
 					}
 
 					else {
-						if (req.body.role == "ORGANIZER") {
-
-							let obj = {
-								"oneEvent": "50",
-								"yearly": "1000",
-								"monthly": "200"
-							};
-							req.body.subscriptionPrice = obj[req.body.subscription];
-							req.body.optionalSubsPrices = {
-								"web&hosting": "50",
-								"event&membershipManagement": "50"
-
-							};
-
-						}
-						if (req.body.role == "PLAYER") //changes done by sammer sir
-							req.body.paymentStatus = true;
-						userServices.addUser(req.body, (err, success) => {
-							if (err) {
-								console.log("err--->>", err)
-								return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+						message.sendMail(req.body.email,"Yala Sports App ✔", "Your verification code is " + otp, (err, result)=>{
+							if(err||!result){
+								return Response.sendResponse(res, responseCode.UNAUTHORIZED,"Enter valid email")
 							}
-							else if (!success)
-								return Response.sendResponse(res.responseCode.BAD_REQUEST, responseMsg.CORRECT_EMAIL_ID);
-							else {
-								console.log("successfully sent")
-								return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, "Signed up successfully", success)
-							}
+							else{
+								if (req.body.role == "ORGANIZER") {
 
+									let obj = {
+										"oneEvent": "50",
+										"yearly": "1000",
+										"monthly": "200"
+									};
+									req.body.subscriptionPrice = obj[req.body.subscription];
+									req.body.optionalSubsPrices = {
+										"web&hosting": "50",
+										"event&membershipManagement": "50"
+		
+									};
+		
+								}
+								if (req.body.role == "PLAYER") //changes done by sammer sir
+									req.body.paymentStatus = true;
+								userServices.addUser(req.body, (err, success) => {
+									if (err) {
+										console.log("err--->>", err)
+										return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+									}
+									else if (!success)
+										return Response.sendResponse(res.responseCode.BAD_REQUEST, responseMsg.CORRECT_EMAIL_ID);
+									else {
+										console.log("successfully sent")
+										
+										return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, "Signed up successfully", success)
+									}
+		
+								})
+							}
 						})
+						
 					}
 				})
 			}
@@ -107,7 +116,8 @@ const verifyOtp = (req, res) => {
 					_id: mongoose.Types.ObjectId(req.body._id),
 				}
 				let set = {
-					phoneVerified: true
+					phoneVerified: true,
+					emailVerified:true
 				}
 				let options = {
 					new: true,
@@ -135,7 +145,7 @@ const resendOtp = (req, res) => {
 	else {
 		const otp = message.getOTP();
 		let set = {
-			otp: otp
+			otp: otp,
 		}
 		let options = {
 			new: true
@@ -151,7 +161,13 @@ const resendOtp = (req, res) => {
 					if (err||!sent)
 						Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
 					else {
-						Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "OTP sent successfully")
+						message.sendMail(success.email,"Yala Sports App ✔", "Your verification code is " + otp, (err, result)=>{
+							if(err||!result)
+							Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err)
+							else{
+								Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "OTP sent successfully")
+							}
+						})
 					}
 
 				})

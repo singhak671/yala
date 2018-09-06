@@ -180,6 +180,9 @@ let registrationSchema = new Schema({
         type: Date,
 
     },
+    sponsorDetails:{
+        type: Array
+    },
     configTeamField: {
         type: Array
     },

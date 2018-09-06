@@ -82,7 +82,7 @@ module.exports = {
         const mailBody = {
             from: "<do_not_reply@gmail.com>",
             to: email,
-            subject: subject,
+            subject: "Yala Sports App ✔",
             html: text,
             //  html: "<p>Your verification code is " + otp + "</p>"
         };
@@ -277,7 +277,7 @@ module.exports = {
     saveNotification: (userId, message) => {
         data = userId;
         notification = {
-            "title": "yALA App Media3546565",
+            "title": "yALA App Media",
             "message": message
         }
         console.log(data)

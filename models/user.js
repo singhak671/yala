@@ -29,6 +29,10 @@ let userSchema = new Schema({
         type: Boolean,
         default: false
     },
+    emailVerified: {
+        type: Boolean,
+        default: false
+    },
     email: {
         type: String,
         trim: true,

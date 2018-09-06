@@ -410,7 +410,7 @@ const getListOfSponsor=(req,res)=>{
             if(err)
             return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR)
             else if(!success)
-            return Response.sendResponse(re,responseCode.NOT_FOUND,responseMsg.ORGANIZER_NOT_FOUND)
+            return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.ORGANIZER_NOT_FOUND)
             else{
                 if(success.employeeRole=='COORDINATOR'||success.employeeRole=="ADMINSTRATOR")
                 req.body.userId=success.employeerId
