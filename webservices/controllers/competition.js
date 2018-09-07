@@ -96,7 +96,7 @@ const getAllCompetition = (req, res) => {
                 if (err)
                     return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
                 if (!success)
-                    return Response.sendResponse(res, responseCode.NOT_FOUND,"User not found");
+                    return Response.sendResponse(res, responseCode.NOT_FOUND, "User not found");
                 return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success)
             });
     })
@@ -139,7 +139,7 @@ const filterCompetition = (req, res) => {
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
             else if (!result)
-                return Response.sendResponse(res, responseCode.NOT_FOUND,"User not found");
+                return Response.sendResponse(res, responseCode.NOT_FOUND, "User not found");
             else
                 return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, result);
         })
@@ -678,15 +678,46 @@ const publishCompetition = (req, res) => {
     let flag = Validator(req.body, [], [], ["competitionId", "userId",]);
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
-    else
-        Competition.competition.findOneAndUpdate({ _id: req.body.competitionId, organizer: req.body.userId }, { $set: { published: true } }, { new: true, select: { "published": 1, organizer: 1, competitionName: 1 } }, (err, success) => {
-            if (err)
-                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
-            else if (!success)
-                return Response.sendResponse(res, responseCode.NOT_FOUND, "CompetitionId not found");
-            else
-                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "You have Published this competition successfully", success);
+    else {
+        Competition.competition.findById(req.body.competitionId, (error, result) => {
+            if (error)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, error);
+            else if (!result)
+                return Response.sendResponse(res, responseCode.NOT_FOUND, "Competition not found");
+            else if (!result.startDate || !result.endDate) {
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, "Start date or end date is not declared for this competition.");
+            } else if (result.sportType !== "single") {
+                Team.find({ competitionId: req.body.competitionId }, (err1, success1) => {
+                    if (err1)
+                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err1);
+                    else if (success1==false)
+                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, "First add team to publish.");
+                    else
+                        Competition.competition.findOneAndUpdate({ _id: req.body.competitionId, organizer: req.body.userId }, { $set: { published: true } }, { new: true, select: { "published": 1, organizer: 1, competitionName: 1 } }, (err, success) => {
+                            if (err)
+                                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+                            else if (!success)
+                                return Response.sendResponse(res, responseCode.NOT_FOUND, "CompetitionId not found");
+                            else
+                                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "You have Published this competition successfully", success);
+                        })
+
+                })
+            } else{
+                Competition.competition.findOneAndUpdate({ _id: req.body.competitionId, organizer: req.body.userId }, { $set: { published: true } }, { new: true, select: { "published": 1, organizer: 1, competitionName: 1 } }, (err, success) => {
+                    if (err)
+                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+                    else if (!success)
+                        return Response.sendResponse(res, responseCode.NOT_FOUND, "CompetitionId not found");
+                    else
+                        return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "You have Published this competition successfully", success);
+                })
+
+
+            }
+
         })
+    }
 }
 
 
@@ -779,7 +810,7 @@ const configTeamFields = (req, res) => {
             // })
         }
         else {
-            return Response.sendResponse(res, responseCode.NOT_FOUND,"User not found");
+            return Response.sendResponse(res, responseCode.NOT_FOUND, "User not found");
         }
     })
 }
@@ -852,7 +883,7 @@ const configPlayerFields = (req, res) => {
             // })
         }
         else {
-            return Response.sendResponse(res, responseCode.NOT_FOUND,"User not found");
+            return Response.sendResponse(res, responseCode.NOT_FOUND, "User not found");
         }
     })
 }

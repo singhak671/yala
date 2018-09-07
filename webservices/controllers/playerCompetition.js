@@ -1006,14 +1006,15 @@ const confirmRegistration = (req, res) => {
                                                                     return Response.sendResponse(res, responseCode.BAD_REQUEST, "Transaction history not saved");
                                                                 else {
                                                                     if (req.body.data.paymentMethod == "Offline")
-                                                                        var paymentMethod = "UNCONFIRMED";
+                                                                        var paymentMethod = "unconfirmed";
                                                                     else
-                                                                        paymentMethod = "CONFIRMED";
+                                                                        paymentMethod = "confirmed";
 
 
                                                                     if (req.body.regData.team)
                                                                         if (req.body.regData.team._id) {
                                                                             var teamname = req.body.regData.team.teamName;
+                                                                            var teamId=req.body.regData.team._id
                                                                             let set = {
                                                                                 $push: {
                                                                                     playerId: req.body.regData.playerId
@@ -1027,7 +1028,7 @@ const confirmRegistration = (req, res) => {
                                                                                 }
                                                                             })
                                                                         }
-                                                                    Follow.competitionFollow.findOneAndUpdate({ "competitionId": req.body.regData.competitionId, playerId: req.body.regData.playerId, organizer: req.body.regData.organizerId }, { $set: { registration: true, status: paymentMethod, teamName: teamname } })
+                                                                    Follow.competitionFollow.findOneAndUpdate({ "competitionId": req.body.regData.competitionId, playerId: req.body.regData.playerId, organizer: req.body.regData.organizerId }, { $set: { registration: true,status:"confirmed", teamName: teamname ,teamId:teamId} })
                                                                         .populate("organizer", " _id competitionNotify email deviceToken countryCode mobileNumber firstName lastName organizerNotification")
                                                                         .populate("competitionId", "competitionName _id")
                                                                         .exec((err, success) => {
@@ -1083,10 +1084,12 @@ const confirmRegistration = (req, res) => {
                                             }
                                             else {
                                                 if (req.body.regData.paymentMethod == "Offline")
-                                                    var paymentMethod = "UNCONFIRMED";
+                                                    var paymentMethod = "confirmed";
                                                 if (req.body.regData.team)
                                                     if (req.body.regData.team._id) {
                                                         var teamname = req.body.regData.team.teamName;
+                                                        var teamId=req.body.regData.team._id;
+
                                                         let set = {
                                                             $push: {
                                                                 playerId: req.body.regData.playerId
@@ -1101,7 +1104,7 @@ const confirmRegistration = (req, res) => {
                                                         })
                                                     }
 
-                                                Follow.competitionFollow.findOneAndUpdate({ competitionId: req.body.regData.competitionId, playerId: req.body.regData.playerId, organizer: req.body.regData.organizerId }, { $set: { registration: true, teamName: teamname, status: paymentMethod } })
+                                                Follow.competitionFollow.findOneAndUpdate({ competitionId: req.body.regData.competitionId, playerId: req.body.regData.playerId, organizer: req.body.regData.organizerId }, { $set: { registration: true, teamName: teamname,teamId:teamId, status:"confirmed" } })
                                                     .populate("organizer", " _id competitionNotify email deviceToken countryCode mobileNumber firstName lastName")
                                                     .populate("competitionId", "competitionName _id")
                                                     .exec((err, success) => {
