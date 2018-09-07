@@ -15,6 +15,7 @@ const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 var aggregate = Competition.competition.aggregate();
 const General = require("../../models/generalSchema.js")
+const Team = require("../../models/team")
 
 const getAllCompetitions = (req, res) => {
     let flag = Validator(req.body, [], [], ["userId"]);
@@ -887,14 +888,36 @@ const unFollowCompetition = (req, res) => {
                     else if (!success1)
                         return Response.sendResponse(res, responseCode.NOT_FOUND, "Competition not found !");
                     else {
-                        followComp.competitionFollow.findOneAndRemove({ playerId: req.body.userId, competitionId: req.body.competitionId }, (err2, success2) => {
-                            if (err2)
-                                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err2);
-                            else if (!success2)
-                                return Response.sendResponse(res, responseCode.NOT_FOUND, "Competition not found !");
-                            else
-                                return Response.sendResponse(res, responseCode.RESOURCE_DELETED, "Competition unfollowed successfully");
+                        followComp.competitionFollow.findOne({ playerId: req.body.userId, competitionId: req.body.competitionId },(err,success3)=>{
+                            if(err)
+                            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+                            else if(!success)
+                            return Response.sendResponse(res, responseCode.NOT_FOUND,"Data not found");
+                            else{
+                                if(success3.teamId){
+                                    Team.findOneAndUpdate({_id:success3.teamId},{$pull:{playerId:req.body.userId}},{new:true},(err,result)=>{
+                                        if(err)
+                                        console.log(err)
+                                        else
+                                        console.log("success",result)
+                                    })
+                                }
+                                followComp.competitionFollow.findOneAndRemove({ playerId: req.body.userId, competitionId: req.body.competitionId }, (err2, success2) => {
+                           
+                                    if (err2)
+                                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err2);
+                                    else if (!success2)
+                                        return Response.sendResponse(res, responseCode.NOT_FOUND, "Competition not found !");
+                                    else{
+                                       
+                                        return Response.sendResponse(res, responseCode.RESOURCE_DELETED, "Competition unfollowed successfully");
+        
+                                    }
+                                        
+                                })
+                            }
                         })
+                       
                     }
                 })
         })
