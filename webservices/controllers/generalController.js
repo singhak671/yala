@@ -63,7 +63,6 @@ const getDivision = (req, res) => {
         let query = {
             organizer: req.body.userId,
             status: "ACTIVE"
-
         };
         if (req.body.search) {
             query.$or = [

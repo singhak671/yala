@@ -394,7 +394,8 @@ const addPlayer = (req, res) => {
                         req.body.organizer = success.employeerId
                     else
                         req.body.organizer = req.query.userId
-                    userServices.findUser({ email: req.body.playerDetail.email }, (err, success) => {
+                        
+                    userServices.findUser({$or:[{email: req.body.email},{mobileNumber:req.body.mobileNumber}]}, (err, success) => {
                         if (err)
                             return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
                         else if (success)

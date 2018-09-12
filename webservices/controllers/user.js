@@ -31,8 +31,8 @@ const signup = (req, res) => {
 		return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.PROVIDE_DATA)
 	else {
 		var query = {
-			email: req.body.email,
-			mobileNumber:req.body.mobileNumber
+			$or:[{email: req.body.email},
+			{mobileNumber:req.body.mobileNumber}]
 		}
 		userServices.findUser(query, (err, success) => {
 			if (err)
