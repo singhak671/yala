@@ -161,8 +161,8 @@ const getListOfClub=(req,res)=>{
           dataServices.getListOfClub(query,options,(err,success)=>{
               if(err)
               return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-              else if(!success)
-              return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.CLUB_NOT_FOUND)
+            //   else if(!success)
+            //   return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.CLUB_NOT_FOUND)
               else return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.CLUB_LIST,success)
               
            })
@@ -586,8 +586,8 @@ const selectClub=(req,res)=>{
                     if(err){
                         return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
                     }
-                    else if(!success.length)
-                    return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.CLUB_NOT_FOUND)
+                    // else if(!success.length)
+                    // return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.CLUB_NOT_FOUND)
                     else{
                         return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.CLUB_LIST,success)
                     }

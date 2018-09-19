@@ -12,9 +12,9 @@ var fs = require('fs');
 const Notification = require('../models/notification.js')
 var async = require("async");
 cloudinary.config({
-    cloud_name: config.cloudinary.cloud_name,
-    api_key: config.cloudinary.api_key,
-    api_secret: config.cloudinary.api_secret
+    "cloud_name": "singhanurag400",
+    "api_key": "646765743427282",
+    "api_secret": "HwwLwgp1zjKjZKv8_FCNMB3Vi54"
 })
 module.exports = {
     

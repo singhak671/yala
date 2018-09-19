@@ -821,7 +821,7 @@ const getTeamfields = (req, res) => {
         return Response.sendResponse(res, flag[0], flag[1]);
     Competition.competitionReg.findOne({ competitionId: req.body.competitionId, organizer: req.body.userId }, (err, success) => {
         if (err)
-            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
+            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err);
         if (!success)
             return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
         return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success.configTeamField);
