@@ -1,11 +1,11 @@
 const config = require("../config/config");
 const cloudinary = require('cloudinary');
 
-cloudinary.config({
-    cloud_name: "dx0bubdw5",
-    api_key: "761784382131527",
-    api_secret: "gefMzeMXN-fLZXianHRr1Qglc4s"
-});
+// cloudinary.config({
+//     cloud_name: "dx0bubdw5",
+//     api_key: "761784382131527",
+//     api_secret: "gefMzeMXN-fLZXianHRr1Qglc4s"
+// });
 
 
 module.exports = {

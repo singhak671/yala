@@ -135,8 +135,10 @@ module.exports = {
 },
 validate_subscription_plan:(request_body,access_parameters,callback)=>{
     if(access_parameters){
+        if(request_body.organizerId)
+            request_body.userId=request_body.organizerId;
            
-        User.findOne({_id:request_body.userId,role:"ORGANIZER"},(err,success)=>{
+        User.findOne({_id:request_body.userId},(err,success)=>{
            // console.log("i am success>>>>",success)
             if(err)
                 return callback(err,[responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err]);

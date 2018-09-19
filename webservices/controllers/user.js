@@ -856,7 +856,7 @@ const paymentOrder = (req, res) => {
 								// else
 								// 	req.body.autoRenewPlan=true;
 
-								var access = ["Competition", "Create Team & Player", "Media", "Online Registration", "Standing & Fixture", "Product", "WebsiteManagement", "Social Media", "employeeUserManagement", "financialManagement", "userNotification"];
+								var access = ["Competition","Membership","Create Team & Player", "Media", "Online Registration", "Standing & Fixture", "Product", "WebsiteManagement", "Social Media", "employeeUserManagement", "financialManagement", "userNotification"];
 								access.push.apply(access, req.body.optionalSubsPrices);
 								User.findByIdAndUpdate(req.headers.userid, { $set: { subscription: req.body.subscription, paymentStatus: true, payment: data, subscriptionStartDate: req.body.response.token.dateCreated, subscriptionEndDate: subscriptionOverDate, autoRenewPlan: req.body.autoRenewPlan }, $push: { subscriptionAccess: access } }, { new: true }, (err, result) => {
 									if (err)
