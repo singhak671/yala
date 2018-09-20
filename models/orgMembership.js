@@ -109,12 +109,20 @@ let professionalSchema = new Schema({
     email:{
         type:String
     },
-    mobile:{
+    countryCode:{
+        type:String
+    },
+    mobileNumber:{
         type:String
     },
     imageURL:{
         type:String
     },
+    showStatus:{
+        type:String,
+        default:"ACTIVE"
+    },
+    imagePublicId:String,
     services:[{
         serviceId: {
             type:Schema.Types.ObjectId, ref: 'service'}
