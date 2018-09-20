@@ -55,7 +55,7 @@ let serviceSchema = new Schema({
         type:String
     },
     amount:{
-        type:Number
+        type:String
     },
     duration:{
         type:String
@@ -79,6 +79,10 @@ let serviceSchema = new Schema({
     }],
     startDate:Date,
     endDate:Date,
+    showStatus:{
+        type:String,
+        default:"ACTIVE"
+    },
     startDuration:String,
     endDuration:String,
     slots:[{
@@ -123,9 +127,7 @@ let professionalSchema = new Schema({
         default:"ACTIVE"
     },
     imagePublicId:String,
-    services:[{
-        serviceId: {
-            type:Schema.Types.ObjectId, ref: 'service'}
+    services:[{type:Schema.Types.ObjectId, ref: 'service'
     }],
     status:String
 

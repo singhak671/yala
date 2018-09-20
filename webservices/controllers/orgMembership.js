@@ -1,5 +1,6 @@
 //****************************************** validation wale file me ek correction h userId and organizerId k lye  */////////////////
 var isBase64 = require('is-base64');
+var async = require("async");
 const Response = require("../../global_functions/response_handler")
 const message = require("../../global_functions/message");
 const User = require("../../models/user");
@@ -36,7 +37,7 @@ const addMembership=(req,res)=>{
                 Membership.membershipSchema.count({organizerId:req.body.organizerId},(error1,data)=>{
                     if(error1)
                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,error1);
-                    else if(data){           
+                    else{           
                 
                 Membership.membershipSchema.find({organizerId:req.body.organizerId,membershipName:req.body.membershipName},(err,success)=>{
                     if (err)
@@ -206,7 +207,7 @@ const addProfessional=(req,res)=>{
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else{
-        Membership.professionalSchema.findOne({organizerId:req.body.organizerId,email:req.body.email},(err,success)=>{
+        Membership.professionalSchema.findOne({organizerId:req.body.organizerId,email:req.body.email,showStatus:"ACTIVE"},(err,success)=>{
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err);
             else if (success)
@@ -263,7 +264,7 @@ const getListOfProfessional=(req,res)=>{
                 { mobileNumber: { $regex: req.body.search, $options: 'i' } },
                 { status: { $regex: req.body.search, $options: 'i' } },
             ]}
-            console.log("i am query to get list of membership >>>>>>>>",query)
+            console.log("i am query to get list of professional >>>>>>>>",query)
         Membership.professionalSchema.paginate(query,options,(err,success)=>{   
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err);
@@ -363,6 +364,118 @@ const deleteProfessional=(req,res)=>{
     }
 }
 
+const addService=(req,res)=>{
+    let flag = Validator(req.body, [], [], ["organizerId","membershipId","serviceName","amount","duration","professionals","status","venueName","venueId","description","noOfPlayersPerSlot","serviceType","offDays","startDate","endDate","startDuration","endDuration","slots"]);
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
+    else{
+        Membership.serviceSchema.findOne({organizerId:req.body.organizerId,serviceName:req.body.serviceName,showStatus:"ACTIVE"},(err,success)=>{
+            if (err)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err);
+            else if (success)
+                    return Response.sendResponse(res, responseCode.NOT_FOUND, "Service name already exists.");
+                else{
+                    Membership.serviceSchema.create(req.body,(err1,success1)=>{
+                        if (err1 || !success1)
+                            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err1);
+                        else{
+                            Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, "Service added successfully.",success1._id);
+                            Membership.membershipSchema.findByIdAndUpdate(req.body.membershipId,{$push:{services:success1._id}},{new:true,safe:true},(err,success)=>{
+                                if(success)
+                                async.forEach(req.body.professionals,function(key, callback2) {
+                                    Membership.professionalSchema.findByIdAndUpdate(key.professionalId,{$push:{services:success1._id}},{new:true},(error,result)=>{
+                                        if(err || !result)
+                                        console.log("ERROR in updating professoinals");
+                                        else{
+                                            console.log("professional update successfully");
+                                        }
+                                    })
+
+                                }, function(err2, succ2) {if(err2)
+                                                             console.log('err2')
+                                                                else {
+                                                                    console.log("task has completed");
+                                                                }
+                                                            }) 
+                            })
+                        }
+                    })           
+                }
+        })
+    }
+}
+
+const getListOfService=(req,res)=>{
+    let flag = Validator(req.query, [], [], ["organizerId","membershipId"]);
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
+    else{
+        //console.log(req.body.limit)
+        let options={
+            page:req.body.page || 1,
+            limit:req.body.limit ||4,
+            sort: { createdAt: -1 },
+            populate:[{
+                path:"organizerId",
+                select:"firstName lastName"
+            }]
+        };
+
+        let query={
+            organizerId:req.query.organizerId,
+            membershipId:req.query.membershipId,
+            showStatus:"ACTIVE"
+        };
+        if(req.body.status)
+            query.status=req.body.status;
+        
+        if (req.body.search) {
+            query.$or = [
+                { serviceName: { $regex: req.body.search, $options: 'i' } },
+                { amount: { $regex: req.body.search, $options: 'i' } },
+                { "professionals.professionalName": { $regex: req.body.search, $options: 'i' } },
+                { status: { $regex: req.body.search, $options: 'i' } },
+                { venueName: { $regex: req.body.search, $options: 'i' } },
+                { description: { $regex: req.body.search, $options: 'i' } },
+            ];
+            options.populate={
+                "path":"membershipId",
+                "match":{
+                    membershipName:{ $regex: req.body.search, $options: 'i' }
+                }
+            }
+        }
+            console.log("i am query to get list of services >>>>>>>>",query);
+        Membership.serviceSchema.paginate(query,options,(err,success)=>{   
+            if (err)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err);
+            else if (!success)
+                    return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
+                else{
+                    return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE,success);                    
+                }
+        })
+    }
+}
+
+
+const selectService=(req,res)=>{
+    let flag = Validator(req.query, [], [], ["organizerId"]);
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
+    else{
+        Membership.professionalSchema.find({organizerId:req.query.organizerId,showStatus:"ACTIVE"},{},{select:"_id professionalName"},(err,success)=>{   
+            if (err)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err);
+            else if (!success)
+                    return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
+                else{
+                    return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE,success);                    
+                }
+        })
+    }
+}
+
 
 
 
@@ -376,5 +489,7 @@ module.exports = {
     getListOfProfessional,
     selectProfessional,
     editProfessional,
-    deleteProfessional
+    deleteProfessional,
+    addService,
+    getListOfService
 }
