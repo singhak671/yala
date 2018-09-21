@@ -116,6 +116,23 @@ const getListOfMembership=(req,res)=>{
     }
 }
 
+const getAMembership=(req,res)=>{
+    let flag = Validator(req.query, [], [], ["organizerId","membershipId"]);
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
+    else{
+        Membership.membershipSchema.findById(req.query.membershipId,(err,success)=>{
+            if(err)
+                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+            else if(!success)
+                return Response.sendResponse(res,responseCode.NOT_FOUND,"Membership not found.")
+                else
+                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success)
+        })
+
+    }
+}
+
 
 const selectMembership=(req,res)=>{
     let flag = Validator(req.query, [], [], ["organizerId"]);
@@ -277,6 +294,24 @@ const getListOfProfessional=(req,res)=>{
     }
 }
 
+const getAProfessional=(req,res)=>{
+    let flag = Validator(req.query, [], [], ["organizerId","professionalId"]);
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
+    else{
+        Membership.professionalSchema.findById(req.query.professionalId,(err,success)=>{
+            if(err)
+                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+            else if(!success)
+                return Response.sendResponse(res,responseCode.NOT_FOUND,"Professional not found.")
+                else
+                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success)
+        })
+
+    }
+}
+
+
 
 const selectProfessional=(req,res)=>{
     let flag = Validator(req.query, [], [], ["organizerId"]);
@@ -405,31 +440,49 @@ const addService=(req,res)=>{
     }
 }
 
-const getListOfService=(req,res)=>{
-    let flag = Validator(req.query, [], [], ["organizerId","membershipId"]);
+const getAService=(req,res)=>{
+    let flag = Validator(req.query, [], [], ["organizerId","serviceId"]);
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else{
-        //console.log(req.body.limit)
+        Membership.serviceSchema.findById(req.query.serviceId,(err,success)=>{
+            if(err)
+                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+            else if(!success)
+                    return Response.sendResponse(res,responseCode.NOT_FOUND,"Service not found.");
+                else
+                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success);
+        })
+
+    }
+}
+
+
+const getListOfService=(req,res)=>{
+    let flag = Validator(req.body, [], [], ["organizerId","membershipId","loginWith"]);
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
+    else{
+        console.log(req.body.limit)
         let options={
             page:req.body.page || 1,
             limit:req.body.limit ||4,
             sort: { createdAt: -1 },
-            populate:[{
-                path:"organizerId",
-                select:"firstName lastName"
-            }]
-        };
-
+        };       
         let query={
             organizerId:req.query.organizerId,
-            membershipId:req.query.membershipId,
             showStatus:"ACTIVE"
         };
+        if(req.body.loginWith=="WEBSITE")
+            {   if(!req.query.membershipId)
+                 return Response.sendResponse(res, responseCode.BAD_REQUEST, "Please provide membershipId in URL.");
+                 else
+                query.membershipId=req.query.membershipId;}
         if(req.body.status)
             query.status=req.body.status;
-        
-        if (req.body.search) {
+        if(req.body.membershipId)
+            query.membershipId=req.body.membershipId;        
+        if (req.body.search) {           
             query.$or = [
                 { serviceName: { $regex: req.body.search, $options: 'i' } },
                 { amount: { $regex: req.body.search, $options: 'i' } },
@@ -437,15 +490,11 @@ const getListOfService=(req,res)=>{
                 { status: { $regex: req.body.search, $options: 'i' } },
                 { venueName: { $regex: req.body.search, $options: 'i' } },
                 { description: { $regex: req.body.search, $options: 'i' } },
+                { organizerName: { $regex: req.body.search, $options: 'i' } },
+                { membershipName: { $regex: req.body.search, $options: 'i' } },
             ];
-            options.populate={
-                "path":"membershipId",
-                "match":{
-                    membershipName:{ $regex: req.body.search, $options: 'i' }
-                }
-            }
         }
-            console.log("i am query to get list of services >>>>>>>>",query);
+            console.log("i am query to get list of services >>>>>>>>",query,options);
         Membership.serviceSchema.paginate(query,options,(err,success)=>{   
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err);
@@ -460,11 +509,11 @@ const getListOfService=(req,res)=>{
 
 
 const selectService=(req,res)=>{
-    let flag = Validator(req.query, [], [], ["organizerId"]);
+    let flag = Validator(req.query, [], [], ["organizerId","membershipId"]);
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else{
-        Membership.professionalSchema.find({organizerId:req.query.organizerId,showStatus:"ACTIVE"},{},{select:"_id professionalName"},(err,success)=>{   
+        Membership.serviceSchema.find({organizerId:req.query.organizerId,membershipId:req.query.membershipId,showStatus:"ACTIVE"},{},{select:"_id serviceName"},(err,success)=>{   
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err);
             else if (!success)
@@ -491,5 +540,11 @@ module.exports = {
     editProfessional,
     deleteProfessional,
     addService,
-    getListOfService
+    getListOfService,
+    selectService,
+    getAMembership,
+    getAProfessional,
+    getAService
+    
+
 }

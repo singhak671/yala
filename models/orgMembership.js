@@ -48,9 +48,11 @@ let serviceSchema = new Schema({
     organizerId:{
         type: Schema.Types.ObjectId, ref: 'user'
     },
+    organizerName:String,
     membershipId:{
         type: Schema.Types.ObjectId, ref: 'orgmembership'
     },
+    membershipName:String,
     serviceName:{
         type:String
     },

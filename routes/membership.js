@@ -14,6 +14,10 @@ router.post('/editProfessional',membershipController.editProfessional);
 router.get('/deleteProfessional',membershipController.deleteProfessional);
 router.post('/addService',membershipController.addService);
 router.post('/getListOfService',membershipController.getListOfService);
+router.get('/selectService',membershipController.selectService);
+router.get('/getAMembership',membershipController.getAMembership);
+router.get('/getAProfessional',membershipController.getAProfessional);
+router.get('/getAService',membershipController.getAService);
 
 
 
