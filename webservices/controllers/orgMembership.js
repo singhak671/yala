@@ -453,8 +453,6 @@ const getAService=(req,res)=>{
                 else
                     return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success);
         })
-
-        
     }
 }
 

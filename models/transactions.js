@@ -3,6 +3,10 @@ global.Promise = mongoose.Promise;
 const paginate = require('mongoose-paginate');
 const Schema = mongoose.Schema;
 let transactionSchema = new Schema({
+    type:{
+        type:String,
+        enum:["COMPETITION","MEMBERSHIP","VENUE"]
+    },
     organizerId:{
         type: Schema.Types.ObjectId, ref: 'user' 
     },

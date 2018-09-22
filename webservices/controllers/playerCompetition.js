@@ -1001,7 +1001,7 @@ const confirmRegistration = (req, res) => {
                                                         return Response.sendResponse(res, responseCode.BAD_REQUEST, "UNAUTHORIZED");
                                                     } else {
                                                         if (data.response.responseCode == "APPROVED" && data.response.orderNumber && !data.response.errors) {
-                                                            TransactionSchema.organizerTransaction.findOneAndUpdate({ organizerId: req.body.regData.organizerId, playerId: req.body.regData.playerId }, { $push: { paymentDetails: data } }, { new: true, safe: true, upsert: true }, (err3, success3) => {
+                                                            TransactionSchema.organizerTransaction.findOneAndUpdate({ organizerId: req.body.regData.organizerId, playerId: req.body.regData.playerId }, { $push: { paymentDetails: data } ,$set:{type:"COMPETITION"}}, { new: true, safe: true, upsert: true }, (err3, success3) => {
                                                                 if (err3 || !success3)
                                                                     return Response.sendResponse(res, responseCode.BAD_REQUEST, "Transaction history not saved");
                                                                 else {
