@@ -445,7 +445,7 @@ const getAService=(req,res)=>{
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else{
-        Membership.serviceSchema.findById(req.query.serviceId,(err,success)=>{
+        Membership.serviceSchema.findOne({_id:req.query.serviceId,showStatus:"ACTIVE"},(err,success)=>{
             if(err)
                 return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
             else if(!success)
@@ -524,6 +524,98 @@ const selectService=(req,res)=>{
     }
 }
 
+const publishService=(req,res)=>{
+    let flag = Validator(req.query, [], [], ["serviceId"]);
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
+    else{
+        Membership.serviceSchema.findOne({_id:req.query.serviceId,showStatus:"ACTIVE"})
+        .lean()
+        .exec((err,success)=>{
+            if (err)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err);
+            else if (!success)
+                    return Response.sendResponse(res, responseCode.NOT_FOUND, "Service not found.");
+                else{
+                    if(success.status!=="Confirmed")
+                        return Response.sendResponse(res, responseCode.BAD_REQUEST,`Please "Confirm" the status of this service first.`);
+                    else if(success.published==true)
+                            Membership.serviceSchema.findByIdAndUpdate(req.query.serviceId,{$set:{published:false}},(err1,success1)=>{
+                                if (err1 || !success1)
+                                    return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err);
+                                else {
+                                    return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Service unpublished successfully.");             
+                                }
+                            })   
+                            else{
+                                Membership.serviceSchema.findByIdAndUpdate(req.query.serviceId,{$set:{published:true}},(err1,success1)=>{
+                                    if (err1 || !success1)
+                                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err);
+                                    else {
+                                        return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Service published successfully.");             
+                                    }
+
+                                })                        
+                            }
+
+                }
+
+        })
+    }
+}
+/* const editService=  (req,res)=>{
+        let flag = Validator(req.body, [], [], ["organizerId","membershipId","serviceName","duration","professionals","status","venueName","venueId","description","noOfPlayersPerSlot","serviceType","offDays","startDate","endDate","startDuration","endDuration","slots"]);
+        if (flag)
+            return Response.sendResponse(res, flag[0], flag[1]);
+        else{
+            Membership.professionalSchema.findById(req.body.professionalId,async (err,success)=>{
+                if (err)
+                    return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err);
+                else if (!success)
+                        return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
+                    else{
+                        let image=await checkImageURL(success.imageURL,success.imagePublicId);
+                        function checkImageURL(x,public_id) { 
+                            return new Promise((resolve,reject) => {
+                                console.log("imageURL and PUBLIC Id>>",public_id)
+                                if(req.body.imageURL!=x){
+                                    message.editUploadedFile(req.body.imageURL,public_id,(err1,success1)=>{
+                                        console.log("err",err1,"success",success1)
+                                        if(err1 || success1.error){
+                                            x="err";
+                                            resolve(x);
+                                        }                                        
+                                        else{
+                                            if(success1.secure_url)
+                                                x=success1.secure_url;
+                                                resolve(x);
+                                        }
+                                    })
+                                }
+                                else
+                                resolve(x);
+                             
+                            });
+                        }
+                        if(image=="err")
+                            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, "Error in uploading the file");
+                        else
+                            req.body.imageURL=image;   
+                        Membership.professionalSchema.findByIdAndUpdate(req.body.professionalId,req.body,{new:true,safe:true},(err2,success2)=>{
+                            if (err2 || !success2)
+                                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_2err2OR, responseMsg.INTERNAL_SERVER_ERROR,err2);
+                            else {
+                                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Professional edited successfully",success2);
+                            }
+                            
+                     })
+               }
+        })
+    }
+}
+    */ 
+
+
 
 
 
@@ -543,7 +635,9 @@ module.exports = {
     selectService,
     getAMembership,
     getAProfessional,
-    getAService
+    getAService,
+    publishService
+
     
 
 }

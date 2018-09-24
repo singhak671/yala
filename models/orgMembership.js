@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 global.Promise = mongoose.Promise;
 const paginate = require('mongoose-paginate');
+var mongooseAggregatePaginate = require('mongoose-aggregate-paginate');
+
 var Object = mongoose.Types.ObjectId;
 
 
@@ -42,6 +44,7 @@ let membershipSchema = new Schema({
 
 
 membershipSchema.plugin(paginate);
+membershipSchema.plugin(mongooseAggregatePaginate);
 
 var membership = mongoose.model('orgmembership', membershipSchema);
 

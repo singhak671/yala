@@ -1,5 +1,6 @@
 const router=require('express').Router()
 const membershipController = require('../webservices/controllers/orgMembership');
+const playerController = require('../webservices/controllers/playerMembership');
 const AUTH=require('../middlewares/auth_handler');
 
 router.post('/addMembership',membershipController.addMembership);
@@ -18,6 +19,16 @@ router.get('/selectService',membershipController.selectService);
 router.get('/getAMembership',membershipController.getAMembership);
 router.get('/getAProfessional',membershipController.getAProfessional);
 router.get('/getAService',membershipController.getAService);
+router.get('/publishService',membershipController.publishService);
+
+
+
+
+
+
+
+router.post('/getMembership',playerController.getMembership);
+
 
 
 
