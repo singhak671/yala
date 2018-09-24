@@ -13,7 +13,9 @@ let membershipSchema = new Schema({
     membershipName:{
         type:String
     },
-
+    playerFollowStatus:{
+        type:Array
+    },
     imageURL:String,
     clubName:{
         type:String
@@ -75,7 +77,9 @@ let serviceSchema = new Schema({
         type:String,
         enum:["free","paid"]
     },
-    published:Boolean,
+    published:{
+        type:Boolean,
+        default:false},
     offDays:[{
         type:String
     }],

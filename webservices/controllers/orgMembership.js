@@ -400,7 +400,7 @@ const deleteProfessional=(req,res)=>{
 }
 
 const addService=(req,res)=>{
-    let flag = Validator(req.body, [], [], ["organizerId","membershipId","serviceName","amount","duration","professionals","status","venueName","venueId","description","noOfPlayersPerSlot","serviceType","offDays","startDate","endDate","startDuration","endDuration","slots"]);
+    let flag = Validator(req.body, [], [], ["organizerId","membershipId","serviceName","duration","professionals","status","venueName","venueId","description","noOfPlayersPerSlot","serviceType","offDays","startDate","endDate","startDuration","endDuration","slots"]);
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else{
@@ -458,7 +458,7 @@ const getAService=(req,res)=>{
 
 
 const getListOfService=(req,res)=>{
-    let flag = Validator(req.body, [], [], ["organizerId","membershipId","loginWith"]);
+    let flag = Validator(req.body, [], [], ["organizerId","loginWith"]);
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else{
@@ -469,14 +469,14 @@ const getListOfService=(req,res)=>{
             sort: { createdAt: -1 },
         };       
         let query={
-            organizerId:req.query.organizerId,
+            organizerId:req.body.organizerId,
             showStatus:"ACTIVE"
         };
         if(req.body.loginWith=="WEBSITE")
-            {   if(!req.query.membershipId)
+            {   if(!req.body.membershipId)
                  return Response.sendResponse(res, responseCode.BAD_REQUEST, "Please provide membershipId in URL.");
                  else
-                query.membershipId=req.query.membershipId;}
+                query.membershipId=req.body.membershipId;}
         if(req.body.status)
             query.status=req.body.status;
         if(req.body.membershipId)
