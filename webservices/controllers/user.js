@@ -220,7 +220,19 @@ const login = (req, res) => {
 								return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.LOG_SUCCESS, result, "", token)
 							}
 							else
-								return Response.sendResponse(res, responseCode.PAYMENT_REQUIRED, "Your subscription plan has expired! </br> Please renew to continue.")
+								{
+									User.findOneAndUpdate({ email: req.body.email }, { $set: { paymentStatus: false } }, (error, result) => {
+										if (error || !result)
+											return Response.sendResponse(res, responseCode.UNAUTHORIZED, responseMsg.EMAIL_NOT_EXISTS)
+										else if (result) {
+											var token = jwt.sign({ _id: result._id, email: result.email, password: result.password }, config.secret_key);
+											console.log("token----->>", token)
+											return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Your subscription plan has expired! Please renew to continue.", result, "", token)
+										}
+	
+									})
+								
+								}
 						}
 						else {
 							if (req.body.deviceToken && req.body.deviceType)

@@ -20,6 +20,8 @@ router.get('/getAMembership',membershipController.getAMembership);
 router.get('/getAProfessional',membershipController.getAProfessional);
 router.get('/getAService',membershipController.getAService);
 router.get('/publishService',membershipController.publishService);
+router.post('/approveMembership',membershipController.approveMembership);
+router.get('/getApprovalList',membershipController.getApprovalList);
 
 
 
@@ -30,6 +32,7 @@ router.get('/publishService',membershipController.publishService);
 router.post('/getMembership',playerController.getMembership);
 router.get('/getClubList',playerController.getClubList);
 router.post('/followMembership',playerController.followMembership);
+router.get('/unFollowMembership',playerController.unFollowMembership);
 
 
 

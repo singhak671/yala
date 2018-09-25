@@ -14,8 +14,10 @@ let mediaSchema = new Schema({
           uppercase:true,
           enum:["NEWS","VIDEO","ALBUM"]
      },
-     competitionId:{type:Schema.Types.ObjectId,ref:'competition'},
+     competitionId:{type:Schema.Types.ObjectId,ref:'competition',default:null},
      competitionName:String,
+     membershipId:{type:Schema.Types.ObjectId,ref:'orgmembership',default:null},
+     membershipName:{type:String},
      title:String,
      description:String,
      like:[{
@@ -30,7 +32,11 @@ let mediaSchema = new Schema({
          text:String,
          commentImage:String,
          commentFirstName:String,
-         commentLastName:String
+         commentLastName:String,
+         createdAt: {
+            type: Date,
+            default: Date.now
+        }
      }],
      noOfComment:{
         type:Number,

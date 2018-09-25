@@ -9,7 +9,7 @@ router.post('/updateUser',AUTH.verifyToken,userController.updateUser);
 router.get('/getDetail',AUTH.verifyToken,userController.getDetail);
 router.post('/changePassword',AUTH.verifyToken,userController.changePassword);
 router.post('/forgetPassword',userController.forgetPassword);
-router.post('/changePlan',AUTH.verifyToken,userController.changePlan)
+router.post('/changePlan',userController.changePlan)
 router.get('/logOut',AUTH.verifyToken,userController.logOut)
 router.get('/code',userController.code)
 router.post('/addCard',AUTH.verifyToken,userController.addCard)
@@ -17,7 +17,7 @@ router.get('/getCardDetails',AUTH.verifyToken,userController.getCardDetails)
 router.post('/editCardDetails',AUTH.verifyToken,userController.editCardDetails)
 router.post('/deleteCard',AUTH.verifyToken,userController.deleteCard)
 router.post('/getCard',AUTH.verifyToken,userController.getCard)
-router.post('/paymentOrder',AUTH.verifyToken,userController.paymentOrder);
+router.post('/paymentOrder',userController.paymentOrder);
 router.post('/addEmployee',AUTH.verifyToken,userController.addEmployee)
 router.post('/getListOfEmployee',AUTH.verifyToken,userController.getListOfEmployee)
 router.get('/deleteEmployee',AUTH.verifyToken,userController.deleteEmployee)

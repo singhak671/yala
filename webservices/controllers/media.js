@@ -14,6 +14,7 @@ const subscriptionValidator = require('../../middlewares/validation').validate_s
 const message = require("../../global_functions/message");
 const Follow = require("../../models/compFollowOrgPlay");
 const User = require("../../models/user")
+var async = require("async");
 const accessPlanMedia = (req, res) => {
     subscriptionValidator(req.query, ["Media"], (err, flag) => {
         if (flag[0] !== 200)
@@ -60,7 +61,7 @@ const createTry = (req, res) => {
         }
     })
 }
-//-------------------------Create Album Apis------------------------
+//-------------------------Create Album Apis(For Memebership and Competition and Venue------------------------
 const createAlbum = (req, res) => {
     console.log("req.body--->>", req.body, req.query)
     subscriptionValidator(req.query, ["Media"], (err, flag) => {
@@ -175,7 +176,7 @@ const createAlbum = (req, res) => {
         }
     })
 }
-//--------------------Edit media------------------------------
+//--------------------Edit media(Competition membership & venue)------------------------------
 const editMedia = (req, res) => {
     console.log("req.body--->>", req.body, req.query)
     if (!req.query.userId)
@@ -212,9 +213,15 @@ const editMedia = (req, res) => {
                                 let set = {
                                     title: req.body.title,
                                     description: req.body.description,
-                                    competitionName: req.body.competitionName,
-                                    competitionId: req.body.competitionId,
                                     mediaUrls: req.body.mediaUrls
+                                }
+                                if(req.body.competitionId){
+                                    set.competitionName= req.body.competitionName
+                                    set.competitionId=req.body.competitionId
+                                }
+                                if(req.body.membershipId){
+                                    set.membershipId= req.body.membershipId
+                                    set.membershipName=req.body.membershipName
                                 }
                                 mediaServices.updateMedia({ organizer: req.query.organizer, _id: req.query.mediaId }, set, { new: true }, (err, success) => {
                                     if (err)
@@ -243,7 +250,7 @@ const editMedia = (req, res) => {
     }
 }
 
-//----------------------------Get List of Media for organizer-------------------------------------------
+//----------------------------Get List of Media for organizer(Membership ,competition )-------------------------------------------
 const getListOfMedia = (req, res) => {
     subscriptionValidator(req.query, ["Media"], (err, flag) => {
         if (flag[0] !== 200)
@@ -264,7 +271,7 @@ const getListOfMedia = (req, res) => {
                             page: req.body.page || 1,
                             limit: req.body.limit || 5,
                             sort: { createdAt: -1 },
-                            populate: { path: "competitionId", model: Competition.competition, select: 'imageURL' },
+                            populate: [{ path: "competitionId", model: Competition.competition, select: 'imageURL'},{path:"membershipId",model:Competition.competition,select:'imageURL'}],
                             lean: true
                         }
                         mediaServices.getListOfMedia({ organizer: req.query.userId }, option, (err, success) => {
@@ -291,7 +298,7 @@ const getListOfMedia = (req, res) => {
         }
     })
 }
-//------------------------------Get list of media for Player---------------------------------------------
+//------------------------------Get list of media for Player(Membership and competition)PENDING---------------------------------------------
 const getListOfMediaPlayer = (req, res) => {
     if (!req.query.userId)
         return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.PLAYER_IS_REQUIRED)
@@ -316,7 +323,7 @@ const getListOfMediaPlayer = (req, res) => {
                     page: req.body.page || 1,
                     limit: req.body.limit || 5,
                     sort: { createdAt: -1 },
-                    populate: { path: "competitionId", model: Competition.competition, select: 'imageURL' },
+                    populate: [{ path: "competitionId", model: Competition.competition, select: 'imageURL' },{path:"membershipId",model:Competition.competition,select:'imageURL'}],
                     lean: true
                 }
                 mediaServices.getListOfMedia(query, option, (err, success) => {
@@ -342,7 +349,7 @@ const getListOfMediaPlayer = (req, res) => {
         })
     }
 }
-//-------------------------------Media List for competition--------------------------
+//-------------------------------Media List for competition(Membership ,competition)PENDING--------------------------
 const mediaList = (req, res) => {
     if (!req.query.userId)
         return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.PLAYER_IS_REQUIRED)
@@ -357,8 +364,12 @@ const mediaList = (req, res) => {
             else if (!success)
                 return Response.sendResponse(res, responseCode.NOT_FOUND, "User not found")
             else {
-                let query = {
-                    competitionId: req.query.competitionId
+                let query={};
+                if(req.query.competitionId){
+                    query.competitionId=req.query.competitionId
+                }
+                if(req.query.membershipId){
+                    query.membershipId=req.query.membershipId
                 }
                 if (req.body.typeOfMedia)
                     query.typeOfMedia = req.body.typeOfMedia
@@ -367,7 +378,7 @@ const mediaList = (req, res) => {
                     page: req.body.page || 1,
                     limit: req.body.limit || 5,
                     sort: { createdAt: -1 },
-                    populate: { path: "competitionId", model: Competition.competition, select: 'imageURL' },
+                    populate: [{ path: "competitionId", model: Competition.competition, select: 'imageURL' },{ path: "membershipId", model: Competition.competition, select: 'imageURL' }],
                     lean: true
                 }
                 mediaServices.getListOfMedia(query, option, (err, success) => {
@@ -392,7 +403,7 @@ const mediaList = (req, res) => {
         })
     }
 }
-//------------------------------------------Get Detail of Media-------------------------------------------
+//------------------------------------------Get Detail of Media(For all)-------------------------------------------
 const getDetailofMedia = (req, res) => {
     console.log("ad", req.query)
     if (!req.query.mediaId)
@@ -417,7 +428,7 @@ const getDetailofMedia = (req, res) => {
         })
     }
 }
-//------------------------------Like Media---------------------------------------------
+//------------------------------Like Media(For all)---------------------------------------------
 const likeMedia = (req, res) => {
     if (!req.query.userId)
         return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.ORGANIZER_IS_REQUIRED)
@@ -451,7 +462,7 @@ const likeMedia = (req, res) => {
                             if (err)
                                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
                             else
-                                return Response.sendResponse(res, responseCode.ALREADY_EXIST, responseMsg.MEDIA_UNLIKE)
+                                return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, responseMsg.MEDIA_UNLIKE)
                         })
                     }
                     else {
@@ -492,7 +503,7 @@ const likeMedia = (req, res) => {
         })
     }
 }
-//------------------------------comment Media------------------------------
+//------------------------------comment Media(For all)------------------------------
 const commentMedia = (req, res) => {
     if (!req.query.userId)
         return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.ORGANIZER_IS_REQUIRED)
@@ -595,7 +606,7 @@ const commentMedia = (req, res) => {
                                 }
                                 else {
                                     console.log("fjjfjefjk")
-                                    return Response.sendResponse(res, responseCode.FORBIDDEN, responseMsg.COMMENT_DISABLE)
+                                    return Response.sendResponse(res,"205", responseMsg.COMMENT_DISABLE)
                                 }
                             }
                         })
@@ -605,7 +616,7 @@ const commentMedia = (req, res) => {
         })
     }
 }
-//-----------------------------------Get Comment--------------------------
+//-----------------------------------Get Comment(For all)--------------------------
 const getCommnet = (req, res) => {
     if (!req.query.userId)
         return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.ORGANIZER_IS_REQUIRED)
@@ -648,7 +659,7 @@ const deleteMedia = (req, res) => {
         })
     }
 }
-//-------------------Edit News------------------
+//-------------------Edit News(Compettition Membership and venue)------------------
 const editMediaNews = (req, res) => {
     if (!req.query.mediaId)
         return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.MEDIA_NOT_FOUND)
@@ -679,7 +690,7 @@ const editMediaNews = (req, res) => {
         })
     }
 }
-//------------------------------Delete Media----------------------------
+//------------------------------Delete Media(For all)----------------------------
 const mediaDelete = (req, res) => {
     if (!req.query.userId)
         return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.ORGANIZER_IS_REQUIRED)
@@ -708,7 +719,7 @@ const mediaDelete = (req, res) => {
                     });
                 }
 
-                return Response.sendResponse(res, responseCode.RESOURCE_DELETED, responseMsg.MEDIA_DELETED)
+                return Response.sendResponse(res, responseCode.RESOURCE_DELETED,"Media deleted successfully.")
             }
         })
     }

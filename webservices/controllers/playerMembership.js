@@ -154,7 +154,7 @@ const getClubList=(req,res)=>{
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else{
-        Membership.membershipSchema.find({status:"Confirmed"},"clubName",(err,success)=>{
+        Membership.membershipSchema.distinct("clubName",(err,success)=>{
             if(err)
                 return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
             else if(!success)
@@ -248,10 +248,25 @@ const followMembership = (req, res) => {
         })
 }
 
-
+const unFollowMembership = (req, res) => {
+    let flag = Validator(req.query, [], [], ["playerId", "membershipId"])
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
+    else
+        Membership.membershipSchema.findOneAndUpdate({ _id: req.query.membershipId, "playerFollowStatus.playerId": req.query.playerId }, { $pull: { playerFollowStatus: { playerId: req.query.playerId } } }, { safe: true, new: true }).lean().exec((err1, success1) => {
+            if (err1)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err1);
+            else if (!success1)
+                return Response.sendResponse(res, responseCode.NOT_FOUND, "Membership not found.");
+            else {
+                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK,"You have unfollowed the membership successfully.", success1);            
+            }
+        })        
+}
 module.exports={
     getMembership,
     getClubList,
-    followMembership
+    followMembership,
+    unFollowMembership
 
 }

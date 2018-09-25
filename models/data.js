@@ -67,7 +67,7 @@ let refereeSchema=new Schema({
     refereeSchema.plugin(paginate);
     const referee=mongoose.model('referee',refereeSchema)
        
-     //Venue Schema
+     //Venue Schema 
     let venueSchema=new Schema({
             userId:{
                 type:Schema.Types.ObjectId
@@ -110,7 +110,9 @@ let refereeSchema=new Schema({
                   type:String
                 },
                 visibleIn:[{
-                     _id:{type:Schema.Types.ObjectId,ref:"competitions"},
+                     _id:{type:Schema.Types.ObjectId,ref:"competitions",default:null},
+                     membershipId:{type:Schema.Types.ObjectId,ref:"orgmembership",default:null},
+                     membershipName:String,
                      competitionName:String,
                      sportType:String
                 }],
