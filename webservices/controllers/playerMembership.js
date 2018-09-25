@@ -24,17 +24,19 @@ const getMembership=(req,res)=>{
         return Response.sendResponse(res, flag[0], flag[1]);
     else{
         let query={
-            status:"confirmed",           
+            status:"Confirmed",           
         };
-        if(req.body.status)
+        if(req.body.clubName)
+            query.clubName=req.body.clubName;           
         if(req.body.search){
             query.$or = [
-                { membershipName: { $regex: search, $options: 'i' } },
-                { clubName: { $regex: search, $options: 'i' } },
-                { "organizerId.firstName": { $regex: search, $options: 'i' } },
-                { "organizerId.lastName": { $regex: search, $options: 'i' } }
+                { membershipName: { $regex: req.body.search, $options: 'i' } },
+                { clubName: { $regex: req.body.search, $options: 'i' } },
+                { "organizerId.firstName": { $regex: req.body.search, $options: 'i' } },
+                { "organizerId.lastName": { $regex: req.body.search, $options: 'i' } }
             ]
         }
+        console.log("i am query to get list of membership list by PLAYER",query);
         var aggregate=Membership.membershipSchema.aggregate([
             {
                 $lookup: {
@@ -104,6 +106,7 @@ const getMembership=(req,res)=>{
                                     // "competitionName": { "$first": "$competitionName" },
                                     "updatedAt": { "$first": "$updatedAt" },
                                     "createdAt": { "$first": "$createdAt" },
+                                    "membershipName":{"$first":"$membershipName"},
                                     
                                     "imageURL": { "$first": "$imageURL" },
                                     "allowPublicToFollow": { "$first": "$allowPublicToFollow" },
@@ -116,6 +119,7 @@ const getMembership=(req,res)=>{
                             },
                             // {$match:{"playerFollowStatus.playerId":req.body.playerId}}
                         ])
+                
                         
         let option = {
             limit: req.body.limit || 10,
@@ -124,7 +128,7 @@ const getMembership=(req,res)=>{
             
         }
         Membership.membershipSchema.aggregatePaginate(aggregate, option, (err, result, pages, total) => {
-            console.log("&&&&&&&&&&&>>",err,result);
+           // console.log("&&&&&&&&&&&>>",err,result);
             const success = {
                     "docs": result,
                     "total": total,
@@ -132,13 +136,122 @@ const getMembership=(req,res)=>{
                     "page": option.page,
                     "pages": pages,
                 }
-                res.send({success})
+                if(err)
+                    return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+                else if(!result)
+                        return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NO_DATA_FOUND);
+                    else
+                        return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success);
+                
         })
                         
     }
         
 }
+
+const getClubList=(req,res)=>{
+    let flag = Validator(req.body, [], [], [])
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
+    else{
+        Membership.membershipSchema.find({status:"Confirmed"},"clubName",(err,success)=>{
+            if(err)
+                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+            else if(!success)
+                    return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NO_DATA_FOUND);
+                else
+                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success);
+            
+        })
+    }
+
+}
+
+
+const followMembership = (req, res) => {
+    console.log(req.body)
+    let flag = Validator(req.body, [], [], ["playerId", "membershipId"])
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
+    else
+        User.findOne({ _id: req.body.playerId }, (err, success) => {
+            if (err)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+            else if (!success)
+                return Response.sendResponse(res, responseCode.NOT_FOUND, "User not found");
+            else {
+                let firstName = success.firstName;
+                let lastName = success.lastName;
+                Membership.membershipSchema.findById(req.body.membershipId).lean().exec((err1, success1) => {
+
+                    if (err1)
+                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err1);
+                    else if (!success1)
+                        return Response.sendResponse(res, responseCode.NOT_FOUND, "Membership not found !");
+                    else {
+                        let membershipName = success1.membershipName;
+
+                        var obj = {
+                            playerId: (req.body.playerId).toString(),
+                        }
+
+                        if (success1.allowPublicToFollow) {
+                            obj.followStatus = "APPROVED";
+                            req.body.followStatus = "APPROVED";
+                        }
+                        else
+                            obj.followStatus = "PENDING";
+
+                        console.log("objecvt>>>>>>>>", obj);
+                        
+                        
+                      
+                                // Competition.competition.findByIdAndUpdate(req.body.competitionId, { $push: { playerFollowStatus: obj } }, { new: true }, (error, result5) => {
+                                Membership.membershipSchema.findOneAndUpdate({ _id: req.body.membershipId }, { $addToSet: { playerFollowStatus: obj } }, { new: true, upsert: true })
+                                    .populate("organizerId", " _id competitionNotify email deviceToken countryCode mobileNumber firstName lastName organizerNotification")
+                                    .exec((error, result5) => {
+                                        if (error || !result5)
+                                            return Response.sendResponse(res, responseCode.BAD_REQUEST, "Player has already followed the competition", error);
+                                        else{
+                                            if(obj.followStatus=="PENDING")
+                                             Response.sendResponse(res, responseCode.EVERYTHING_IS_OK,"Request sent successfully", result5);
+                                            if(obj.followStatus=="APPROVED")
+                                            Response.sendResponse(res, responseCode.EVERYTHING_IS_OK,"Competition followed successfully", result5);
+                                        }
+                                           
+                                        // User.findOne({ _id: success2.organizer },(err, success) => {
+                                        //  console.log("successssssss------>>>>>.", success2.organizer);
+
+                                        // console.log(success.deviceToken)
+                                        //===================
+                                        if (result5.organizerId.organizerNotification)
+                                            if ((result5.organizerId.organizerNotification).indexOf("registration") != -1) {
+                                                message.sendSMS(firstName + " " + lastName + " has followed your membership i.e, " + membershipName, result5.organizerId.countryCode, result5.organizerId.mobileNumber, (error, result) => {
+                                                    if (err)
+                                                        console.log("error in sending SMS")
+                                                    else if (result)
+                                                        console.log("SMS sent successfully to the organizer!")
+                                                })
+
+                                                message.sendMail(result5.organizerId.email, "Yala Sports App ✔", firstName + " " + lastName + " has followed your membership i.e, " + membershipName, (err, result) => {
+                                                    console.log("send1--->>", result1)
+                                                })
+                                            }
+                                        message.sendPushNotifications(result5.organizerId.deviceToken, firstName + " " + lastName + " has followed your membership " + membershipName)
+                                        message.saveNotification([result5.organizerId._id], firstName + " " + lastName + " has followed your membership " + membershipName)
+                                        //})
+                                    })
+                         
+                    }
+                })
+            }
+        })
+}
+
+
 module.exports={
-    getMembership
+    getMembership,
+    getClubList,
+    followMembership
 
 }

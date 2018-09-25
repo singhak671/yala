@@ -28,6 +28,9 @@ router.get('/publishService',membershipController.publishService);
 
 
 router.post('/getMembership',playerController.getMembership);
+router.get('/getClubList',playerController.getClubList);
+router.post('/followMembership',playerController.followMembership);
+
 
 
 
