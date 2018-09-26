@@ -21,7 +21,7 @@ router.get('/getAProfessional',membershipController.getAProfessional);
 router.get('/getAService',membershipController.getAService);
 router.get('/publishService',membershipController.publishService);
 router.post('/approveMembership',membershipController.approveMembership);
-router.get('/getApprovalList',membershipController.getApprovalList);
+router.post('/getApprovalList',membershipController.getApprovalList);
 
 
 

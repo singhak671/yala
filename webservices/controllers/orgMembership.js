@@ -445,6 +445,48 @@ const addService = (req, res) => {
     }
 }
 
+const editService = (req, res) => {
+    let flag = Validator(req.body, [], [], ["organizerId", "membershipId", "serviceName", "professionals", "status", "venueName", "venueId", "description"]);
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
+    else {
+        Membership.serviceSchema.findOne({ organizerId: req.body.organizerId, serviceName: req.body.serviceName, showStatus: "ACTIVE" }, (err, success) => {
+            if (err)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+            else if (success)
+                return Response.sendResponse(res, responseCode.NOT_FOUND, "Service name already exists.");
+            else {
+                Membership.serviceSchema.create(req.body, (err1, success1) => {
+                    if (err1 || !success1)
+                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err1);
+                    else {
+                        Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, "Service added successfully.", success1._id);
+                        Membership.membershipSchema.findByIdAndUpdate(req.body.membershipId, { $push: { services: success1._id } }, { new: true, safe: true }, (err, success) => {
+                            if (success)
+                                async.forEach(req.body.professionals, function (key, callback2) {
+                                    Membership.professionalSchema.findByIdAndUpdate(key.professionalId, { $push: { services: success1._id } }, { new: true }, (error, result) => {
+                                        if (err || !result)
+                                            console.log("ERROR in updating professoinals");
+                                        else {
+                                            console.log("professional update successfully");
+                                        }
+                                    })
+
+                                }, function (err2, succ2) {
+                                    if (err2)
+                                        console.log('err2')
+                                    else {
+                                        console.log("task has completed");
+                                    }
+                                })
+                        })
+                    }
+                })
+            }
+        })
+    }
+}
+
 const getAService = (req, res) => {
     let flag = Validator(req.query, [], [], ["organizerId", "serviceId"]);
     if (flag)
@@ -670,36 +712,99 @@ const approveMembership = (req, res) => {
 
 
 const getApprovalList=(req,res)=>{
-    let flag = Validator(req.query, [], [], ["organizerId"]);
+    let flag = Validator(req.body, [], [], ["organizerId"]);
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else {
-        Membership.membershipSchema.find({},(err,success)=>{
-            if (err)
-                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
-            else if (!success)
-                return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND, "Membership not found.");
-            else {
-                Membership.membershipSchema.aggregate([
+        var query={ organizerId : ObjectId(req.body.organizerId) };
+        if(req.body.membershipId)
+            query._id=ObjectId(req.body.membershipId);
+       
+                console.log("i am query for get approval list>",query)
+                var aggregate=Membership.membershipSchema.aggregate([
                     {
-                        $match:{"organizerId":req.query.organizerId}
+                         $match : query 
                     },
-                       {
-                          $project: {
-                             membershipName:1,
-                             clubName:1,
-                             playerFollowStatus:1,
-                             lengthOfFollowArray: { $size: "$playerFollowStatus" }
-                          }
-                       }
+                    {
+                        "$unwind": {
+                            path:'$playerFollowStatus'
+                    }},
+                    {
+                        $group: {
+                            _id: "$_id",
+                            // "membershipName": { "$first": "$membershipName" },
+                            // // period:"$period",
+                            // "clubName": { "$first": "$clubName" },
+                            // "clubId": { "$first": "$clubId" },
+                            // // "published": { "$first": "$published" },
+                            
+                            // // "competitionName": { "$first": "$competitionName" },
+                            // "updatedAt": { "$first": "$updatedAt" },
+                            // "createdAt": { "$first": "$createdAt" },
+                            "membershipName":{"$first":"$membershipName"},
+                            
+                            // "imageURL": { "$first": "$imageURL" },
+                            // "allowPublicToFollow": { "$first": "$allowPublicToFollow" },
+                            "organizerId":{"$addToSet":"$organizerId"},
+                            // "status":{"$first":"$status"},
+                             "playerFollowStatus": {"$addToSet":"$playerFollowStatus"},
+                            
+    
+                        }
+                    },
+                    // {
+                    //     $lookup: {
+                    //         from: "users",
+                    //         localField: "playerFollowStatus.playerId",
+                    //         foreignField: "_id",
+                    //         as: "playerDetails"
+                    //     }
+                    // }
+                    //    {
+                    //       $project: {
+                    //          membershipName:1,
+                    //          clubName:1,
+                    //          playerFollowStatus:1,
+                    //          lengthOfFollowArray: { $size: "$playerFollowStatus" }
+                    //       }
+                    //    }
                     ])
-                    .exec((err,success)=>{
-                        res.send(success);
+
+                    let option = {
+                        limit: req.body.limit || 10,
+                        page: req.body.page || 1,
+                        sortBy:{createdAt:-1},
+                        
+                    }
+                    Membership.membershipSchema.aggregatePaginate(aggregate, option, (err, result, pages, total) => {
+                       // console.log("&&&&&&&&&&&>>",err,result);
+                       Membership.membershipSchema.populate(result,[{path:"playerFollowStatus.playerId",select:"firstName lastName email dob gender countryCode mobileNumber"}],(err,data)=>{
+                        
+                   
+                        const success = {
+                                "docs": data,
+                                "total": total,
+                                "limit": option.limit,
+                                "page": option.page,
+                                "pages": pages,
+                            }
+                            if(err)
+                                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+                            else if(!data)
+                                    return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NO_DATA_FOUND);
+                                else
+                                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success);
+                            
                     })
+                })
 
-            }
 
-        })
+
+
+
+                    
+
+           
 
     }
 

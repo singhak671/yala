@@ -15,9 +15,12 @@ let membershipSchema = new Schema({
     membershipName:{
         type:String
     },
-    playerFollowStatus:{
-        type:Array
-    },
+    playerFollowStatus:[{
+        playerId:{
+            type: Schema.Types.ObjectId, ref: 'user'
+        },
+        followStatus:String
+    }],
     imageURL:String,
     clubName:{
         type:String

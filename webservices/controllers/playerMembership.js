@@ -73,7 +73,7 @@ const getMembership=(req,res)=>{
                                     playerFollowStatus: {
                                         $cond: {
                                             if: {
-                                                $eq: ['$playerFollowStatus.playerId', req.body.playerId]
+                                                $eq: ['$playerFollowStatus.playerId', ObjectId(req.body.playerId)]
                                             },
                                             then: "$playerFollowStatus",
                                             else: "NOT FOLLOWED",
@@ -112,11 +112,35 @@ const getMembership=(req,res)=>{
                                     "allowPublicToFollow": { "$first": "$allowPublicToFollow" },
                                     "organizerId":{"$first":"$organizerId"},
                                     "status":{"$first":"$status"},
-                                     "playerFollowStatus": {"$addToSet":"$playerFollowStatus"},
+                                     "playerFollowStatus": {"$max":"$playerFollowStatus"},
                                     
             
                                 }
                             },
+                           
+                            // {
+                            //     "$project": {
+                            //         _id: 1,
+                            //         playerFollowStatus: {
+                            //             $cond: {
+                            //                 if: {
+                            //                     $eq: ['$playerFollowStatus',"NOT FOLLOWED"]
+                            //                 },
+                            //                 then: "$playerFollowStatus",
+                            //                 else: "NOT FOLLOWED",
+                            //             }
+                            //         },
+                            //     }
+                            // }
+                            // {
+                            //     "$unwind": {
+                            //         path:'$playerFollowStatus',
+                            //         preserveNullAndEmptyArrays:false     
+                            // }},
+                            // {
+                            //     "$match": {"playerFollowStatus":{ $type : 3 }}  // type:3 for object. 2 for string
+                            // }
+                            
                             // {$match:{"playerFollowStatus.playerId":req.body.playerId}}
                         ])
                 
