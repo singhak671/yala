@@ -67,6 +67,10 @@ let serviceSchema = new Schema({
     amount:{
         type:String
     },
+    playerId: [{
+        type: Schema.Types.ObjectId,
+        ref: 'user'
+        }],
     duration:{
         type:String
     },

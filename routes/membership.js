@@ -22,6 +22,8 @@ router.get('/getAService',membershipController.getAService);
 router.get('/publishService',membershipController.publishService);
 router.post('/approveMembership',membershipController.approveMembership);
 router.post('/getApprovalList',membershipController.getApprovalList);
+router.post('/editService',membershipController.editService);
+
 
 
 
@@ -33,6 +35,7 @@ router.post('/getMembership',playerController.getMembership);
 router.get('/getClubList',playerController.getClubList);
 router.post('/followMembership',playerController.followMembership);
 router.get('/unFollowMembership',playerController.unFollowMembership);
+router.post('/bookAservice',playerController.bookAservice)
 
 
 

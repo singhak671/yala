@@ -446,42 +446,17 @@ const addService = (req, res) => {
 }
 
 const editService = (req, res) => {
-    let flag = Validator(req.body, [], [], ["organizerId", "membershipId", "serviceName", "professionals", "status", "venueName", "venueId", "description"]);
+    let flag = Validator(req.body, [], [], ["serviceId","serviceName", "professionals", "status", "venueName", "venueId", "description"]);
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else {
-        Membership.serviceSchema.findOne({ organizerId: req.body.organizerId, serviceName: req.body.serviceName, showStatus: "ACTIVE" }, (err, success) => {
+        Membership.serviceSchema.findOneAndUpdate({_id:req.body.serviceId, showStatus: "ACTIVE" },req.body,{new:true,safe:true} ,(err, success) => {
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
-            else if (success)
-                return Response.sendResponse(res, responseCode.NOT_FOUND, "Service name already exists.");
+            else if (!success)
+                return Response.sendResponse(res, responseCode.NOT_FOUND, "Service doesn't exists.");
             else {
-                Membership.serviceSchema.create(req.body, (err1, success1) => {
-                    if (err1 || !success1)
-                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err1);
-                    else {
-                        Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, "Service added successfully.", success1._id);
-                        Membership.membershipSchema.findByIdAndUpdate(req.body.membershipId, { $push: { services: success1._id } }, { new: true, safe: true }, (err, success) => {
-                            if (success)
-                                async.forEach(req.body.professionals, function (key, callback2) {
-                                    Membership.professionalSchema.findByIdAndUpdate(key.professionalId, { $push: { services: success1._id } }, { new: true }, (error, result) => {
-                                        if (err || !result)
-                                            console.log("ERROR in updating professoinals");
-                                        else {
-                                            console.log("professional update successfully");
-                                        }
-                                    })
-
-                                }, function (err2, succ2) {
-                                    if (err2)
-                                        console.log('err2')
-                                    else {
-                                        console.log("task has completed");
-                                    }
-                                })
-                        })
-                    }
-                })
+                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success);                
             }
         })
     }
@@ -505,7 +480,7 @@ const getAService = (req, res) => {
 
 
 const getListOfService = (req, res) => {
-    let flag = Validator(req.body, [], [], ["organizerId", "loginWith"]);
+    let flag = Validator(req.body, [], [], ["loginWith"]);
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else {
@@ -516,9 +491,10 @@ const getListOfService = (req, res) => {
             sort: { createdAt: -1 },
         };
         let query = {
-            organizerId: req.body.organizerId,
             showStatus: "ACTIVE"
         };
+        if(req.body.organizerId)
+            query.organizerId=req.body.organizerId;
         if (req.body.loginWith == "WEBSITE") {
             if (!req.body.membershipId)
                 return Response.sendResponse(res, responseCode.BAD_REQUEST, "Please provide membershipId in URL.");
@@ -529,6 +505,8 @@ const getListOfService = (req, res) => {
             query.status = req.body.status;
         if (req.body.membershipId)
             query.membershipId = req.body.membershipId;
+        if(req.body.membershipName)
+            query.membershipName=req.body.membershipName;
         if (req.body.search) {
             query.$or = [
                 { serviceName: { $regex: req.body.search, $options: 'i' } },
@@ -717,8 +695,8 @@ const getApprovalList=(req,res)=>{
         return Response.sendResponse(res, flag[0], flag[1]);
     else {
         var query={ organizerId : ObjectId(req.body.organizerId) };
-        if(req.body.membershipId)
-            query._id=ObjectId(req.body.membershipId);
+        if(req.body.membershipName)
+            query.membershipName=req.body.membershipName;
        
                 console.log("i am query for get approval list>",query)
                 var aggregate=Membership.membershipSchema.aggregate([
@@ -796,13 +774,7 @@ const getApprovalList=(req,res)=>{
                                     return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success);
                             
                     })
-                })
-
-
-
-
-
-                    
+                })             
 
            
 
@@ -810,6 +782,11 @@ const getApprovalList=(req,res)=>{
 
 
 }
+
+
+
+
+
 module.exports = {
     addMembership,
     getListOfMembership,
@@ -822,6 +799,7 @@ module.exports = {
     editProfessional,
     deleteProfessional,
     addService,
+    editService,
     getListOfService,
     selectService,
     getAMembership,
@@ -829,7 +807,8 @@ module.exports = {
     getAService,
     publishService,
     approveMembership,
-    getApprovalList
+    getApprovalList,
+   
 
 
 

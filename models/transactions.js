@@ -13,6 +13,9 @@ let transactionSchema = new Schema({
         type: Schema.Types.ObjectId, ref: 'user' 
     },
     organizerName:String,
+    bookingId:
+        { type: Schema.Types.ObjectId, ref: 'serviceBooking'}
+    ,
     
     playerId:{
         type: Schema.Types.ObjectId, ref: 'user' 

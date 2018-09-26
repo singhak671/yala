@@ -8,6 +8,7 @@ const Validator = require('../../middlewares/validation').validate_all_request;
 const subscriptionValidator = require('../../middlewares/validation').validate_subscription_plan;
 const responseCode = require('../../helper/httpResponseCode')
 const responseMsg = require('../../helper/httpResponseMessage')
+const serviceBooking = require("../../models/serviceBooking")
 const userServices = require('../services/userApis');
 const mongoose = require('mongoose');
 const Team = require("../../models/team")
@@ -17,6 +18,7 @@ const ObjectId = mongoose.Types.ObjectId;
 const media = require("../../global_functions/uploadMedia");
 const teamServices = require('../services/teamApis');
 const Membership = require("../../models/orgMembership");
+const TransactionSchema = require("../../models/transactions");
 
 const getMembership=(req,res)=>{
     let flag = Validator(req.body, [], [], ["playerId"]);
@@ -287,10 +289,295 @@ const unFollowMembership = (req, res) => {
             }
         })        
 }
+
+
+// Book A service
+const bookAservice = (req, res) => {
+    console.log("req.body for player paymnet>>>>>", req.body)
+    let flag = Validator(req.body, [], [], ["playerId", "membershipId", "organizerId", "serviceId"])
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
+    else {
+        User.findOne({ _id: req.body.playerId }, (err, success) => {
+            if (err)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+            else if (!success)
+                return Response.sendResponse(res, responseCode.BAD_REQUEST, "User not found")
+            else {
+                Membership.membershipSchema.findOne({ _id: req.body.membershipId, "playerFollowStatus.playerId": req.body.playerId, "playerFollowStatus.followStatus": "APPROVED" }, (err, success) => {
+                    if (err)
+                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                    else if (!success)
+                        return Response.sendResponse(res, responseCode.BAD_REQUEST, "Follow membership first")
+                    else {
+                        serviceBooking.serviceBooking.findOne({ playerId: req.body.playerId, serviceId: req.body.serviceId }, (err, success) => {
+                            if (err)
+                                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                            else if (success)
+                                return Response.sendResponse(res, responseCode.ALREADY_EXIST, "You have already booked this service")
+                            else {
+                                let availableSlots = [], duration = []
+                                Membership.serviceSchema.findOne({ _id: req.body.serviceId }, (err, success) => {
+                                    if (err)
+                                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                                    else if (!success)
+                                        return Response.sendResponse(res, responseCode.BAD_REQUEST, "Service not found")
+                                    else {
+                                        for (let data = 0; data < success.slots.length; data++) {
+                                            for (data1 in req.body.timeSlots) {
+                                                if (success.slots[data].time == req.body.timeSlots[data1] && success.slots[data].noOfSeats != 0)
+                                                    availableSlots.push(req.body.timeSlots[data1])
+                                            }
+                                        }
+                                        console.log("I am available slots ", availableSlots)
+                                        if (!availableSlots.length)
+                                            return Response.sendResponse(res, responseCode.BAD_REQUEST, "No slots is empty")
+                                        else {
+                                            for (data in availableSlots) {
+                                                for (data1 in req.body.duration) {
+                                                    if (availableSlots[data] == req.body.duration[data1].startTime)
+                                                        duration.push(req.body.duration[data1])
+                                                }
+                                            }
+                                            if (req.body.regData.paymentMethod == "Cash") {
+
+                                                let obj1 = {
+                                                    organizerId: req.body.organizerId,
+                                                    membershipId: req.body.membershipId,
+                                                    membershipName: req.body.membershipName,
+                                                    playerId: req.body.playerId,
+                                                    startDate: req.body.startDate,
+                                                    status: "pending",
+                                                    endDate: req.body.endDate,
+                                                    booking: true,
+                                                    timeSlots: availableSlots,
+                                                    followStatus: "APPROVED",
+                                                    serviceName: req.body.serviceName,
+                                                    serviceId: req.body.serviceId,
+                                                    paymentMethod: "Cash",
+                                                    totalPrice: req.body.totalPrice,
+                                                    duration: duration
+                                                }
+                                                serviceBooking.serviceBooking.create(obj1, (err, success) => {
+                                                    if (err || !success)
+                                                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                                                    else {
+                                                        let obj = {
+                                                            type: "MEMBERSHIP",
+                                                            playerId: req.body.playerId,
+                                                            paymentMethod: "Cash",
+                                                            organizerId: req.body.organizerId,
+                                                            bookingId: success._id
+                                                        }
+                                                        TransactionSchema.organizerTransaction.create(obj, (err, success1) => {
+                                                            if (err)
+                                                                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                                                            else if (!success1)
+                                                                return Response.sendResponse(res, responseCode.BAD_REQUEST, "Error in saving transaction detail")
+                                                            else {
+                                                                async.forEach(availableSlots, (key, callback) => {
+                                                                    Membership.serviceSchema.findOne({ _id: req.body.serviceId, "slots.time": key }, { "slots.$.time": 1 }, (err, success3) => {
+                                                                        if (success3) {
+                                                                            Membership.serviceSchema.findOneAndUpdate({ _id: req.body.serviceId, "slots.time": key }, { $set: { "slots.$.noOfSeats": success3.slots[0].noOfSeats - 1 } }, { new: true }, (err, success) => {
+                                                                                if (err)
+                                                                                    console.log("noooooo")
+                                                                                else {
+                                                                                    console.log("success")
+                                                                                }
+                                                                            })
+                                                                        }
+                                                                    })
+                                                                })
+                                                                Membership.serviceSchema.findOneAndUpdate({ _id: req.body.serviceId }, { $addToSet: { playerId: req.body.playerId } }, { new: true }, (err, success) => {
+                                                                    if (err)
+                                                                        console.log("noooooo")
+                                                                    else {
+                                                                        console.log("success")
+                                                                    }
+
+                                                                })
+                                                                Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Booking Confirmed for Slots" + availableSlots, success);
+                                                                User.findOneAndUpdate({ _id: req.body.playerId }, { $push: { playerDynamicDetails: req.body.regData.playerDynamicDetails } }, { new: true }, (err, success) => {
+                                                                    if (err)
+                                                                        console.log("noooooo")
+                                                                    else {
+                                                                        console.log("success")
+                                                                    }
+                                                                })
+                                                                User.findOne({ _id: req.body.organizerId }, { password: 0 }, (err, success) => {
+                                                                    if (success.organizerNotification)
+                                                                        if ((success.organizerNotification).indexOf("registration") != -1) {
+                                                                            message.sendSMS(req.body.regData.name + " has booked  your service i.e, " + req.body.serviceName, success.countryCode, success.mobileNumber, (error, result) => {
+                                                                                if (err)
+                                                                                    console.log("error in sending SMS")
+                                                                                else if (result)
+                                                                                    console.log("SMS sent successfully to the organizer!")
+                                                                            })
+
+                                                                            message.sendMail(success.email, "Yala Sports App ✔", req.body.regData.name + " has booked your service i.e, " + req.body.serviceName, (err, result) => {
+                                                                                console.log("send1--->>", result1)
+                                                                            })
+                                                                        }
+                                                                    //=====================
+                                                                    message.sendPushNotifications(success.deviceToken, req.body.regData.name + " has booked your service i.e, " + req.body.serviceName)
+                                                                    message.saveNotification([success._id], req.body.regData.name + " has booked your service i.e, " + req.body.serviceName)
+                                                                })
+                                                            }
+                                                        })
+                                                    }
+                                                })
+                                            }
+                                            else if (req.body.regData.paymentMethod == "Card") {
+                                                if (!req.body.data || !req.body.data.response || !req.body.data.response.token)
+                                                    return Response.sendResponse(res, responseCode.BAD_REQUEST, "Payment failed");
+
+                                                var tco = new Twocheckout({
+                                                    sellerId: "901386003",         // Seller ID, required for all non Admin API bindings 
+                                                    privateKey: "CA54E803-AC54-41C3-8677-A36DE6C276A4",     // Payment API private key, required for checkout.authorize binding
+                                                    sandbox: true                          // Uses 2Checkout sandbox URL for all bindings
+                                                });
+
+                                                var params = {
+                                                    "merchantOrderId": "123",
+                                                    "token": req.body.data.response.token.token,
+                                                    "currency": "USD",
+                                                    "total": req.body.totalPrice,
+                                                    "billingAddr": {
+                                                        "name": "Testing Tester",
+                                                        "addrLine1": "123 Test St",
+                                                        "city": "Columbus",
+                                                        "state": "Ohio",
+                                                        "zipCode": "43123",
+                                                        "country": "USA",
+                                                        "email": "example@2co.com",
+                                                        "mobileNumber": "5555555555"
+                                                    }
+                                                };
+
+                                                tco.checkout.authorize(params, function (error, data) {
+                                                    console.log("i am data and error", data, error);
+                                                    if (error || !data) {
+                                                        return Response.sendResponse(res, responseCode.BAD_REQUEST, "UNAUTHORIZED");
+                                                    } else {
+                                                        if (data.response.responseCode == "APPROVED" && data.response.orderNumber && !data.response.errors) {
+
+                                                            let obj1 = {
+                                                                organizerId: req.body.organizerId,
+                                                                membershipId: req.body.membershipId,
+                                                                membershipName: req.body.membershipName,
+                                                                playerId: req.body.playerId,
+                                                                startDate: req.body.startDate,
+                                                                status: "confirmed",
+                                                                endDate: req.body.endDate,
+                                                                booking: true,
+                                                                paymentMethod: "Card",
+                                                                timeSlots: availableSlots,
+                                                                followStatus: "APPROVED",
+                                                                serviceName: req.body.serviceName,
+                                                                serviceId: req.body.serviceId,
+                                                                totalPrice: req.body.totalPrice,
+                                                                duration: duration
+                                                            }
+                                                            serviceBooking.serviceBooking.create(obj1, (err, success) => {
+                                                                if (err || !success)
+                                                                    return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                                                                else {
+                                                                    let obj = {
+                                                                        type: "MEMBERSHIP",
+                                                                        playerId: req.body.playerId,
+                                                                        paymentMethod: "Card",
+                                                                        paymentDetails: data,
+                                                                        organizerId: req.body.organizerId,
+                                                                        bookingId: success._id
+                                                                    }
+                                                                    TransactionSchema.organizerTransaction.create(obj, (err, success1) => {
+                                                                        if (err)
+                                                                            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                                                                        else if (!success1)
+                                                                            return Response.sendResponse(res, responseCode.BAD_REQUEST, "Error in saving transaction detail")
+                                                                        else {
+                                                                            async.forEach(availableSlots, (key, callback) => {
+                                                                                Membership.serviceSchema.findOne({ _id: req.body.serviceId, "slots.time": key }, { "slots.$.time": 1 }, (err, success3) => {
+                                                                                    if (success3) {
+                                                                                        Membership.serviceSchema.findOneAndUpdate({ _id: req.body.serviceId, "slots.time": key }, { $set: { "slots.$.noOfSeats": success3.slots[0].noOfSeats - 1 } }, { new: true }, (err, success) => {
+                                                                                            if (err)
+                                                                                                console.log("noooooo")
+                                                                                            else {
+                                                                                                console.log("success")
+                                                                                            }
+                                                                                        })
+                                                                                    }
+                                                                                })
+                                                                            })
+                                                                            Membership.serviceSchema.findOneAndUpdate({ _id: req.body.serviceId }, { $addToSet: { playerId: req.body.playerId } }, { new: true }, (err, success) => {
+                                                                                if (err)
+                                                                                    console.log("noooooo")
+                                                                                else {
+                                                                                    console.log("success")
+                                                                                }
+
+                                                                            })
+                                                                            Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Payment successfully done .Booking confirmed for slots " + availableSlots, success);
+                                                                            User.findOneAndUpdate({ _id: req.body.playerId }, { $push: { playerDynamicDetails: req.body.regData.playerDynamicDetails } }, { new: true }, (err, success) => {
+                                                                                if (err)
+                                                                                    console.log("noooooo")
+                                                                                else {
+                                                                                    console.log("success")
+                                                                                }
+                                                                            })
+                                                                            User.findOne({ _id: req.body.organizerId }, { password: 0 }, (err, success) => {
+                                                                                if (success.organizerNotification)
+                                                                                    if ((success.organizerNotification).indexOf("registration") != -1) {
+                                                                                        message.sendSMS(req.body.regData.name + " has booked  your service i.e, " + req.body.serviceName, success.countryCode, success.mobileNumber, (error, result) => {
+                                                                                            if (err)
+                                                                                                console.log("error in sending SMS")
+                                                                                            else if (result)
+                                                                                                console.log("SMS sent successfully to the organizer!")
+                                                                                        })
+
+                                                                                        message.sendMail(success.email, "Yala Sports App ✔", req.body.regData.name + " has booked your service i.e, " + req.body.serviceName, (err, result) => {
+                                                                                            console.log("send1--->>", result1)
+                                                                                        })
+                                                                                    }
+                                                                                //=====================
+                                                                                message.sendPushNotifications(success.deviceToken, req.body.regData.name + " has booked your service i.e, " + req.body.serviceName)
+                                                                                message.saveNotification([success._id], req.body.regData.name + " has booked your service i.e, " + req.body.serviceName)
+                                                                            })
+                                                                        }
+                                                                    })
+                                                                }
+                                                            })
+
+                                                        }
+                                                        else {
+                                                            return sendResponse(res, responseCode.BAD_REQUEST, "Payment is not successfull")
+                                                        }
+
+                                                    }
+
+                                                })
+
+                                            }
+
+                                        }
+                                    }
+                                })
+                            }
+                        })
+
+                    }
+                })
+
+            }
+        })
+    }
+}
+
 module.exports={
     getMembership,
     getClubList,
     followMembership,
-    unFollowMembership
+    unFollowMembership,
+    bookAservice
 
 }

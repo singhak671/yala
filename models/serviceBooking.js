@@ -4,7 +4,7 @@ const paginate = require('mongoose-paginate');
 var mongooseAggregatePaginate = require('mongoose-aggregate-paginate');
 const Schema = mongoose.Schema;
 const userSchema=require("./user");
-let membershipFollowSchema = new Schema({ 
+let serviceBookingSchema = new Schema({ 
     organizerId:{
         type: Schema.Types.ObjectId, ref:'user'
     },
@@ -15,12 +15,20 @@ let membershipFollowSchema = new Schema({
        type:String
     },
     startDate:{
-
+      type:String
     },
     endDate:{
-
+        type:String
     },
-    timeSlot:[],
+    duration:[{
+        startTime:String,
+        endTime:String,
+        totalDuration:String,
+        price:String
+      }
+    ],
+    totalPrice:String,
+    timeSlots:Array,
     booking:{
         type:Boolean,
         default:false
@@ -28,6 +36,7 @@ let membershipFollowSchema = new Schema({
     playerId:{
         type:Schema.Types.ObjectId,ref:"user"
     },
+    transactionDetailId:{ type: Schema.Types.ObjectId, ref:'transaction'},
     status:{
         type:String,
         default:"confirmed",
@@ -38,31 +47,24 @@ let membershipFollowSchema = new Schema({
     serviceName:{
         type:String
     },
+    paymentMethod:String,
     followStatus:{
         type:String,
         default:"PENDING",
         uppercase:true
-    },
-    paymentMode:{
-        type:String,
-        enum:["online","cash"]
-    },
-    amount:{
-        type:Number
-    }
-}, 
+    }}, 
     
     {
     timestamps: true
 });
 
-membershipFollowSchema.plugin(paginate);
-membershipFollowSchema.plugin(mongooseAggregatePaginate);
-var followSchema = mongoose.model('membershipFollow', membershipFollowSchema);
+serviceBookingSchema.plugin(paginate);
+serviceBookingSchema.plugin(mongooseAggregatePaginate);
+var serviceBooking = mongoose.model('serviceBooking', serviceBookingSchema);
 
 
 
 
 module.exports={
-    membershipFollow:followSchema
+    serviceBooking:serviceBooking
 }
