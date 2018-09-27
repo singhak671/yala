@@ -572,7 +572,101 @@ const bookAservice = (req, res) => {
         })
     }
 }
-
+//Service list in player
+const getListOfServiceIn = (req, res) => {
+    let flag = Validator(req.body, [], [], ["loginWith"]);
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
+    else {
+        console.log(req.body.limit)
+        let options = {
+            page: req.body.page || 1,
+            limit: req.body.limit || 4,
+            sort: { createdAt: -1 },
+        };
+        let query = {
+            showStatus: "ACTIVE"
+        };
+        if(req.body.organizerId)
+            query.organizerId=req.body.organizerId;
+        if (req.body.loginWith == "WEBSITE") {
+            if (!req.body.membershipId)
+                return Response.sendResponse(res, responseCode.BAD_REQUEST, "Please provide membershipId in URL.");
+            else
+                query.membershipId = req.body.membershipId;
+        }
+        if (req.body.status)
+            query.status = req.body.status;
+        if (req.body.membershipId)
+            query.membershipId = req.body.membershipId;
+        if(req.body.membershipName)
+            query.membershipName=req.body.membershipName;
+        if (req.body.search) {
+            query.$or = [
+                { serviceName: { $regex: req.body.search, $options: 'i' } },
+                { amount: { $regex: req.body.search, $options: 'i' } },
+                { "professionals.professionalName": { $regex: req.body.search, $options: 'i' } },
+                { status: { $regex: req.body.search, $options: 'i' } },
+                { venueName: { $regex: req.body.search, $options: 'i' } },
+                { description: { $regex: req.body.search, $options: 'i' } },
+                { organizerName: { $regex: req.body.search, $options: 'i' } },
+                { membershipName: { $regex: req.body.search, $options: 'i' } },
+            ];
+        }
+        console.log("i am query to get list of services >>>>>>>>", query, options);
+        Membership.serviceSchema.paginate(query, options, (err, success) => {
+            if (err)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+            else if (!success)
+                return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
+            else {
+                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success);
+            }
+        })
+    }
+}
+const getListOfServiceInPlayer=(req,res)=>{
+   if(!req.query.userId)
+   return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.USER_IS_REQ)
+   else if(!req.query.membershipId)
+   return Response.sendResponse(res,responseCode.BAD_REQUEST,"Membership Id is required")
+   else{
+    let options = {
+        page: req.body.page || 1,
+        limit: req.body.limit || 4,
+        sort: { createdAt: -1 },
+    };
+    let query = {
+        showStatus: "ACTIVE",
+        membershipId:req.query.membershipId
+    };
+    if (req.body.status)
+        query.status = req.body.status;
+    if(req.body.membershipName)
+        query.membershipName=req.body.membershipName;
+    if (req.body.search) {
+        query.$or = [
+            { serviceName: { $regex: req.body.search, $options: 'i' } },
+            { amount: { $regex: req.body.search, $options: 'i' } },
+            { "professionals.professionalName": { $regex: req.body.search, $options: 'i' } },
+            { status: { $regex: req.body.search, $options: 'i' } },
+            { venueName: { $regex: req.body.search, $options: 'i' } },
+            { description: { $regex: req.body.search, $options: 'i' } },
+            { organizerName: { $regex: req.body.search, $options: 'i' } },
+            { membershipName: { $regex: req.body.search, $options: 'i' } },
+        ];
+    }
+    Membership.serviceSchema.paginate(query,option,(err,success)=>{
+        if(err)
+        return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+        else if(!success)
+        return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.NO_DATA_FOUND)
+        else{
+            return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"List of service",success)
+        }
+     })
+   }
+}
 module.exports={
     getMembership,
     getClubList,

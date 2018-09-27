@@ -467,7 +467,7 @@ const getAService = (req, res) => {
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else {
-        Membership.serviceSchema.findOne({ _id: req.query.serviceId, showStatus: "ACTIVE" }, (err, success) => {
+        Membership.serviceSchema.findOne({ _id: req.query.serviceId, showStatus: "ACTIVE" },"",{populate:{path:"membershipId",model:"orgmembership",select:"imageURL"}}, (err, success) => {
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
             else if (!success)
