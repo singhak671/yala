@@ -224,9 +224,11 @@ const deleteMembership = (req, res) => {
 }
 
 const addProfessional = (req, res) => {
-    let flag = Validator(req.body, [], [], ["organizerId", "professionalName", "email", "countryCode", "mobileNumber", "imageURL", "status"]);
+    let flag = Validator(req.body, [], [], ["organizerId", "professionalName", "email", "countryCode", "mobileNumber", "status"]);
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
+        else if(!req.body.imageURL)
+        return Response.sendResponse(res,responseCode.BAD_REQUEST,"Image URL field must be profile image")
     else {
         Membership.professionalSchema.findOne({ organizerId: req.body.organizerId, email: req.body.email, showStatus: "ACTIVE" }, (err, success) => {
             if (err)
@@ -335,9 +337,11 @@ const selectProfessional = (req, res) => {
 }
 
 const editProfessional = (req, res) => {
-    let flag = Validator(req.body, [], [], ["organizerId", "professionalId", "professionalName", "email", "countryCode", "mobileNumber", "imageURL", "status"]);
+    let flag = Validator(req.body, [], [], ["organizerId", "professionalId", "professionalName", "email", "countryCode", "mobileNumber", "status"]);
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
+    else if(!req.body.imageURL)
+        return Response.sendResponse(res,responseCode.BAD_REQUEST,"Image URL field must be profile image")
     else {
         Membership.professionalSchema.findById(req.body.professionalId, async (err, success) => {
             if (err)
@@ -783,7 +787,107 @@ const getApprovalList=(req,res)=>{
 
 }
 
-
+const getBookingList=(req,res)=>{
+    if(!req.body.organizerId)
+    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORG_IS_REQ)
+    else{
+        let query={
+         organizerId:ObjectId(req.body.organizerId)
+        }
+        if(req.body.search){
+         let search=new RegExp("^"+req.body.search)
+         query.$or=[
+             {status:{$regex:search,$options:'i'}},
+             {totalPrice:{$regex:search,$options:'i'}},
+             {"Player.firstName":{$regex:search,$options:'i'}},
+             {"Player.lastName":{$regex:search,$options:'i'}},
+             {"Player.email":{$regex:search,$options:'i'}},
+             {"Player.nationality":{$regex:search,$options:'i'}},
+             {"Player.mobileNumber":{$regex:search,$options:'i'}},
+             {"Service.serviceName":{$regex:search,$options:'i'}},
+             {"Service.amount":{$regex:search,$options:'i'}},
+             {"Service.startDate":{$regex:search,$options:'i'}},
+             {"Service.endDate":{$regex:search,$options:'i'}},
+          ]
+        }
+        console.log("query--->>",query)
+        let option={
+            page:req.body.page||1,
+            limit:req.body.limit||4
+        }
+     
+     var aggregate=serviceBooking.serviceBooking.aggregate([
+         {
+             $lookup: {
+                 from: "users",
+                 localField: "playerId",
+                 foreignField: "_id",
+                 as: "Player"
+             }
+         },
+         {
+             $lookup: {
+                 from: "services",
+                 localField: "serviceId",
+                 foreignField: "_id",
+                 as: "Service"
+             }
+         },
+         {
+             $unwind: "$Service"
+         },
+         { $unwind: "$Player" },
+         { $match: query },
+         {
+             $project: {
+                 "Player.firstName": 1,
+                 "Player.lastName": 1,
+                 "Player.email": 1,
+                 "Player.mobileNumber": 1,
+                 "Player.countryCode": 1,
+                 "Player.nationality":1,
+                 "Service.serviceName":1,
+                 "Service.startDate":1,
+                 "Service.endDate":1,
+                 "Service.professionals":1,
+                 "Service.slots":1,
+                 "Service.amount":1,
+                 "Service.startTime":1,
+                 "timeSlots" :1,
+                 "booking" : 1,
+                 "status" : 1,
+                 "followStatus" : 1,
+                 "membershipName" : 1,
+                 "startDate" : 1,
+                 "endDate" : 1,
+                 "createdAt" : 1,
+                 "totalPrice":1,
+                 "duration":1,
+                 "paymentMethod":1
+             }
+         },
+         { $sort: { createdAt: -1 } }
+     ])
+     serviceBooking.serviceBooking.aggregatePaginate(aggregate, option, (err, result, pages, total) => {
+         if (!err) {
+             const success = {
+                 "docs": result,
+                 "total": total,
+                 "limit": option.limit,
+                 "page": option.page,
+                 "pages": pages,
+             }
+             if (success)
+                 return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK,"Booking List", success)
+             else
+                 return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.PLAYER_NOT_FOUND)
+         }
+         else {
+             return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+         }
+     })
+    }
+ }
 
 
 
@@ -808,7 +912,8 @@ module.exports = {
     publishService,
     approveMembership,
     getApprovalList,
-   
+    getBookingList
+
 
 
 

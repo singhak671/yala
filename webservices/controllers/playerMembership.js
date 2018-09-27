@@ -290,7 +290,83 @@ const unFollowMembership = (req, res) => {
         })        
 }
 
-
+//Get Service list in player
+const getServiceListInPlayer = (req, res) => {
+    if (!req.query.userId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.USER_IS_REQ)
+    else {
+        let query1 = { "playerFollowStatus.playerId": req.query.userId, "playerFollowStatus.followStatus": "APPROVED" }
+        Membership.membershipSchema.aggregate([
+            {
+                $match: query1
+            },
+            {
+                $project: {
+                    membershipId: "$_id",
+                    _id: 0
+                }
+            }
+        ]).exec((err, success) => {
+            if (err)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+            else if (!success)
+                return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.NO_DATA_FOUND)
+            else {
+                let query = {
+                    $or: success,
+                    showStatus: "ACTIVE"
+                }
+                if (req.body.search) {
+                    query={
+                        $and:[
+                           { $or:[
+                                { serviceName: { $regex: req.body.search, $options: 'i' } },
+                                { amount: { $regex: req.body.search, $options: 'i' } },
+                                { "professionals.professionalName": { $regex: req.body.search, $options: 'i' } },
+                                { status: { $regex: req.body.search, $options: 'i' } },
+                                { venueName: { $regex: req.body.search, $options: 'i' } },
+                                { description: { $regex: req.body.search, $options: 'i' } },
+                                { organizerName: { $regex: req.body.search, $options: 'i' } },
+                                { membershipName: { $regex: req.body.search, $options: 'i' } },
+                            ]},
+                          {$or:success}
+                        ],
+                        showStatus: "ACTIVE"
+                       };
+                }
+                if (req.body.status)
+                query.status = req.body.status;
+                if (req.body.membershipId)
+                query.organizerName = req.body.organizerName;
+                let option={
+                    page:req.body.page||1,
+                    limit:req.body.limit||4,
+                    sort:{createdAt:-1},
+                    populate:{path:"membershipId",model:"orgmembership",select:"imageURL"},
+                    lean:true
+                }
+                console.log("query--->",query)
+                Membership.serviceSchema.paginate(query,option, (err, success) => {
+                    if (err)
+                    return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                    else if (!success)
+                    return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.NO_DATA_FOUND)
+                    else{
+                        for (i = 0; i < success.docs.length; i++) {
+                            if (((success.docs[i].playerId).toString()).indexOf(req.query.userId) != -1) {
+                                success.docs[i].bookingStatus = "True"
+                            }
+                            else {
+                                success.docs[i].bookingStatus = "False"
+                            }
+                        }
+                        return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK,"List of Service",success)
+                    }
+                })
+            }
+        })
+    }
+}
 // Book A service
 const bookAservice = (req, res) => {
     console.log("req.body for player paymnet>>>>>", req.body)
@@ -340,7 +416,6 @@ const bookAservice = (req, res) => {
                                                 }
                                             }
                                             if (req.body.regData.paymentMethod == "Cash") {
-
                                                 let obj1 = {
                                                     organizerId: req.body.organizerId,
                                                     membershipId: req.body.membershipId,
@@ -394,7 +469,6 @@ const bookAservice = (req, res) => {
                                                                     else {
                                                                         console.log("success")
                                                                     }
-
                                                                 })
                                                                 Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Booking Confirmed for Slots" + availableSlots, success);
                                                                 User.findOneAndUpdate({ _id: req.body.playerId }, { $push: { playerDynamicDetails: req.body.regData.playerDynamicDetails } }, { new: true }, (err, success) => {
@@ -413,7 +487,6 @@ const bookAservice = (req, res) => {
                                                                                 else if (result)
                                                                                     console.log("SMS sent successfully to the organizer!")
                                                                             })
-
                                                                             message.sendMail(success.email, "Yala Sports App ✔", req.body.regData.name + " has booked your service i.e, " + req.body.serviceName, (err, result) => {
                                                                                 console.log("send1--->>", result1)
                                                                             })
@@ -430,13 +503,11 @@ const bookAservice = (req, res) => {
                                             else if (req.body.regData.paymentMethod == "Card") {
                                                 if (!req.body.data || !req.body.data.response || !req.body.data.response.token)
                                                     return Response.sendResponse(res, responseCode.BAD_REQUEST, "Payment failed");
-
                                                 var tco = new Twocheckout({
                                                     sellerId: "901386003",         // Seller ID, required for all non Admin API bindings 
                                                     privateKey: "CA54E803-AC54-41C3-8677-A36DE6C276A4",     // Payment API private key, required for checkout.authorize binding
                                                     sandbox: true                          // Uses 2Checkout sandbox URL for all bindings
                                                 });
-
                                                 var params = {
                                                     "merchantOrderId": "123",
                                                     "token": req.body.data.response.token.token,
@@ -453,14 +524,12 @@ const bookAservice = (req, res) => {
                                                         "mobileNumber": "5555555555"
                                                     }
                                                 };
-
                                                 tco.checkout.authorize(params, function (error, data) {
                                                     console.log("i am data and error", data, error);
                                                     if (error || !data) {
                                                         return Response.sendResponse(res, responseCode.BAD_REQUEST, "UNAUTHORIZED");
                                                     } else {
                                                         if (data.response.responseCode == "APPROVED" && data.response.orderNumber && !data.response.errors) {
-
                                                             let obj1 = {
                                                                 organizerId: req.body.organizerId,
                                                                 membershipId: req.body.membershipId,
@@ -515,7 +584,6 @@ const bookAservice = (req, res) => {
                                                                                 else {
                                                                                     console.log("success")
                                                                                 }
-
                                                                             })
                                                                             Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Payment successfully done .Booking confirmed for slots " + availableSlots, success);
                                                                             User.findOneAndUpdate({ _id: req.body.playerId }, { $push: { playerDynamicDetails: req.body.regData.playerDynamicDetails } }, { new: true }, (err, success) => {
@@ -534,7 +602,6 @@ const bookAservice = (req, res) => {
                                                                                             else if (result)
                                                                                                 console.log("SMS sent successfully to the organizer!")
                                                                                         })
-
                                                                                         message.sendMail(success.email, "Yala Sports App ✔", req.body.regData.name + " has booked your service i.e, " + req.body.serviceName, (err, result) => {
                                                                                             console.log("send1--->>", result1)
                                                                                         })
@@ -547,131 +614,47 @@ const bookAservice = (req, res) => {
                                                                     })
                                                                 }
                                                             })
-
                                                         }
                                                         else {
                                                             return sendResponse(res, responseCode.BAD_REQUEST, "Payment is not successfull")
                                                         }
-
                                                     }
-
                                                 })
-
                                             }
-
                                         }
                                     }
                                 })
                             }
                         })
-
                     }
                 })
-
             }
         })
     }
 }
-//Service list in player
-const getListOfServiceIn = (req, res) => {
-    let flag = Validator(req.body, [], [], ["loginWith"]);
-    if (flag)
-        return Response.sendResponse(res, flag[0], flag[1]);
-    else {
-        console.log(req.body.limit)
-        let options = {
-            page: req.body.page || 1,
-            limit: req.body.limit || 4,
-            sort: { createdAt: -1 },
-        };
-        let query = {
-            showStatus: "ACTIVE"
-        };
-        if(req.body.organizerId)
-            query.organizerId=req.body.organizerId;
-        if (req.body.loginWith == "WEBSITE") {
-            if (!req.body.membershipId)
-                return Response.sendResponse(res, responseCode.BAD_REQUEST, "Please provide membershipId in URL.");
-            else
-                query.membershipId = req.body.membershipId;
-        }
-        if (req.body.status)
-            query.status = req.body.status;
-        if (req.body.membershipId)
-            query.membershipId = req.body.membershipId;
-        if(req.body.membershipName)
-            query.membershipName=req.body.membershipName;
-        if (req.body.search) {
-            query.$or = [
-                { serviceName: { $regex: req.body.search, $options: 'i' } },
-                { amount: { $regex: req.body.search, $options: 'i' } },
-                { "professionals.professionalName": { $regex: req.body.search, $options: 'i' } },
-                { status: { $regex: req.body.search, $options: 'i' } },
-                { venueName: { $regex: req.body.search, $options: 'i' } },
-                { description: { $regex: req.body.search, $options: 'i' } },
-                { organizerName: { $regex: req.body.search, $options: 'i' } },
-                { membershipName: { $regex: req.body.search, $options: 'i' } },
-            ];
-        }
-        console.log("i am query to get list of services >>>>>>>>", query, options);
-        Membership.serviceSchema.paginate(query, options, (err, success) => {
-            if (err)
-                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
-            else if (!success)
-                return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
-            else {
-                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success);
-            }
-        })
-    }
-}
-const getListOfServiceInPlayer=(req,res)=>{
-   if(!req.query.userId)
-   return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.USER_IS_REQ)
-   else if(!req.query.membershipId)
-   return Response.sendResponse(res,responseCode.BAD_REQUEST,"Membership Id is required")
-   else{
+const getUserTransaction = (req, res) => {
+    if (!req.body.userId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.USER_IS_REQ)
     let options = {
         page: req.body.page || 1,
         limit: req.body.limit || 4,
-        sort: { createdAt: -1 },
-    };
-    let query = {
-        showStatus: "ACTIVE",
-        membershipId:req.query.membershipId
-    };
-    if (req.body.status)
-        query.status = req.body.status;
-    if(req.body.membershipName)
-        query.membershipName=req.body.membershipName;
-    if (req.body.search) {
-        query.$or = [
-            { serviceName: { $regex: req.body.search, $options: 'i' } },
-            { amount: { $regex: req.body.search, $options: 'i' } },
-            { "professionals.professionalName": { $regex: req.body.search, $options: 'i' } },
-            { status: { $regex: req.body.search, $options: 'i' } },
-            { venueName: { $regex: req.body.search, $options: 'i' } },
-            { description: { $regex: req.body.search, $options: 'i' } },
-            { organizerName: { $regex: req.body.search, $options: 'i' } },
-            { membershipName: { $regex: req.body.search, $options: 'i' } },
-        ];
+        sort: {createdAt: -1 },
+        populate: [{ path: "playerId", model: "user" ,select:{firstName:1}}, { path: "bookingId", model: "serviceBooking" },{ path: "organizerId", model: "user" ,select:{firstName:1,lastName:1,email:1,mobileNumber:1,countryCode:1}}]
     }
-    Membership.serviceSchema.paginate(query,option,(err,success)=>{
-        if(err)
-        return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
-        else if(!success)
-        return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.NO_DATA_FOUND)
-        else{
-            return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"List of service",success)
-        }
-     })
-   }
+    TransactionSchema.organizerTransaction.paginate({ playerId: req.body.userId }, options, (err, success) => {
+        if (err)
+            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+        else
+            return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success);
+    })
 }
 module.exports={
     getMembership,
     getClubList,
     followMembership,
     unFollowMembership,
-    bookAservice
+    bookAservice,
+    getServiceListInPlayer,
+    getUserTransaction
 
 }

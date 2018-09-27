@@ -29,13 +29,16 @@ router.post('/editService',membershipController.editService);
 
 
 
+router.post('/getBookingList',membershipController.getBookingList)
 
 
 router.post('/getMembership',playerController.getMembership);
 router.get('/getClubList',playerController.getClubList);
 router.post('/followMembership',playerController.followMembership);
 router.get('/unFollowMembership',playerController.unFollowMembership);
-router.post('/bookAservice',playerController.bookAservice)
+router.post('/bookAservice',playerController.bookAservice),
+router.post('/getUserTransaction',playerController.getUserTransaction)
+router.post('/getServiceListInPlayer',playerController.getServiceListInPlayer)
 
 
 

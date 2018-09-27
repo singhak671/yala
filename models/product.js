@@ -47,7 +47,7 @@ let productSchema = new Schema({
     },
     price_size_qunatity: [
         {
-            size: String,
+            size: {type:String,default:null},
             price: Number,
             quantity: Number
         }

@@ -35,6 +35,10 @@ const addProduct = (req, res) => {
                             req.body.organizerId = success.employeerId
                         else
                             req.body.organizerId = req.query.organizerId
+                        if (req.body.competitionDetail)
+                            req.body.typeOfProduct = "COMPETITION"
+                        if (req.body.membershipDetail)
+                            req.body.typeOfProduct = "MEMBERSHIP"
                         message.uploadImg(req.body.productImage, (err, result) => {
                             if (err)
                                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, "Error while uploading Product", err)
@@ -58,12 +62,10 @@ const addProduct = (req, res) => {
                             }
                         })
                     }
-
                 })
             }
         }
     })
-
 }
 //------Get List of Product with filter and Pagination(Organizer)
 const getListOfProduct = (req, res) => {
@@ -112,7 +114,6 @@ const getListOfProduct = (req, res) => {
             }
         }
     })
-
 }
 //-------Get Product Detail-------
 const getProductDetail = (req, res) => {
@@ -143,7 +144,7 @@ const editProductDetail = (req, res) => {
     else if (!req.body.productImage)
         return Response.sendResponse(res, responseCode.BAD_REQUEST, "Product Image is required")
     else {
-        productServices.findProduct({ _id: req.query.productId },{}, (err, success) => {
+        productServices.findProduct({ _id: req.query.productId }, {}, (err, success) => {
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
             else if (!success)
@@ -167,7 +168,6 @@ const editProductDetail = (req, res) => {
                                 return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Product detail updated successfully.", success)
                         })
                     }
-
                 })
             }
         })
@@ -212,29 +212,26 @@ const configureProductType = (req, res) => {
                             req.body.organizerId = success.employeerId
                         else
                             req.body.organizerId = req.query.organizerId
-                            productServices.findConfigureProduct({productType:req.body.productType,$or:[{organizerId:req.body.organizerId},{organizerId:null}]},(err,success)=>{
-                                if(err)
+                        productServices.findConfigureProduct({ productType: req.body.productType, $or: [{ organizerId: req.body.organizerId }, { organizerId: null }] }, (err, success) => {
+                            if (err)
                                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
-                                else if(success)
-                                return Response.sendResponse(res, responseCode.ALREADY_EXIST,"Product with this name already exists")
-                                else{
-                                    productServices.configureProductType(req.body, (err, success) => {
-                                        if (err)
-                                            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
-                                        else
-                                            return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, "Product Type added successfully.")
-                                    })
-                                }
-                            })
-                       
+                            else if (success)
+                                return Response.sendResponse(res, responseCode.ALREADY_EXIST, "Product with this name already exists")
+                            else {
+                                productServices.configureProductType(req.body, (err, success) => {
+                                    if (err)
+                                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                                    else
+                                        return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, "Product Type added successfully.")
+                                })
+                            }
+                        })
                     }
                 })
             }
         }
     })
-
 }
-
 //----------Delete Product--------
 const deleteProduct = (req, res) => {
     if (!req.query.organizerId)
@@ -318,7 +315,6 @@ const getQuantity = (req, res) => {
         })
     }
 }
-
 //Buy a Product
 const buyProduct = (req, res) => {
     if (!req.query.userId)
@@ -329,79 +325,83 @@ const buyProduct = (req, res) => {
         userServices.findUser({ _id: req.query.userId }, (err, success) => {
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
-            else if(!success)
-               return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.USER_NOT_EXISTS)
+            else if (!success)
+                return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.USER_NOT_EXISTS)
             else {
                 productServices.findProduct({ _id: req.query.productId, "price_size_qunatity.size": req.body.size }, { organizerId: 1, productType: 1, 'price_size_qunatity.$._id': 1 }, (err, success1) => {
                     if (err)
                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
-                    else if(!success1)
-                        return Response.sendResponse(res,responseCode.NOT_FOUND,"Product not found")
+                    else if (!success1)
+                        return Response.sendResponse(res, responseCode.NOT_FOUND, "Product not found")
                     else {
-                        console.log("succcesss--->>",success1)
-                        if (success1.price_size_qunatity[0].quantity == 0)
+                        console.log("succcesss--->>", success1)
+                        if (success1.price_size_qunatity[0].quantity <= 0)
                             return Response.sendResponse(res, responseCode.NOT_SUCCESS, "Product is out of stock")
                         else {
                             if (!req.body.data || !req.body.data.response || !req.body.data.response.token)
                                 return Response.sendResponse(res, responseCode.BAD_REQUEST, "Payment failed");
-
-                                var tco = new Twocheckout({
-                                    sellerId: "901386003",         // Seller ID, required for all non Admin API bindings 
-                                    privateKey: "CA54E803-AC54-41C3-8677-A36DE6C276A4",     // Payment API private key, required for checkout.authorize binding
-                                    sandbox: true                          // Uses 2Checkout sandbox URL for all bindings
-                                });
-
-                                var params = {
-                                    "merchantOrderId": "123",
-                                    "token": req.body.data.response.token.token,
-                                    "currency": "USD",
-                                    "total": req.body.price,
-                                    "billingAddr": {
-                                        "name": "Testing Tester",
-                                        "addrLine1": "123 Test St",
-                                        "city": "Columbus",
-                                        "state": "Ohio",
-                                        "zipCode": "43123",
-                                        "country": "USA",
-                                        "email": "example@2co.com",
-                                        "mobileNumber": "5555555555"
-                                    }
-                                };
+                            var tco = new Twocheckout({
+                                sellerId: "901386003",         // Seller ID, required for all non Admin API bindings 
+                                privateKey: "CA54E803-AC54-41C3-8677-A36DE6C276A4",     // Payment API private key, required for checkout.authorize binding
+                                sandbox: true                          // Uses 2Checkout sandbox URL for all bindings
+                            });
+                            var params = {
+                                "merchantOrderId": "123",
+                                "token": req.body.data.response.token.token,
+                                "currency": "USD",
+                                "total": req.body.price,
+                                "billingAddr": {
+                                    "name": "Testing Tester",
+                                    "addrLine1": "123 Test St",
+                                    "city": "Columbus",
+                                    "state": "Ohio",
+                                    "zipCode": "43123",
+                                    "country": "USA",
+                                    "email": "example@2co.com",
+                                    "mobileNumber": "5555555555"
+                                }
+                            };
                             tco.checkout.authorize(params, function (error, data) {
                                 console.log("i am data and error", data, error);
                                 if (error || !data) {
-                                    return Response.sendResponse(res, responseCode.BAD_REQUEST, "UNAUTHORIZED",err);
+                                    return Response.sendResponse(res, responseCode.BAD_REQUEST, "UNAUTHORIZED", err);
                                 } else {
                                     if (data.response.responseCode == "APPROVED" && data.response.orderNumber && !data.response.errors) {
-                                       console.log("data---->>",data)
-                                       let set={
-                                        type:"PRODUCT",
-                                        productId:req.query.productId,
-                                        organizerId: success1.organizerId,
-                                        playerId: req.query.userId,
-                                        $push: { paymentDetails: data } 
-                                       }
-                                       TransactionSchema.organizerTransaction.create(set, (err3, success3) => {
-                                        if (err3 || !success3)
-                                            return Response.sendResponse(res, responseCode.BAD_REQUEST, "Transaction history not saved");
-                                        else{
-                                            let set={
-                                                "price_size_qunatity.$.quantity":success1.price_size_qunatity[0].quantity-1
-                                            }
-                                            let query={
-                                             "price_size_qunatity._id":success1.price_size_qunatity[0]._id
-                                            }
-                                            productServices.editProductDetail(query,set,{new:true},(err,success)=>{
-                                                if(err)
-                                                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err);
-                                                else if(!success)
-                                                return Response.sendResponse(res, responseCode.NOT_MODIFIED);
-                                                else{
-                                                return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Payment successfully done",success)
+                                        console.log("data---->>", data)
+                                        let set = {
+                                            type: "PRODUCT",
+                                            paymentMethod: "Card",
+                                            productId: req.query.productId,
+                                            productType: {
+                                                size: success1.price_size_qunatity[0].size,
+                                                quantity: 1,
+                                                price: success1.price_size_qunatity[0].price
+                                            },
+                                            organizerId: success1.organizerId,
+                                            playerId: req.query.userId,
+                                            paymentDetails: data
+                                        }
+                                        TransactionSchema.organizerTransaction.create(set, (err3, success3) => {
+                                            if (err3 || !success3)
+                                                return Response.sendResponse(res, responseCode.BAD_REQUEST, "Transaction history not saved");
+                                            else {
+                                                let set = {
+                                                    "price_size_qunatity.$.quantity": success1.price_size_qunatity[0].quantity - 1
                                                 }
-                                            })
-                                           }
-                                        })       
+                                                let query = {
+                                                    "price_size_qunatity._id": success1.price_size_qunatity[0]._id
+                                                }
+                                                productServices.editProductDetail(query, set, { new: true }, (err, success) => {
+                                                    if (err)
+                                                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+                                                    else if (!success)
+                                                        return Response.sendResponse(res, responseCode.NOT_MODIFIED);
+                                                    else {
+                                                        return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Payment done successfully ", success)
+                                                    }
+                                                })
+                                            }
+                                        })
                                     }
                                 }
                             })
@@ -409,6 +409,50 @@ const buyProduct = (req, res) => {
                     }
                 })
             }
+        })
+    }
+}
+//Product History
+const productHistory = (req, res) => {
+    if (!req.query.userId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.USER_IS_REQ)
+    else {
+        let query = {
+            organizerId: req.query.userId,
+            type: "PRODUCT"
+        }
+        let option = {
+            page: req.body.page || 1,
+            limit: req.body.limit || 4,
+            sort: { createdAt: -1 },
+            populate: [{ path: "productId", model: "product", select: { "price_size_qunatity": 0, visibleStatus: 0, } }, { path: "playerId", model: "user", select: { firstName: 1, lastName: 1, email: 1, mobileNumber: 1, countryCode: 1 } },
+            { path: "organizerId", model: "user", select: { firstName: 1, lastName: 1, email: 1, mobileNumber: 1, countryCode: 1 } }
+            ]
+        }
+        TransactionSchema.organizerTransaction.paginate(query, option, (err, success) => {
+            if (err)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+            else if (!success)
+                return Response.sendResponse(res, responseCode.BAD_REQUEST, "No product history available")
+            else
+                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Product History-->>>", success)
+        })
+    }
+}
+//Edit Product History
+const editProductHistory = (req, res) => {
+    if (!req.query.organizerId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.ORG_IS_REQ)
+    else if (!req.query.productHistoryId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, "HistoryId is required")
+    else {
+        TransactionSchema.organizerTransaction.findOneAndUpdate({ _id: req.query.productHistoryId, organizerId: req.query.organizerId }, { $set: { productStatus: req.body.productStatus } }, { new: true }, (err, success) => {
+            if (err)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+            else if (!success)
+                return Response.sendResponse(res, responseCode.NOT_MODIFIED, "Error while updating")
+            else
+                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Product status updated successfully")
         })
     }
 }
@@ -420,8 +464,9 @@ module.exports = {
     selectProductType,
     configureProductType,
     deleteProduct,
-
     showProductList,
     getQuantity,
-    buyProduct
+    buyProduct,
+    productHistory,
+    editProductHistory
 }
