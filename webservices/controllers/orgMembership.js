@@ -471,13 +471,26 @@ const getAService = (req, res) => {
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else {
-        Membership.serviceSchema.findOne({ _id: req.query.serviceId, showStatus: "ACTIVE" },"",{populate:{path:"membershipId",model:"orgmembership",select:"imageURL"}}, (err, success) => {
+        Membership.serviceSchema.findOne({ _id: req.query.serviceId, showStatus: "ACTIVE" },"",{populate:{path:"membershipId",model:"orgmembership",select:"imageURL"}})
+        .lean()
+        .exec((err, success) => {
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
             else if (!success)
                 return Response.sendResponse(res, responseCode.NOT_FOUND, "Service not found.");
-            else
-                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success);
+            else{
+                Membership.membershipSchema.findById(success.membershipId,"dynamicFormField _id membershipName",(error,result)=>{
+                    if (error)
+                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, error)
+                    else if (!result)
+                            return Response.sendResponse(res, responseCode.NOT_FOUND, "Membership of this service is not found.");
+                        else{
+                            success.dynamicFormField=result.dynamicFormField;
+
+                            return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success);
+                        }
+                })
+            }
         })
     }
 }
@@ -863,7 +876,8 @@ const getBookingList=(req,res)=>{
                  "createdAt" : 1,
                  "totalPrice":1,
                  "duration":1,
-                 "paymentMethod":1
+                 "paymentMethod":1,
+                 "visibleInMemberCard":1
              }
          },
          { $sort: { createdAt: -1 } }
@@ -913,6 +927,33 @@ const dynamicFormField=(req,res)=>{
 
 }
 
+const deletePlayerfromList=(req,res)=>{
+    let flag = Validator(req.query, [], [], ["listId","type"]);
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
+    else {
+        let update={};
+        if(req.query.type=="memberCard"){
+            update={
+                $set:{
+                    visibleInMemberCard:false
+                }
+            }
+        }
+        serviceBooking.serviceBooking.findOneAndUpdate({_id:req.query.listId},update,{new:true},(err,success)=>{
+            if (err)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+            else if (!success)
+                return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND, responseMsg.NOT_FOUND);
+            else {
+                return Response.sendResponse(res,responseCode.RESOURCE_DELETED,"Removed from the list successfully.")
+
+            }
+        })
+
+    }
+
+}
 
 module.exports = {
     addMembership,
@@ -936,7 +977,8 @@ module.exports = {
     approveMembership,
     getApprovalList,
     getBookingList,
-    dynamicFormField
+    dynamicFormField,
+    deletePlayerfromList
 
 
 
