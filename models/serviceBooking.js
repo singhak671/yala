@@ -15,10 +15,10 @@ let serviceBookingSchema = new Schema({
        type:String
     },
     startDate:{
-      type:String
+      type:Date
     },
     endDate:{
-        type:String
+        type:Date
     },
     duration:[{
         startTime:String,
@@ -52,7 +52,13 @@ let serviceBookingSchema = new Schema({
         type:String,
         default:"PENDING",
         uppercase:true
-    }}, 
+    },
+    visibleInMemberCard:{
+        type:Boolean,
+        default:true
+    }
+
+}, 
     
     {
     timestamps: true

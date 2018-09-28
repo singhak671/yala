@@ -20,6 +20,7 @@ const teamServices = require('../services/teamApis');
 const Membership = require("../../models/orgMembership");
 const TransactionSchema = require("../../models/transactions");
 
+
 const getMembership=(req,res)=>{
     let flag = Validator(req.body, [], [], ["playerId"]);
     if (flag)
@@ -298,7 +299,7 @@ const getServiceListInPlayer = (req, res) => {
         let query1 = { "playerFollowStatus.playerId": req.query.userId, "playerFollowStatus.followStatus": "APPROVED" }
         Membership.membershipSchema.aggregate([
             {
-                $match: query1
+                $match : query1
             },
             {
                 $project: {

@@ -23,6 +23,7 @@ router.get('/publishService',membershipController.publishService);
 router.post('/approveMembership',membershipController.approveMembership);
 router.post('/getApprovalList',membershipController.getApprovalList);
 router.post('/editService',membershipController.editService);
+router.post('/dynamicFormField',membershipController.dynamicFormField);
 
 
 

@@ -37,7 +37,10 @@ let membershipSchema = new Schema({
     },
     services:[{
         type: Schema.Types.ObjectId, ref: 'service'
-    }]
+    }],
+    dynamicFormField:{
+        type:Array
+    }
 
 }, {
     timestamps: true,

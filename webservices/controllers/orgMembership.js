@@ -18,7 +18,7 @@ const ObjectId = mongoose.Types.ObjectId;
 const media = require("../../global_functions/uploadMedia");
 const teamServices = require('../services/teamApis');
 const Membership = require("../../models/orgMembership");
-
+const serviceBooking = require("../../models/serviceBooking")
 
 
 //==================================================ADD MEMBERSHIP===========================================//
@@ -467,7 +467,7 @@ const editService = (req, res) => {
 }
 
 const getAService = (req, res) => {
-    let flag = Validator(req.query, [], [], ["organizerId", "serviceId"]);
+    let flag = Validator(req.query, [], [], ["serviceId"]);
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else {
@@ -889,6 +889,29 @@ const getBookingList=(req,res)=>{
     }
  }
 
+const dynamicFormField=(req,res)=>{
+    let flag = Validator(req.body, [], [], ["membershipId", "dynamicFormField"]);
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
+    else {
+        if(typeof(req.body.dynamicFormField)=="object"){
+            console.log("i am array")
+
+        }
+
+        Membership.membershipSchema.findOneAndUpdate({ "_id": req.body.membershipId}, { $set: { dynamicFormField:  req.body.dynamicFormField } }, { new: true,select:{membershipName:1,dynamicFormField:1} }, (err, success) => {
+            if (err)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+            else if (!success)
+                return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND, "Membership not found.");
+            else {
+                return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Fields added successfully",success)
+
+            }
+        })
+    }
+
+}
 
 
 module.exports = {
@@ -912,7 +935,8 @@ module.exports = {
     publishService,
     approveMembership,
     getApprovalList,
-    getBookingList
+    getBookingList,
+    dynamicFormField
 
 
 
