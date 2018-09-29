@@ -25,6 +25,7 @@ router.post('/getApprovalList',membershipController.getApprovalList);
 router.post('/editService',membershipController.editService);
 router.post('/dynamicFormField',membershipController.dynamicFormField);
 router.get('/deletePlayerfromList',membershipController.deletePlayerfromList);
+router.get('/sendPdfToPlayer',membershipController.sendPdfToPlayer);
 
 
 

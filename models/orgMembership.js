@@ -16,6 +16,7 @@ let membershipSchema = new Schema({
         type:String
     },
     playerFollowStatus:[{
+        _id:false,
         playerId:{
             type: Schema.Types.ObjectId, ref: 'user'
         },

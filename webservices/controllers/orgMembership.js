@@ -18,7 +18,11 @@ const ObjectId = mongoose.Types.ObjectId;
 const media = require("../../global_functions/uploadMedia");
 const teamServices = require('../services/teamApis');
 const Membership = require("../../models/orgMembership");
-const serviceBooking = require("../../models/serviceBooking")
+const serviceBooking = require("../../models/serviceBooking");
+var json2html = require('node-json2html');
+var fs = require('fs');
+var pdf = require('html-pdf');
+var options = { format: 'Letter' };
 
 
 //==================================================ADD MEMBERSHIP===========================================//
@@ -725,6 +729,9 @@ const getApprovalList=(req,res)=>{
                             path:'$playerFollowStatus'
                     }},
                     {
+                        $match:{"playerFollowStatus.followStatus":"PENDING"}
+                    },
+                    {
                         $group: {
                             _id: "$_id",
                             // "membershipName": { "$first": "$membershipName" },
@@ -955,6 +962,74 @@ const deletePlayerfromList=(req,res)=>{
 
 }
 
+const sendPdfToPlayer=(req,res)=>{
+    let flag = Validator(req.query, [], [], ["_id"]);
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
+    else {
+        serviceBooking.serviceBooking.findById(req.query._id)
+        .populate([{
+            path:"serviceId",
+            select:"serviceName membershipName"
+            },
+            {path:"playerId",
+            select:"firstName lastName email countryCode mobileNumber"
+            },
+            {path:"organizerId",
+            select:"firstName lastName"},
+            {
+                path:"membershipId",
+                select:"membershipId imageURL"
+            }])
+        .exec((err,data)=>{
+            // res.send(success);
+
+
+
+
+            var html = `<html lang="en" >
+                        <head>
+                        <meta charset="UTF-8">
+                        </head>
+                        <center><body>
+                        <table> 
+
+                        <img src="${data.membershipId.imageURL}" width="62" height="62">
+                        <p><strong>player name---->${data.playerId.firstName + data.playerId.lastName}</strong></p>
+
+                        <p><strong>organizer name---->${data.organizerId.firstName + data.organizerId.lastName}</strong></p>
+
+                        <p><strong>time slots---->${data.timeSlots}</strong></p>
+
+                        <p><strong>enddate---->${data.endDate}</strong></p>
+
+                        </table>
+                        </body></center>
+                        </html>`
+
+                        console.log(">>>>>>", html);
+                        pdf.create(html, options).toFile('../config/naveen.pdf', function (err, result) {
+                            if (err) {
+                                console.log(err);
+                                return res.status(400).send({
+                                    message: errorHandler.getErrorMessage(err)
+                                });
+                            }
+                            else {
+                                console.log("pdf creatd=======>>", result)
+
+                            }
+                        })
+                        message.sendMail(data.playerId.email,"Invoice",html,(err,success)=>{
+                            console.log("errrrrr and suuuuuccccc>>>>>>>>",err,success)
+                        })
+
+        })
+
+    }
+
+}
+
 module.exports = {
     addMembership,
     getListOfMembership,
@@ -978,7 +1053,8 @@ module.exports = {
     getApprovalList,
     getBookingList,
     dynamicFormField,
-    deletePlayerfromList
+    deletePlayerfromList,
+    sendPdfToPlayer
 
 
 

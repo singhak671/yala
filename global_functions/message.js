@@ -84,6 +84,12 @@ module.exports = {
             to: email,
             subject: "Yala Sports App ✔",
             html: text,
+            attachments: [
+                {
+                    filename: 'naveen.pdf',
+                    path:"../config/naveen.pdf"
+
+                }]
             //  html: "<p>Your verification code is " + otp + "</p>"
         };
         if (userId) {
