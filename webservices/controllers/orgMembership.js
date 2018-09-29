@@ -681,9 +681,9 @@ const approveMembership = (req, res) => {
                     else {
                         var organizerName = data.organizerId.firstName + " " + data.organizerId.lastName;
                         Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Player status modified successfully.", data);
-                        User.findOne({ _id: req.body.playerId }, { "deviceToken": 1, email: 1, competitionNotify: 1, countryCode: 1, mobileNumber: 1 }, (err, success3) => {
+                        User.findOne({ _id: req.body.playerId }, { "deviceToken": 1, email: 1, membershipNotify: 1, countryCode: 1, mobileNumber: 1 }, (err, success3) => {
                             if (success3) {
-                                if ((success3.competitionNotify.mobile).indexOf("message") != -1)
+                                if ((success3.membershipNotify.mobile).indexOf("message") != -1)
                                     message.sendSMS("You are confirmed by the organizer " + organizerName, success3.countryCode, success3.mobileNumber, (error, result) => {
                                         if (err)
                                             console.log("error in sending SMS")
@@ -692,7 +692,7 @@ const approveMembership = (req, res) => {
                                     })
                                 // console.log("&&&&&& anurag &&&&&&", success3)
                                 message.sendPushNotifications(success3.deviceToken, "You are confirmed by the organizer " + organizerName, (err, suc) => { })
-                                if ((success3.competitionNotify.email).indexOf("message") != -1)
+                                if ((success3.membershipNotify.email).indexOf("message") != -1)
                                     message.sendMail(success3.email, "Yala Sports App ✔", "You are confirmed by the organizer " + organizerName, (err, result) => {
                                         console.log("send1--->>", result1)
                                     })
@@ -718,8 +718,22 @@ const getApprovalList=(req,res)=>{
         var query={ organizerId : ObjectId(req.body.organizerId) };
         if(req.body.membershipName)
             query.membershipName=req.body.membershipName;
+        let query2={};
+        query2=Object.assign(query2,query);
+
+        if(req.body.status)
+            query2["playerFollowStatus.followStatus"]=req.body.status;
+
+        if(req.body.search)
+            query2.$or=[
+                {membershipName:{$regex:req.body.search,$options:'i'}},
+                {"playerFollowStatus.playerId.firstName":{$regex:req.body.search,$options:'i'}},
+                {"playerFollowStatus.playerId.lastName":{$regex:req.body.search,$options:'i'}},
+                {"playerFollowStatus.playerId.email":{$regex:req.body.search,$options:'i'}},
+                {"playerFollowStatus.playerId.gender":{$regex:req.body.search,$options:'i'}}
+            ]        
        
-                console.log("i am query for get approval list>",query)
+                console.log("i am query for get approval list>",query,"QUERY@>>>>>>>>>",query2)
                 var aggregate=Membership.membershipSchema.aggregate([
                     {
                          $match : query 
@@ -728,8 +742,15 @@ const getApprovalList=(req,res)=>{
                         "$unwind": {
                             path:'$playerFollowStatus'
                     }},
+                    {      $lookup: {
+                            from: "users",
+                            localField: "playerFollowStatus.playerId",
+                            foreignField: "_id",
+                            as: "playerFollowStatus.playerId"
+                        }
+                    },
                     {
-                        $match:{"playerFollowStatus.followStatus":"PENDING"}
+                        $match:query2
                     },
                     {
                         $group: {
@@ -780,11 +801,11 @@ const getApprovalList=(req,res)=>{
                     }
                     Membership.membershipSchema.aggregatePaginate(aggregate, option, (err, result, pages, total) => {
                        // console.log("&&&&&&&&&&&>>",err,result);
-                       Membership.membershipSchema.populate(result,[{path:"playerFollowStatus.playerId",select:"firstName lastName email dob gender countryCode mobileNumber"}],(err,data)=>{
+                    //    Membership.membershipSchema.populate(result,[{path:"playerFollowStatus.playerId",select:"firstName lastName email dob gender countryCode mobileNumber"}],(err,data)=>{
                         
                    
                         const success = {
-                                "docs": data,
+                                "docs": result,
                                 "total": total,
                                 "limit": option.limit,
                                 "page": option.page,
@@ -792,12 +813,12 @@ const getApprovalList=(req,res)=>{
                             }
                             if(err)
                                 return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
-                            else if(!data)
+                            else if(!result)
                                     return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NO_DATA_FOUND);
                                 else
                                     return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success);
                             
-                    })
+                    //})
                 })             
 
            
@@ -970,7 +991,7 @@ const sendPdfToPlayer=(req,res)=>{
         serviceBooking.serviceBooking.findById(req.query._id)
         .populate([{
             path:"serviceId",
-            select:"serviceName membershipName"
+            select:"serviceName membershipName endDate"
             },
             {path:"playerId",
             select:"firstName lastName email countryCode mobileNumber"
@@ -982,7 +1003,56 @@ const sendPdfToPlayer=(req,res)=>{
                 select:"membershipId imageURL"
             }])
         .exec((err,data)=>{
-            // res.send(success);
+            // return res.send(data);                                 //Response***************************************************
+            //  {
+            //     "timeSlots": [
+            //         "10:00"
+            //     ],
+            //     "booking": true,
+            //     "status": "pending",
+            //     "followStatus": "APPROVED",
+            //     "visibleInMemberCard": false,
+            //     "_id": "5bab8522695cea13fe1ed7eb",
+            //     "organizerId": {
+            //         "_id": "5b544aaf9a895a460aaf93ce",
+            //         "firstName": "Pooja",
+            //         "lastName": "Kumar"
+            //     },
+            //     "membershipId": {
+            //         "_id": "5ba0e8594ad94016f528af70",
+            //         "imageURL": "https://res.cloudinary.com/singhanurag400/image/upload/v1537349846/ydrswaj8htryfht2y793.jpg"
+            //     },
+            //     "membershipName": "Abcde",
+            //     "playerId": {
+            //         "_id": "5b54494b9a895a460aaf93cc",
+            //         "firstName": "Ankita",
+            //         "lastName": "Verma",
+            //         "countryCode": "+91",
+            //         "mobileNumber": "8173041977",
+            //         "email": "me-anurag@mobiloitte.com"
+            //     },
+            //     "serviceName": "First service",
+            //     "serviceId": {
+            //         "_id": "5ba374c8ed1491108fddc180",
+            //         "membershipName": "Head massage",
+            //         "serviceName": "First service",
+            //          "endDate": "2018-10-20T00:00:00.000Z"
+            //     },
+            //     "paymentMethod": "Cash",
+            //     "totalPrice": "20",
+            //     "duration": [
+            //         {
+            //             "_id": "5bab8522695cea13fe1ed7ec",
+            //             "startTime": "10:00",
+            //             "endTime": "11:00",
+            //             "price": "20",
+            //             "totalDuration": "60"
+            //         }
+            //     ],
+            //     "createdAt": "2018-09-26T13:09:54.912Z",
+            //     "updatedAt": "2018-09-28T13:52:55.250Z",
+            //     "__v": 0
+            // }
 
 
 
@@ -993,15 +1063,16 @@ const sendPdfToPlayer=(req,res)=>{
                         </head>
                         <center><body>
                         <table> 
-
-                        <img src="${data.membershipId.imageURL}" width="62" height="62">
+                        <h3>Membership name >>>> ${data.serviceId.membershipName}</h3>
+                        <img src="${data.membershipId.imageURL}" width="100" height="100">
                         <p><strong>player name---->${data.playerId.firstName + data.playerId.lastName}</strong></p>
 
                         <p><strong>organizer name---->${data.organizerId.firstName + data.organizerId.lastName}</strong></p>
 
                         <p><strong>time slots---->${data.timeSlots}</strong></p>
+                        <p>End Date >>>>>> ${data.createdAt}</p>
 
-                        <p><strong>enddate---->${data.endDate}</strong></p>
+                        <p><strong>enddate---->${data.serviceId.endDate}</strong></p>
 
                         </table>
                         </body></center>
@@ -1027,6 +1098,13 @@ const sendPdfToPlayer=(req,res)=>{
         })
 
     }
+
+}
+const getSettingOption=(req,res)=>{
+    
+}
+
+const settingOption=(req,res)=>{  
 
 }
 

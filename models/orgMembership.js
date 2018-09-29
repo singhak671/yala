@@ -39,6 +39,15 @@ let membershipSchema = new Schema({
     services:[{
         type: Schema.Types.ObjectId, ref: 'service'
     }],
+    allowComments:{
+        type:Boolean,
+        default:true
+    },
+    enableRegistration:{
+        type:Boolean,
+        default:true
+    },
+
     dynamicFormField:{
         type:Array
     }
