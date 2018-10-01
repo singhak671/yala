@@ -759,6 +759,93 @@ const getMessage = (req, res) => {
     }
 }
 
+const sendMessageToAllPlayersMembership = (req, res) => {
+    var mailArray = [];
+    var pushArray = [];
+    var mobileArray = [];
+    var firstName, lastName;
+    let flag = Validator(req.body, [], [], ["organizerId", "message"])
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
+
+    communicationValidator(req.body.organizerId, ["mail"], (err, flag) => {
+        if (flag[0] !== 200)
+            return Response.sendResponse(res, flag[0], flag[1], flag[2]);
+        else {
+            serviceBooking.serviceBooking.distinct("playerId", { organizerId: req.body.organizerId, booking: true })
+
+
+                .exec((err, success) => {
+                    if (err)
+                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+                    else if (success == false)
+                        return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
+                    else {
+                        console.log("success>>>>>", success);
+                        let obj = {
+                            message: (`you have a new message !`),
+                            title: "YALA Sports App"
+
+                        }
+
+                        async.forEach(success, (key, callback) => {
+                            General.chat.findOneAndUpdate({ organizerId: req.body.organizerId, playerId: key }, { $push: { message: req.body.message }, $set: { playerRead: false } }, { upsert: true, multi: true })
+                                .populate("organizerId", "_id firstName lastName")
+                                .exec((err1, success1) => {
+                                    if (err1) return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err1);
+                                    firstName = success1.organizerId.firstName;
+                                    lastName = success1.organizerId.lastName;
+                                    User.findOne({ _id: key }, (err2, success2) => {
+                                        if (success2) {
+                                            if ((success2.membershipNotify.email.indexOf("message") != -1) && (mailArray.indexOf(success2.email) == -1)) {
+                                                mailArray.push(success2.email)
+                                            }
+                                            if ((success2.deviceToken && pushArray.indexOf(success2.deviceToken[0]) == -1) && success2.deviceToken[0])
+                                                pushArray.push.apply(pushArray, success2.deviceToken);// push notification array
+                                            if ((success2.membershipNotify.mobile.indexOf("message") !== -1) && mobileArray.indexOf(success2.countryCode + success2.mobileNumber) == -1)
+                                                mobileArray.push((success2.countryCode + success2.mobileNumber))
+                                            console.log("success>>>>>LAST DTA&&**&*&*&*&&*((((")
+                                        }
+                                        callback(null, "result");
+
+                                    })
+                                });
+                        }, (err, result) => {
+                            if (err) console.error(err.message);
+                            else console.log("iteration done succesfully", pushArray, mailArray, mobileArray);
+                            message.sendMail(mailArray, "YALA Sports", `Hi! you have a new message from ${firstName} ${lastName} in your YALA account.`, (err3, success) => {
+                                if (err3)
+                                    console.log(err3)
+                                else if (success) {
+                                    console.log("array&&&&&", mailArray)
+                                    console.log("mail sent SUCCESSFULLY_DONE");
+
+                                }
+                            }, req.body.organizerId);
+
+                            //==================send push notifications to all players=============//
+                            message.sendPushNotifications(pushArray, `Hi ! you have a new message from ${firstName} ${lastName} in your YALA account.`, (err, success) => { })
+
+                            //===================save notification of all players==================//
+                            message.saveNotification(success, `Hi! you have a new message from ${firstName} ${lastName} in your YALA account.`);
+                            //================send message to all======================
+                            message.sendSmsToAll(mobileArray, `Hi! you have a new message from ${firstName} ${lastName} in your YALA account.`);
+
+
+
+
+                        });
+                        Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Message successfully send to all!");
+
+
+
+                    }
+                })
+        }
+
+    })
+
+}
 
 
 module.exports = {
@@ -767,6 +854,8 @@ module.exports = {
     sendMessageToAllTeam,
     sendMessageToAllPlayers,
     getListOfMessageForPlayer,
-    sendMsgToAllPlayersOfATeam
+    sendMsgToAllPlayersOfATeam,
+
+    sendMessageToAllPlayersMembership
 }
 

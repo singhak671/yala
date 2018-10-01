@@ -14,7 +14,7 @@ const findMedia=(bodydata,callback)=>{
     // Media.findOne(bodydata,(err,result)=>{
     //     callback(err,result)
     // })
-    Media.findOne(bodydata).lean().populate({path:"competitionId",model:Competition.competition,select:'imageURL'}).exec((err,result)=>{
+    Media.findOne(bodydata).lean().populate([{path:"competitionId",model:Competition.competition,select:'imageURL'},{path:"membershipId",model:"orgmembership",select:'imageURL'}]).exec((err,result)=>{
         callback(err,result)
     })
 }

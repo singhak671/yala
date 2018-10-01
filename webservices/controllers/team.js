@@ -12,6 +12,10 @@ const Follow = require("../../models/compFollowOrgPlay");
 const General = require("../../models/generalSchema.js")
 const subscriptionValidator = require('../../middlewares/validation').validate_subscription_plan;
 const media = require("../../global_functions/uploadMedia");
+const Membership = require("../../models/orgMembership");
+const serviceBooking = require("../../models/serviceBooking")
+var async = require("async");
+var waterfall = require('async-waterfall');
 //---------------------------Select competiton----------------------------------------------
 const selectCompition = (req, res) => {
     console.log("ghfghdhfh", req.query.userId)
@@ -39,7 +43,7 @@ const selectCompition = (req, res) => {
         })
     }
 }
-//---------------------------------Select Venue---------------------------------------------
+//---------------------------------Select Venue(Membership and Competititon)---------------------------------------------
 const selectVenue = (req, res) => {
     if (!req.query.userId) {
         return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.ORGANIZER_IS_REQUIRED)
@@ -394,8 +398,7 @@ const addPlayer = (req, res) => {
                         req.body.organizer = success.employeerId
                     else
                         req.body.organizer = req.query.userId
-                        
-                    userServices.findUser({$or:[{email: req.body.email},{mobileNumber:req.body.mobileNumber}]}, (err, success) => {
+                    userServices.findUser({ $or: [{ email: req.body.email }, { mobileNumber: req.body.mobileNumber }] }, (err, success) => {
                         if (err)
                             return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
                         else if (success)
@@ -750,6 +753,169 @@ const getDetailOfPlayer = (req, res) => {
 
 
 
+//---------Membership Player (Data section)----------------
+const addPlayerInMember = (req, res) => {
+    subscriptionValidator(req.query, ["Create Team & Player",], (err, flag) => {
+        if (flag[0] !== 200)
+            return Response.sendResponse(res, flag[0], flag[1], flag[2]);
+        else {
+            if (!req.query.organizerId)
+                return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.ORG_IS_REQ)
+            else {
+                userServices.findUser({ _id: req.query.organizerId }, (err, success) => {
+                    if (err)
+                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                    else if (!success)
+                        return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.ORGANIZER_NOT_FOUND)
+                    else {
+                        if (success.employeeRole == 'COORDINATOR' || success.employeeRole == "ADMINSTRATOR")
+                            req.body.organizerId = success.employeerId
+                        else
+                            req.body.organizerId = req.query.organizerId
+                        userServices.findUser({ $or: [{ email: req.body.playerDetail.email }, { mobileNumber: req.body.playerDetail.mobileNumber }] }, (err, success1) => {
+                            if (err)
+                                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                            else if (success1)
+                                return Response.sendResponse(res, responseCode.ALREADY_EXIST, "Player already exists")
+                            else {
+                                Membership.serviceSchema.findOne({ membershipId: req.body.membershipId, _id: req.body.serviceId }, (err, success2) => {
+                                    if (err)
+                                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                                    else if (!success2)
+                                        return Response.sendResponse(res, responseCode.NOT_FOUND, "Service not found")
+                                    else {
+                                        let availableSlots = []
+                                        Membership.serviceSchema.findOne({ _id: req.body.serviceId }, (err, success) => {
+                                            if (err)
+                                                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                                            else
+                                                console.log("success=====>>>", success.slots[0].time)
+                                            for (let data = 0; data < success.slots.length; data++) {
+                                                for (data1 in req.body.timeSlots) {
+                                                    if (success.slots[data].time == req.body.timeSlots[data1] && success.slots[data].noOfSeats != 0)
+                                                        availableSlots.push(req.body.timeSlots[data1])
+                                                }
+                                            }
+                                            console.log("I am available slots ", availableSlots)
+                                            if (!availableSlots.length)
+                                                return Response.sendResponse(res, responseCode.BAD_REQUEST, "No slots is empty")
+                                            else {
+                                                let totalPrice = availableSlots.length * success.amount
+                                                let duration = [], temp = {}
+                                                for (data in availableSlots) {
+                                                    temp = {
+                                                        startTime: availableSlots[data],
+                                                        totalDuration: success.duration,
+                                                        price: success.amount
+                                                    }
+                                                    duration.push(temp)
+                                                }
+                                                const password = message.genratePassword();
+                                                console.log("password-->>", password)
+                                                req.body.password = password
+                                                let salt = bcrypt.genSaltSync(10);
+                                                req.body.playerDetail.password = bcrypt.hashSync(req.body.password, salt)
+                                                req.body.playerDetail.role = ["PLAYER"],
+                                                    req.body.playerDetail.phoneVerified = true
+                                                req.body.playerDetail.emailVerified = true
+                                                message.uploadImg(req.body.playerDetail.image, (err, res1) => {
+                                                    console.log("res--->>", res1)
+                                                    if (res1) {
+                                                        req.body.playerDetail.image = res1.secure_url
+                                                        console.log(req.body.playerDetail)
+                                                        userServices.addUser(req.body.playerDetail, (err, success) => {
+                                                            if (err)
+                                                                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                                                            else {
+                                                                let set = {
+                                                                    $push: {
+                                                                        playerFollowStatus: {
+                                                                            playerId: (success._id).toString(),
+                                                                            followStatus: "APPROVED"
+                                                                        }
+                                                                    }
+                                                                }
+                                                                Membership.membershipSchema.findOneAndUpdate({ _id: req.body.membershipId }, set, { new: true }, (err, success1) => {
+                                                                    if (err || !success1)
+                                                                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                                                                    else {
+                                                                        let obj = {
+                                                                            organizerId: req.body.organizerId,
+                                                                            membershipId: req.body.membershipId,
+                                                                            membershipName: req.body.membershipName,
+                                                                            playerId: success._id,
+                                                                            startDate: req.body.startDate,
+                                                                            endDate: req.body.endDate,
+                                                                            booking: true,
+                                                                            timeSlots: availableSlots,
+                                                                            followStatus: "APPROVED",
+                                                                            serviceName: req.body.serviceName,
+                                                                            serviceId: req.body.serviceId,
+                                                                            totalPrice: totalPrice,
+                                                                            duration: duration
+
+                                                                        }
+                                                                        console.log("obj--->>", obj)
+                                                                        serviceBooking.serviceBooking.create(obj, (err, success2) => {
+                                                                            if (err || !success2)
+                                                                                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                                                                            else {
+                                                                                async.forEach(availableSlots, (key, callback) => {
+                                                                                    Membership.serviceSchema.findOne({ _id: req.body.serviceId, "slots.time": key }, { "slots.$.time": 1 }, (err, success3) => {
+                                                                                        if (success3) {
+                                                                                            Membership.serviceSchema.findOneAndUpdate({ _id: req.body.serviceId, "slots.time": key }, { $set: { "slots.$.noOfSeats": success3.slots[0].noOfSeats - 1 } }, { new: true }, (err, success) => {
+                                                                                                if (err)
+                                                                                                    console.log("noooooo")
+                                                                                                else {
+                                                                                                    console.log("success")
+                                                                                                }
+                                                                                            })
+                                                                                        }
+                                                                                    })
+                                                                                })
+                                                                                Membership.serviceSchema.findOneAndUpdate({ _id: req.body.serviceId }, { $addToSet: { playerId: success._id } }, { new: true }, (err, success) => {
+                                                                                    if (err)
+                                                                                        console.log("noooooo")
+                                                                                    else {
+                                                                                        console.log("success")
+                                                                                    }
+
+                                                                                })
+                                                                                Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, "Player added successfully for slots " + availableSlots, success);
+                                                                                message.sendMail(success.email, "YALA Login Credentials", "Your Login Credentials are:" + "<br/>UserId : " + req.body.playerDetail.email + "<br/>Password : " + req.body.password, (err, result1) => {
+                                                                                    if (err || !result1) {
+                                                                                        console.log(err)
+                                                                                    }
+                                                                                    else {
+                                                                                        console.log(result1)
+                                                                                    }
+                                                                                }, req.body.organizer)
+                                                                            }
+                                                                        })
+                                                                    }
+                                                                })
+                                                            }
+                                                        })
+                                                    }
+                                                    else {
+                                                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, "Error while uploading image")
+                                                    }
+                                                })
+                                            }
+                                        })
+
+                                    }
+                                })
+                            }
+                        })
+
+                    }
+                })
+            }
+        }
+    })
+}
+
 const getServiceList = (req, res) => {
     if (!req.query.organizerId)
         return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.ORGANIZER_IS_REQUIRED)
@@ -863,6 +1029,186 @@ const getServiceList = (req, res) => {
 }
 
 
+
+//-------------List of Player Without pagination----------------------------
+const getList = (req, res) => {
+    if (!req.query.organizerId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.ORGANIZER_IS_REQUIRED)
+    else {
+        userServices.findUser({ _id: req.query.organizerId }, (err, success) => {
+            if (err || !success)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+            else {
+                if (success.employeeRole == 'COORDINATOR' || success.employeeRole == "ADMINSTRATOR")
+                    req.body.organizerId = success.employeerId
+                else
+                    req.body.organizerId = req.query.organizerId
+                let query = {
+                    organizerId: ObjectId(req.body.organizerId),
+                    "booking": true,
+                }
+                if (req.body.search) {
+                    let search = new RegExp("^" + req.body.search)
+                    query = {
+                        organizerId: ObjectId(req.body.organizerId),
+                        "booking": true,
+                        $or: [{ serviceName: { $regex: search, $options: 'i' } }, { membershipName: { $regex: search, $options: 'i' } }, { timeSlots: { $regex: search, $options: 'i' } }, { status: { $regex: search, $options: 'i' } }, { "Player.firstName": { $regex: search, $options: 'i' } }, { "Comp.division": { $regex: search, $options: 'i' } }, { "Player.email": { $regex: search, $options: 'i' } }]
+                    }
+                }
+                if (req.body.serviceName)
+                    query.serviceName = req.body.teamName
+                if (req.body.status)
+                    query["status"] = req.body.status
+                if (req.body.membershipName)
+                    query.membershipName = req.body.competitionName
+                if (req.body.gender)
+                    query["Player.gender"] = req.body.gender
+                if (req.body.timeSlots)
+                    query.timeSlots = { $in: req.body.timeSlots }
+                console.log("query-->>", query)
+                serviceBooking.serviceBooking.aggregate([
+                    {
+                        $lookup: {
+                            from: "users",
+                            localField: "playerId",
+                            foreignField: "_id",
+                            as: "Player"
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: "services",
+                            localField: "serviceId",
+                            foreignField: "_id",
+                            as: "Service"
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: "orgmemberships",
+                            localField: "membershipId",
+                            foreignField: "_id",
+                            as: "Membership"
+                        }
+                    },
+                    {
+                        $unwind: "$Service"
+                    },
+                    { $unwind: "$Player" },
+                    { $unwind: "$Membership" },
+                    { $match: query },
+                    {
+                        $project: {
+                            "Player.password": 0,
+                            "Player.competitionNotify": 0,
+                            "Player.membershipNotify": 0,
+                            "Player.venueNotify": 0,
+                            "Player.employeePermissionForCoordinator": 0,
+                            "Player.employeePermissionForAdminstartor": 0,
+                            "Player:organizerType": 0,
+                            "Player.subscriptionAccess": 0,
+                            "Player.organizerCompetition": 0,
+                            "Player.organizerNotification": 0,
+                            "Player.deviceToken": 0,
+                            "Player.cardDetails": 0
+                        }
+                    },
+                    { $sort: { createdAt: -1 } }
+                ]).exec((err, success) => {
+                    if (err)
+                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                    else if (!success.length)
+                        return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.PLAYER_NOT_FOUND)
+                    else
+                        return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.PLAYER_DETAIL, success)
+                })
+            }
+        })
+    }
+}
+
+
+//--------Get Detail of Player (Membership)
+
+const DetailOfPlayer = (req, res) => {
+    if (!req.query.organizerId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.ORGANIZER_IS_REQUIRED)
+    else if (!req.query.playerId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.PLAYER_IS_REQUIRED)
+    else {
+        userServices.findUser({ _id: req.query.organizerId }, (err, success) => {
+            if (err)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+            else {
+                if (success.employeeRole == 'COORDINATOR' || success.employeeRole == "ADMINSTRATOR")
+                    req.body.organizerId = success.employeerId
+                else
+                    req.body.organizerId = req.query.organizerId
+                let query = {
+                    organizerId: ObjectId(req.body.organizerId),
+                    playerId: ObjectId(req.query.playerId)
+                }
+                serviceBooking.serviceBooking.aggregate([
+                    {
+                        $lookup: {
+                            from: "users",
+                            localField: "playerId",
+                            foreignField: "_id",
+                            as: "Player"
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: "services",
+                            localField: "serviceId",
+                            foreignField: "_id",
+                            as: "Service"
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: "orgmemberships",
+                            localField: "membershipId",
+                            foreignField: "_id",
+                            as: "Membership"
+                        }
+                    },
+                    {
+                        $unwind: "$Service"
+                    },
+                    { $unwind: "$Player" },
+                    { $unwind: "$Membership" },
+                    { $match: query },
+                    {
+                        $project: {
+                            "Player.password": 0,
+                            "Player.competitionNotify": 0,
+                            "Player.membershipNotify": 0,
+                            "Player.venueNotify": 0,
+                            "Player.employeePermissionForCoordinator": 0,
+                            "Player.employeePermissionForAdminstartor": 0,
+                            "Player:organizerType": 0,
+                            "Player.subscriptionAccess": 0,
+                            "Player.organizerCompetition": 0,
+                            "Player.organizerNotification": 0,
+                            "Player.deviceToken": 0,
+                            "Player.cardDetails": 0
+                        }
+                    },
+                ]).exec((err, success) => {
+                    if (err)
+                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                    else if (!success.length)
+                        return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.PLAYER_NOT_FOUND)
+                    else
+                        return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.PLAYER_DETAIL, success)
+                })
+            }
+        })
+
+    }
+}
+
 module.exports = {
     tryyyy,
     selectCompition,
@@ -875,13 +1221,14 @@ module.exports = {
     getListOfPlayer,
     getDetailOfPlayer,
 
-
     listOfTeam,
     listOfPlayer,
 
 
-
-    getServiceList
+    addPlayerInMember,
+    getServiceList,
+    DetailOfPlayer,
+    getList
 }
 
 

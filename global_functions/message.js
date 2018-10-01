@@ -222,7 +222,7 @@ module.exports = {
 
     
 
-    sendMailToAll: (maillist, message, callback, userId) => {
+    sendMailToAll: (maillist, message, callback, userId,attachment) => {
         console.log(maillist)
         var mailBody = {
             from: "******", // sender address
@@ -230,6 +230,9 @@ module.exports = {
             text: message, // plaintext body
             cc: "*******",
             to: maillist
+        }
+        if(attachment){
+            mailBody.attachments=attachment
         }
         if (userId) {
             General.mailMessage.findOne({ organizer: userId }, (err, success) => {

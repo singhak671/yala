@@ -295,64 +295,58 @@ const unFollowMembership = (req, res) => {
 const getServiceListInPlayer = (req, res) => {
     if (!req.query.userId)
         return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.USER_IS_REQ)
+    else if (!req.query.membershipId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST,"Membership required")
     else {
-        let query1 = { "playerFollowStatus.playerId": req.query.userId, "playerFollowStatus.followStatus": "APPROVED" }
-        Membership.membershipSchema.aggregate([
-            {
-                $match : query1
-            },
-            {
-                $project: {
-                    membershipId: "$_id",
-                    _id: 0
-                }
-            }
-        ]).exec((err, success) => {
+        let query1 = {_id:req.query.membershipId}
+        Membership.membershipSchema.findOne(query1).exec((err, success) => {
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
             else if (!success)
-                return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.NO_DATA_FOUND)
+                return Response.sendResponse(res, responseCode.BAD_REQUEST,"Membership not found")
             else {
                 let query = {
-                    $or: success,
+                    membershipId:req.query.membershipId,
                     showStatus: "ACTIVE"
                 }
                 if (req.body.search) {
-                    query={
-                        $and:[
-                           { $or:[
-                                { serviceName: { $regex: req.body.search, $options: 'i' } },
-                                { amount: { $regex: req.body.search, $options: 'i' } },
-                                { "professionals.professionalName": { $regex: req.body.search, $options: 'i' } },
-                                { status: { $regex: req.body.search, $options: 'i' } },
-                                { venueName: { $regex: req.body.search, $options: 'i' } },
-                                { description: { $regex: req.body.search, $options: 'i' } },
-                                { organizerName: { $regex: req.body.search, $options: 'i' } },
-                                { membershipName: { $regex: req.body.search, $options: 'i' } },
-                            ]},
-                          {$or:success}
+                    query = {
+                        $and: [
+                            {
+                                $or: [
+                                    { serviceName: { $regex: req.body.search, $options: 'i' } },
+                                    { amount: { $regex: req.body.search, $options: 'i' } },
+                                    { "professionals.professionalName": { $regex: req.body.search, $options: 'i' } },
+                                    { status: { $regex: req.body.search, $options: 'i' } },
+                                    { venueName: { $regex: req.body.search, $options: 'i' } },
+                                    { description: { $regex: req.body.search, $options: 'i' } },
+                                    { organizerName: { $regex: req.body.search, $options: 'i' } },
+                                    { membershipName: { $regex: req.body.search, $options: 'i' } },
+                                ]
+                            },
+                            { $or: success }
                         ],
                         showStatus: "ACTIVE"
-                       };
+                    };
                 }
                 if (req.body.status)
-                query.status = req.body.status;
-                if (req.body.membershipId)
-                query.organizerName = req.body.organizerName;
-                let option={
-                    page:req.body.page||1,
-                    limit:req.body.limit||4,
-                    sort:{createdAt:-1},
-                    populate:{path:"membershipId",model:"orgmembership",select:"imageURL"},
-                    lean:true
+                    query.status = req.body.status;
+                if (req.body.organizerName)
+                    query.organizerName = req.body.organizerName;
+                let option = {
+                    page: req.body.page || 1,
+                    limit: req.body.limit || 4,
+                    sort: { createdAt: -1 },
+                    populate: { path: "membershipId", model: "orgmembership", select: "imageURL" },
+                    lean: true
                 }
-                console.log("query--->",query)
-                Membership.serviceSchema.paginate(query,option, (err, success) => {
+                console.log("query--->", query)
+                Membership.serviceSchema.paginate(query, option, (err, success) => {
                     if (err)
-                    return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
                     else if (!success)
-                    return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.NO_DATA_FOUND)
-                    else{
+                        return Response.sendResponse(res, responseCode.BAD_REQUEST,"No data found")
+                    else {
                         for (i = 0; i < success.docs.length; i++) {
                             if (((success.docs[i].playerId).toString()).indexOf(req.query.userId) != -1) {
                                 success.docs[i].bookingStatus = "True"
@@ -361,13 +355,14 @@ const getServiceListInPlayer = (req, res) => {
                                 success.docs[i].bookingStatus = "False"
                             }
                         }
-                        return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK,"List of Service",success)
+                        return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "List of Service", success)
                     }
                 })
             }
         })
     }
 }
+
 // Book A service
 const bookAservice = (req, res) => {
     console.log("req.body for player paymnet>>>>>", req.body)
@@ -381,11 +376,11 @@ const bookAservice = (req, res) => {
             else if (!success)
                 return Response.sendResponse(res, responseCode.BAD_REQUEST, "User not found")
             else {
-                Membership.membershipSchema.findOne({ _id: req.body.membershipId, "playerFollowStatus.playerId": req.body.playerId, "playerFollowStatus.followStatus": "APPROVED" }, (err, success) => {
+                Membership.membershipSchema.findOne({ _id:req.body.membershipId}, (err, success) => {
                     if (err)
                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
                     else if (!success)
-                        return Response.sendResponse(res, responseCode.BAD_REQUEST, "Follow membership first")
+                        return Response.sendResponse(res, responseCode.BAD_REQUEST,"Membership not found")
                     else {
                         serviceBooking.serviceBooking.findOne({ playerId: req.body.playerId, serviceId: req.body.serviceId }, (err, success) => {
                             if (err)
@@ -416,7 +411,7 @@ const bookAservice = (req, res) => {
                                                         duration.push(req.body.duration[data1])
                                                 }
                                             }
-                                            if (req.body.regData.paymentMethod == "Cash") {
+                                            if (req.body.regData.paymentMethod == "Cash"||req.body.regData.paymentMethod=="Free") {
                                                 let obj1 = {
                                                     organizerId: req.body.organizerId,
                                                     membershipId: req.body.membershipId,
@@ -430,10 +425,13 @@ const bookAservice = (req, res) => {
                                                     followStatus: "APPROVED",
                                                     serviceName: req.body.serviceName,
                                                     serviceId: req.body.serviceId,
-                                                    paymentMethod: "Cash",
                                                     totalPrice: req.body.totalPrice,
                                                     duration: duration
                                                 }
+                                                if(req.body.regData.paymentMethod == "Cash")
+                                                  obj1.paymentMethod="Cash"
+                                                if(req.body.regData.paymentMethod == "Free")
+                                                  obj1.paymentMethod="Free"
                                                 serviceBooking.serviceBooking.create(obj1, (err, success) => {
                                                     if (err || !success)
                                                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
@@ -441,10 +439,13 @@ const bookAservice = (req, res) => {
                                                         let obj = {
                                                             type: "MEMBERSHIP",
                                                             playerId: req.body.playerId,
-                                                            paymentMethod: "Cash",
                                                             organizerId: req.body.organizerId,
                                                             bookingId: success._id
                                                         }
+                                                        if(req.body.regData.paymentMethod == "Cash")
+                                                        obj.paymentMethod="Cash"
+                                                        if(req.body.regData.paymentMethod == "Free")
+                                                        obj.paymentMethod="Free"
                                                         TransactionSchema.organizerTransaction.create(obj, (err, success1) => {
                                                             if (err)
                                                                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)

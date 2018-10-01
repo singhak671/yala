@@ -160,6 +160,7 @@ const selectMembership = (req, res) => {
 }
 
 const editMembership = (req, res) => {
+    
     let flag = Validator(req.body, [], [], ["organizerId", "membershipId", "membershipName", "clubName", "clubId", "status", "allowPublicToFollow", "imageURL"]);
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
@@ -516,12 +517,12 @@ const getListOfService = (req, res) => {
         };
         if(req.body.organizerId)
             query.organizerId=req.body.organizerId;
-        if (req.body.loginWith == "WEBSITE") {
-            if (!req.body.membershipId)
-                return Response.sendResponse(res, responseCode.BAD_REQUEST, "Please provide membershipId in URL.");
-            else
-                query.membershipId = req.body.membershipId;
-        }
+        // if(req.body.loginWith == "WEBSITE") {
+        //     if (!req.body.membershipId)
+        //         return Response.sendResponse(res, responseCode.BAD_REQUEST, "Please provide membershipId in URL.");
+        //     else
+        //         query.membershipId = req.body.membershipId;
+        // }
         if (req.body.status)
             query.status = req.body.status;
         if (req.body.membershipId)
@@ -723,6 +724,8 @@ const getApprovalList=(req,res)=>{
 
         if(req.body.status)
             query2["playerFollowStatus.followStatus"]=req.body.status;
+        if(req.body.playerId)
+            query2["playerFollowStatus.playerId."]
 
         if(req.body.search)
             query2.$or=[
@@ -1094,19 +1097,12 @@ const sendPdfToPlayer=(req,res)=>{
                         message.sendMail(data.playerId.email,"Invoice",html,(err,success)=>{
                             console.log("errrrrr and suuuuuccccc>>>>>>>>",err,success)
                         })
-
         })
-
     }
-
-}
-const getSettingOption=(req,res)=>{
-    
 }
 
-const settingOption=(req,res)=>{  
 
-}
+
 
 module.exports = {
     addMembership,

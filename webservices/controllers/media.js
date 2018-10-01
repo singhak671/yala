@@ -15,6 +15,7 @@ const message = require("../../global_functions/message");
 const Follow = require("../../models/compFollowOrgPlay");
 const User = require("../../models/user")
 var async = require("async");
+const Membership = require("../../models/orgMembership");
 const accessPlanMedia = (req, res) => {
     subscriptionValidator(req.query, ["Media"], (err, flag) => {
         if (flag[0] !== 200)
@@ -85,6 +86,10 @@ const createAlbum = (req, res) => {
                         else
                             req.body.organizer = req.query.userId
                         console.log("fhfhhfhjg", req.body.organizer)
+                        if (req.body.competitionId)
+                            req.body.mediaTagTo = "COMPETITION"
+                        if (req.body.membershipId)
+                            req.body.mediaTagTo = "MEMBERSHIP"
                         if (req.body.image) {
                             var imageArray = [], counter = 0;
                             each(req.body.image, (item, next) => {
@@ -111,21 +116,33 @@ const createAlbum = (req, res) => {
                             }, (finalResult) => {
                                 console.log("ggggggg", finalResult)
                             });
-                            Follow.competitionFollow.find({ organizer: req.body.organizer, competitionId: req.body.competitionId }, { _id: 0, playerId: 1 }, { populate: { path: "playerId", model: User, select: { "email": 1, "competitionNotify": 1, _id: 1, mobileNumber: 1, countryCode: 1 } } }, (err, success) => {
+                            Follow.competitionFollow.find({ organizer: req.body.organizer, competitionId: req.body.competitionId }, { _id: 0, playerId: 1 }, { populate: { path: "playerId", model: User, select: { "email": 1, "competitionNotify": 1, "membershipNotify": 1, _id: 1, mobileNumber: 1, countryCode: 1 } } }, (err, success) => {
                                 console.log("success---->>>", success)
                                 if (success) {
                                     let arr = [], arrEmail = [], arrId = [], arrMobile = [];
-                                    for (let data in success) {
-                                        if ((success[data].playerId.competitionNotify.email).indexOf("media") != -1)
-                                            arrEmail.push(success[data].playerId.email)
-                                        if ((success[data].playerId.competitionNotify.mobile).indexOf("media") != -1)
-                                            arrMobile.push(success[data].playerId.countryCode + success[data].playerId.mobileNumber)
-                                        if ((success[data].playerId.deviceToken && arr.indexOf(success[data].playerId.deviceToken[0]) == -1) && success[data].playerId.deviceToken[0])
-                                            arr.push.apply(arr, success[data].playerId.deviceToken);
-                                        arrId.push(success[data].playerId._id)
+                                    if (req.body.competitionId) {
+                                        for (let data in success) {
+                                            if ((success[data].playerId.competitionNotify.email).indexOf("media") != -1)
+                                                arrEmail.push(success[data].playerId.email)
+                                            if ((success[data].playerId.competitionNotify.mobile).indexOf("media") != -1)
+                                                arrMobile.push(success[data].playerId.countryCode + success[data].playerId.mobileNumber)
+                                            if ((success[data].playerId.deviceToken && arr.indexOf(success[data].playerId.deviceToken[0]) == -1) && success[data].playerId.deviceToken[0])
+                                                arr.push.apply(arr, success[data].playerId.deviceToken);
+                                            arrId.push(success[data].playerId._id)
+                                        }
+                                    }
+                                    if (req.body.membershipId) {
+                                        for (let data in success) {
+                                            if ((success[data].playerId.membershipNotify.email).indexOf("media") != -1)
+                                                arrEmail.push(success[data].playerId.email)
+                                            if ((success[data].playerId.membershipNotify.mobile).indexOf("media") != -1)
+                                                arrMobile.push(success[data].playerId.countryCode + success[data].playerId.mobileNumber)
+                                            if ((success[data].playerId.deviceToken && arr.indexOf(success[data].playerId.deviceToken[0]) == -1) && success[data].playerId.deviceToken[0])
+                                                arr.push.apply(arr, success[data].playerId.deviceToken);
+                                            arrId.push(success[data].playerId._id)
+                                        }
                                     }
                                     console.log("I am email mobile Id deviceToken", arrEmail, arrMobile, arrId, arr)
-                                    //arr = ['ddMQdHYWfB4:APA91bHmiaJtIJAlonDRDEKSlZFi3-6tvvMJ9qRIs_IBRbZakJG1HUgmOZRkHQJ54uVwvcuPXhGHk-cc3AmZL0Cvnnklx5wC7-nQQXQtAiB5D5ttAOR-RkBZI6ZrjLeOD9uh6SttStoN2g2dmETfBpRqTpqUUhtXqQ']
                                     message.sendMailToAll(arrEmail, firstName + " " + lastName + " added a new " + req.body.typeOfMedia, (err, success) => {
                                         console.log(success)
                                     }, req.body.organizer)
@@ -145,21 +162,29 @@ const createAlbum = (req, res) => {
                                     console.log("success---->>>", success)
                                     if (success) {
                                         let arr = [], arrEmail = [], arrId = [], arrMobile = [];
-                                        for (let data in success) {
-                                            if ((success[data].playerId.competitionNotify.email).indexOf("media") != -1)
-                                                arrEmail.push(success[data].playerId.email)
-                                            if ((success[data].playerId.competitionNotify.mobile).indexOf("media") != -1)
-                                                arrMobile.push(success[data].playerId.countryCode + success[data].playerId.mobileNumber)
-
-                                            if ((success[data].playerId.deviceToken && arr.indexOf(success[data].playerId.deviceToken[0]) == -1) && success[data].playerId.deviceToken[0])
-                                                arr.push.apply(arr, success[data].playerId.deviceToken);
-
-
-
-                                            arrId.push(success[data].playerId._id)
+                                        if (req.body.competitionId) {
+                                            for (let data in success) {
+                                                if ((success[data].playerId.competitionNotify.email).indexOf("media") != -1)
+                                                    arrEmail.push(success[data].playerId.email)
+                                                if ((success[data].playerId.competitionNotify.mobile).indexOf("media") != -1)
+                                                    arrMobile.push(success[data].playerId.countryCode + success[data].playerId.mobileNumber)
+                                                if ((success[data].playerId.deviceToken && arr.indexOf(success[data].playerId.deviceToken[0]) == -1) && success[data].playerId.deviceToken[0])
+                                                    arr.push.apply(arr, success[data].playerId.deviceToken);
+                                                arrId.push(success[data].playerId._id)
+                                            }
+                                        }
+                                        if (req.body.membershipId) {
+                                            for (let data in success) {
+                                                if ((success[data].playerId.membershipNotify.email).indexOf("media") != -1)
+                                                    arrEmail.push(success[data].playerId.email)
+                                                if ((success[data].playerId.membershipNotify.mobile).indexOf("media") != -1)
+                                                    arrMobile.push(success[data].playerId.countryCode + success[data].playerId.mobileNumber)
+                                                if ((success[data].playerId.deviceToken && arr.indexOf(success[data].playerId.deviceToken[0]) == -1) && success[data].playerId.deviceToken[0])
+                                                    arr.push.apply(arr, success[data].playerId.deviceToken);
+                                                arrId.push(success[data].playerId._id)
+                                            }
                                         }
                                         console.log("I am email mobile Id deviceToken", arrEmail, arrMobile, arrId, arr)
-                                        //arr = ['ddMQdHYWfB4:APA91bHmiaJtIJAlonDRDEKSlZFi3-6tvvMJ9qRIs_IBRbZakJG1HUgmOZRkHQJ54uVwvcuPXhGHk-cc3AmZL0Cvnnklx5wC7-nQQXQtAiB5D5ttAOR-RkBZI6ZrjLeOD9uh6SttStoN2g2dmETfBpRqTpqUUhtXqQ']
                                         message.sendMailToAll(arrEmail, firstName + " " + lastName + " added a new " + req.body.typeOfMedia, (err, success) => {
                                             console.log(success)
                                         }, req.body.organizer)
@@ -215,13 +240,13 @@ const editMedia = (req, res) => {
                                     description: req.body.description,
                                     mediaUrls: req.body.mediaUrls
                                 }
-                                if(req.body.competitionId){
-                                    set.competitionName= req.body.competitionName
-                                    set.competitionId=req.body.competitionId
+                                if (req.body.competitionId) {
+                                    set.competitionName = req.body.competitionName
+                                    set.competitionId = req.body.competitionId
                                 }
-                                if(req.body.membershipId){
-                                    set.membershipId= req.body.membershipId
-                                    set.membershipName=req.body.membershipName
+                                if (req.body.membershipId) {
+                                    set.membershipId = req.body.membershipId
+                                    set.membershipName = req.body.membershipName
                                 }
                                 mediaServices.updateMedia({ organizer: req.query.organizer, _id: req.query.mediaId }, set, { new: true }, (err, success) => {
                                     if (err)
@@ -271,7 +296,7 @@ const getListOfMedia = (req, res) => {
                             page: req.body.page || 1,
                             limit: req.body.limit || 5,
                             sort: { createdAt: -1 },
-                            populate: [{ path: "competitionId", model: Competition.competition, select: 'imageURL'},{path:"membershipId",model:Competition.competition,select:'imageURL'}],
+                            populate: [{ path: "competitionId", model: Competition.competition, select: 'imageURL' }, { path: "membershipId", model: "orgmembership", select: 'imageURL' }],
                             lean: true
                         }
                         mediaServices.getListOfMedia({ organizer: req.query.userId }, option, (err, success) => {
@@ -314,91 +339,97 @@ const getListOfMediaPlayer = (req, res) => {
         teamServices.followStatus(query, select, (err, success) => {
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
-            else if (!success.length)
-                return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.MEDIA_NOT_FOUND)
             else {
-                let query = { $or: success }
-                console.log(query)
-                let option = {
-                    page: req.body.page || 1,
-                    limit: req.body.limit || 5,
-                    sort: { createdAt: -1 },
-                    populate: [{ path: "competitionId", model: Competition.competition, select: 'imageURL' },{path:"membershipId",model:Competition.competition,select:'imageURL'}],
-                    lean: true
-                }
-                mediaServices.getListOfMedia(query, option, (err, success) => {
+                console.log("success==>>>", success)
+                let query1 = { "playerFollowStatus.playerId": req.query.userId, "playerFollowStatus.followStatus": "APPROVED" }
+                Membership.membershipSchema.aggregate([
+                    {
+                        $match: query1
+                    },
+                    {
+                        $project: {
+                            membershipId: "$_id",
+                            _id: 0
+                        }
+                    }
+                ]).exec((err, success1) => {
                     if (err)
                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
-                    else if (!success.docs.length)
-                        return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.MEDIA_NOT_FOUND)
                     else {
-                        for (i = 0; i < success.docs.length; i++) {
-                            //console.log(((success.docs[1].like).toString())+" "+((success.docs[i].like).toString()).indexOf(req.query.userId))
-                            console.log(((success.docs[i].like).toString()).indexOf(req.query.userId))
-                            if (((success.docs[i].like).toString()).indexOf(req.query.userId) != -1) {
-                                success.docs[i].likeStatus = "True"
-                            }
-                            else {
-                                success.docs[i].likeStatus = "False"
-                            }
+                        success.push.apply(success, success1);
+                        let query = { $or: success }
+                        console.log(query)
+                        let option = {
+                            page: req.body.page || 1,
+                            limit: req.body.limit || 5,
+                            sort: { createdAt: -1 },
+                            populate: [{ path: "competitionId", model: Competition.competition, select: 'imageURL' }, { path: "membershipId", model: "orgmembership", select: 'imageURL' }],
+                            lean: true
                         }
-                        return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.LIST_OF_MEDIA, success)
+                        mediaServices.getListOfMedia(query, option, (err, success) => {
+                            if (err)
+                                return Response.sendResponse(res, responseCode.NOT_FOUND, "Media not found")
+                            else if (!success.docs.length)
+                                return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.MEDIA_NOT_FOUND)
+                            else {
+                                for (i = 0; i < success.docs.length; i++) {
+                                    console.log(((success.docs[i].like).toString()).indexOf(req.query.userId))
+                                    if (((success.docs[i].like).toString()).indexOf(req.query.userId) != -1) {
+                                        success.docs[i].likeStatus = "True"
+                                    }
+                                    else {
+                                        success.docs[i].likeStatus = "False"
+                                    }
+                                }
+                                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.LIST_OF_MEDIA, success)
+                            }
+                        })
                     }
                 })
+
             }
         })
     }
 }
+
 //-------------------------------Media List for competition(Membership ,competition)PENDING--------------------------
 const mediaList = (req, res) => {
     if (!req.query.userId)
         return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.PLAYER_IS_REQUIRED)
     else {
-        let query = {
-            playerId: req.query.userId,
-            "followStatus": "APPROVED"
+        let query = {};
+        if (req.query.competitionId) {
+            query.competitionId = req.query.competitionId
         }
-        teamServices.follow(query, (err, success) => {
+        if (req.query.membershipId) {
+            query.membershipId = req.query.membershipId
+        }
+        if (req.body.typeOfMedia)
+            query.typeOfMedia = req.body.typeOfMedia
+        console.log(query)
+        let option = {
+            page: req.body.page || 1,
+            limit: req.body.limit || 5,
+            sort: { createdAt: -1 },
+            populate: [{ path: "competitionId", model: Competition.competition, select: 'imageURL' }, { path: "membershipId", model: "orgmembership", select: 'imageURL' }],
+            lean: true
+        }
+        mediaServices.getListOfMedia(query, option, (err, success) => {
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
-            else if (!success)
-                return Response.sendResponse(res, responseCode.NOT_FOUND, "User not found")
+            else if (!success.docs.length)
+                return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.MEDIA_NOT_FOUND)
             else {
-                let query={};
-                if(req.query.competitionId){
-                    query.competitionId=req.query.competitionId
-                }
-                if(req.query.membershipId){
-                    query.membershipId=req.query.membershipId
-                }
-                if (req.body.typeOfMedia)
-                    query.typeOfMedia = req.body.typeOfMedia
-                console.log(query)
-                let option = {
-                    page: req.body.page || 1,
-                    limit: req.body.limit || 5,
-                    sort: { createdAt: -1 },
-                    populate: [{ path: "competitionId", model: Competition.competition, select: 'imageURL' },{ path: "membershipId", model: Competition.competition, select: 'imageURL' }],
-                    lean: true
-                }
-                mediaServices.getListOfMedia(query, option, (err, success) => {
-                    if (err)
-                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
-                    else if (!success.docs.length)
-                        return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.MEDIA_NOT_FOUND)
-                    else {
-                        for (i = 0; i < success.docs.length; i++) {
-                            console.log(((success.docs[i].like).toString()).indexOf(req.query.userId))
-                            if (((success.docs[i].like).toString()).indexOf(req.query.userId) != -1) {
-                                success.docs[i].likeStatus = "True"
-                            }
-                            else {
-                                success.docs[i].likeStatus = "False"
-                            }
-                        }
-                        return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.LIST_OF_MEDIA, success)
+                for (i = 0; i < success.docs.length; i++) {
+                    console.log(((success.docs[i].like).toString()).indexOf(req.query.userId))
+                    if (((success.docs[i].like).toString()).indexOf(req.query.userId) != -1) {
+                        success.docs[i].likeStatus = "True"
                     }
-                })
+                    else {
+                        success.docs[i].likeStatus = "False"
+                    }
+                }
+                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.LIST_OF_MEDIA, success)
             }
         })
     }
@@ -514,20 +545,17 @@ const commentMedia = (req, res) => {
             if (err || !success)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
             else {
-                //console.log("gdghghfghdghfhgh", success)
                 mediaServices.findMedia({ _id: req.query.mediaId }, (err, success1) => {
                     if (err)
                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
                     else {
                         let organizer = success1.organizer
-                        //console.log("bfndnfndsn", success1.competitionId._id)
-                        mediaServices.findCommentStatus({ _id: success1.competitionId._id }, (err, success2) => {
-                            if (err || !success2)
-                                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
-                            else {
-                                console.log(success2.allowComment)
-                                if (success2.allowComment) {
-                                    if (success.image) {
+                        if (success1.competitionId) {
+                            mediaServices.findCommentStatus({ _id: success1.competitionId._id }, (err, success2) => {
+                                if (err || !success2)
+                                    return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                                else {
+                                     if(success2.allowComment){
                                         let comment = {
                                             commentId: req.query.userId,
                                             text: req.body.text,
@@ -564,58 +592,70 @@ const commentMedia = (req, res) => {
                                                 })
                                             }
                                         })
+                                     }
+                                     else{
+                                        return Response.sendResponse(res, "205", responseMsg.COMMENT_DISABLE)
+                                     }
+                                }
+                            })
+                        }
+                       if(success1.membershipId){
+                           Membership.membershipSchema.findOne({_id:success1.membershipId._id},(err,success4)=>{
+                               if(err||!success4)
+                               return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+                               else{
+                                   if(success4.allowComments){
+                                    let comment = {
+                                        commentId: req.query.userId,
+                                        text: req.body.text,
+                                        commentImage: success.image,
+                                        commentFirstName: success.firstName,
+                                        commentLastName: success.lastName
                                     }
-                                    else {
-                                        let comment = {
-                                            commentId: req.query.userId,
-                                            text: req.body.text,
-                                            commentFirstName: success.firstName,
-                                            commentLastName: success.lastName
-                                        }
-                                        let set = {
-                                            $push: { comments: comment },
-                                            noOfComment: success1.noOfComment + 1
-                                        }
-                                        let option = {
-                                            new: true
-                                        }
-                                        mediaServices.updateMedia({ _id: req.query.mediaId }, set, option, (err, success) => {
-                                            if (err)
-                                                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
-                                            else
-                                                Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.COMMENT_ADDED, success)
-                                            console.log("org----->>", organizer)
-                                            if (req.query.userId != organizer) {
-                                                User.findOne({ _id: req.query.userId }, { firstName: 1, lastName: 1 }, (err, success1) => {
-                                                    if (success1) {
-                                                        var name = success1.firstName + " " + success1.lastName
-                                                        User.findOne({ _id: organizer }, { deviceToken: 1, organizerNotification: 1 }, (err, success) => {
-                                                            if (success) {
-                                                                console.log("name--->>", (success.organizerNotification))
-                                                                if ((success.organizerNotification).indexOf("media") != -1) {
-                                                                    message.sendPushNotifications(success.deviceToken, name + " commented on your post")
-                                                                    message.saveNotification([organizer], name + " commented on your post")
-                                                                }
+                                    let set = {
+                                        $push: { comments: comment },
+                                        noOfComment: success1.noOfComment + 1
+                                    }
+                                    let option = {
+                                        new: true
+                                    }
+                                    mediaServices.updateMedia({ _id: req.query.mediaId }, set, option, (err, success) => {
+                                        if (err)
+                                            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                                        else
+                                            Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.COMMENT_ADDED, success)
+                                        if (req.query.userId != organizer) {
+                                            User.findOne({ _id: req.query.userId }, { firstName: 1, lastName: 1 }, (err, success1) => {
+                                                if (success1) {
+                                                    var name = success1.firstName + " " + success1.lastName
+                                                    User.findOne({ _id: organizer }, (err, success) => {
+                                                        if (success) {
+                                                            console.log("$$$$$$$$$$--->>", success.organizerNotification)
+                                                            if ((success.organizerNotification).indexOf("media") != -1) {
+                                                                message.sendPushNotifications(success.deviceToken, name + " commented on your post")
+                                                                message.saveNotification([organizer], name + " commented on your post")
                                                             }
-                                                        })
-                                                    }
-                                                })
-                                            }
-                                        })
-                                    }
-                                }
-                                else {
-                                    console.log("fjjfjefjk")
-                                    return Response.sendResponse(res,"205", responseMsg.COMMENT_DISABLE)
-                                }
-                            }
-                        })
+                                                        }
+                                                    })
+                                                }
+                                            })
+                                        }
+                                    })
+                                   }
+                                   else{
+                                    return Response.sendResponse(res, "205", responseMsg.COMMENT_DISABLE)
+                                   }
+                               }
+                           })
+                       }
                     }
                 })
             }
         })
     }
 }
+
+
 //-----------------------------------Get Comment(For all)--------------------------
 const getCommnet = (req, res) => {
     if (!req.query.userId)
@@ -719,7 +759,7 @@ const mediaDelete = (req, res) => {
                     });
                 }
 
-                return Response.sendResponse(res, responseCode.RESOURCE_DELETED,"Media deleted successfully.")
+                return Response.sendResponse(res, responseCode.RESOURCE_DELETED, "Media deleted successfully.")
             }
         })
     }

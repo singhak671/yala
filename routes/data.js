@@ -48,10 +48,16 @@ router.post('/getListOfPlayer',AUTH.verifyToken,teamController.getListOfPlayer)
 router.get('/getDetailOfPlayer',AUTH.verifyToken,teamController.getDetailOfPlayer)
 
 router.post('/tryyyy',AUTH.verifyToken,dataController.tryyyy)
-// router.post("/getListOfSport",AUTH.verifyToken,dataController.getListOfSport)
-// router.get('/findSport',AUTH.verifyToken,dataController.findSport)
-// router.post('/editSport',AUTH.verifyToken,dataController.editSport)
-// router.get('/deleteSport',AUTH.verifyToken,dataController.deleteSport)
-// router.post('/searchSport',AUTH.verifyToken,dataController.searchSport)
-// router.get('/selectSport',AUTH.verifyToken,dataController.selectSport)
+
+
+//Membership Player section
+router.post('/addPlayerInMember',AUTH.verifyToken,teamController.addPlayerInMember)
+router.post('/getServiceList',teamController.getServiceList)
+router.get('/DetailOfPlayer',AUTH.verifyToken,teamController.DetailOfPlayer)
+router.post('/getList',AUTH.verifyToken,teamController.getList)
+
+
+router.post('/newsletterPlayerList',AUTH.verifyToken,dataController.newsletterPlayerList)
+router.get('/removePlayerFromList',dataController.removePlayerFromList)
+router.post('/sendMailToAll',dataController.sendMailToAll)
 module.exports=router 

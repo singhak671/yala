@@ -53,6 +53,10 @@ let serviceBookingSchema = new Schema({
         default:"PENDING",
         uppercase:true
     },
+    newsLetterVisible:{
+        type:Boolean,
+        default:true
+    },
     visibleInMemberCard:{
         type:Boolean,
         default:true

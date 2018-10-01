@@ -28,6 +28,10 @@ let competitionFollowSchema = new Schema({
     teamName:{
         type:String
     },
+    newsLetterVisible:{
+        type:Boolean,
+        default:true
+    },
     followStatus:{
         type:String,
         default:"PENDING",

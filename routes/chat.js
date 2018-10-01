@@ -11,7 +11,7 @@ router.post('/sendMessageToAllTeam',AUTH.verifyToken,chatController.sendMessageT
 router.post('/sendMessageToAllPlayers',AUTH.verifyToken,chatController.sendMessageToAllPlayers);
 router.get('/getListOfMessageForPlayer',AUTH.verifyToken,chatController.getListOfMessageForPlayer);
 router.post('/sendMsgToAllPlayersOfATeam',AUTH.verifyToken,chatController.sendMsgToAllPlayersOfATeam);
-
+router.post('/sendMessageToAllPlayersMembership',AUTH.verifyToken,chatController.sendMessageToAllPlayersMembership)
 
 
 
