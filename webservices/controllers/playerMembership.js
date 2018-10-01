@@ -29,6 +29,10 @@ const getMembership=(req,res)=>{
         let query={
             status:"Confirmed",           
         };
+        let query2={};
+        if(req.body.followStatus)  
+            {query2.playerFollowStatus={ $type : 3 }}
+        
         if(req.body.clubName)
             query.clubName=req.body.clubName;           
         if(req.body.search){
@@ -140,9 +144,9 @@ const getMembership=(req,res)=>{
                             //         path:'$playerFollowStatus',
                             //         preserveNullAndEmptyArrays:false     
                             // }},
-                            // {
-                            //     "$match": {"playerFollowStatus":{ $type : 3 }}  // type:3 for object. 2 for string
-                            // }
+                            {
+                                "$match": query2//{"playerFollowStatus":{ $type : 3 }}  // type:3 for object. 2 for string
+                            }
                             
                             // {$match:{"playerFollowStatus.playerId":req.body.playerId}}
                         ])
@@ -381,7 +385,7 @@ const bookAservice = (req, res) => {
                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
                     else if (!success)
                         return Response.sendResponse(res, responseCode.BAD_REQUEST,"Membership not found")
-                    else {
+                    else if(success.enableRegistration==true){
                         serviceBooking.serviceBooking.findOne({ playerId: req.body.playerId, serviceId: req.body.serviceId }, (err, success) => {
                             if (err)
                                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
@@ -629,6 +633,8 @@ const bookAservice = (req, res) => {
                             }
                         })
                     }
+                    else
+                       return Response.sendResponse(res,responseCode.BAD_REQUEST,"Registration is not opened by the organizer for this membership.")
                 })
             }
         })

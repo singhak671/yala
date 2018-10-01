@@ -60,6 +60,10 @@ let serviceBookingSchema = new Schema({
     visibleInMemberCard:{
         type:Boolean,
         default:true
+    },
+    visibleInBooking:{
+        type:Boolean,
+        default:true        
     }
 
 }, 

@@ -854,6 +854,8 @@ const getBookingList=(req,res)=>{
              {"Service.endDate":{$regex:search,$options:'i'}},
           ]
         }
+        if(req.body.membershipName)
+            query.membershipName=req.body.membershipName;
         console.log("query--->>",query)
         let option={
             page:req.body.page||1,
@@ -968,6 +970,13 @@ const deletePlayerfromList=(req,res)=>{
             update={
                 $set:{
                     visibleInMemberCard:false
+                }
+            }
+        }
+        else if(req.query.type=="booking"){
+            update={
+                $set:{
+                    visibleInBooking:false
                 }
             }
         }
@@ -1102,6 +1111,91 @@ const sendPdfToPlayer=(req,res)=>{
 }
 
 
+//Mark attendence
+const getListForPlayerAttendence=(req,res)=>{
+    if(!req.body.organizerId)
+        return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORG_IS_REQ)
+    else if(!req.body.membershipId)
+        return Response.sendResponse(res,responseCode.BAD_REQUEST,"Membership is required")
+    else if(!req.body.serviceId)
+        return Response.sendResponse(res,responseCode.BAD_REQUEST,"Service is required")
+    else{
+        let query = {
+            organizerId:req.body.organizerId,
+            membershipId:req.body.membershipId,
+            serviceId:req.body.serviceId,
+        }
+        let options = {
+            page:req.body.page || 1,
+            limit:req.body.limit || 10,
+            sort:{ createdAt:-1 },
+            select:'playerId  playerAttendence',
+            lean:true,
+            populate:{ path:'playerId', model:'user', select:'firstName lastName _id' }
+        }
+        serviceBooking.serviceBooking.paginate(query, options, (err, result)=>{
+            if(err)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+            else{
+                if(result.docs.length){
+                    result.docs.map((x)=>{
+                        var index = x.playerAttendence.findIndex((y)=> y.attendenceDate == req.body.attendenceDate)
+                        if(index == -1){
+                            x.playerAttendence = [{
+                                attendenceDate:req.body.attendenceDate,
+                                attendenceStatus:false
+                            }]     
+                        }else{
+                            x.playerAttendence = x.playerAttendence[index]
+                        }
+                    })
+                }
+                return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"List of Players",result)
+            }
+       })
+    }
+}
+
+const MarkAttendence=(req,res)=>{
+    if(!req.body.attendenceDate)
+        return Response.sendResponse(res,responseCode.BAD_REQUEST,"Date is required.")
+    else if(!req.body.bookingId)
+        return Response.sendResponse(res,responseCode.BAD_REQUEST,"Service is required.")
+    else{
+        let query={
+            _id:req.body.bookingId,
+            "playerAttendence.attendenceDate":req.body.attendenceDate
+        }
+        serviceBooking.serviceBooking.findOne(query, {"playerAttendence.$.attendenceStatus":1},(err, result)=>{
+            if(err)
+                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,err)
+            else{
+               let set;
+              if(result){
+                set = { 'playerAttendence.$.attendenceStatus': req.body.attendenceStatus }
+              }
+              if(!result){
+                  delete query["playerAttendence.attendenceDate"]
+                  set = { $push: { playerAttendence: { attendenceDate:req.body.attendenceDate, attendenceStatus:req.body.attendenceStatus }}}
+              }
+                serviceBooking.serviceBooking.findOneAndUpdate(query, set, { new:true }, (err, result)=>{
+                    if(err)
+                        return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,err)
+                    else{
+                        let msg = 'Attendence unmaked successfully'
+                        if(req.body.attendenceStatus)
+                            msg = "Attendance marked successfully."
+                        return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,msg)
+                    }
+        
+                })
+            }
+
+        })
+    }
+    
+   
+}
 
 
 module.exports = {
@@ -1128,7 +1222,9 @@ module.exports = {
     getBookingList,
     dynamicFormField,
     deletePlayerfromList,
-    sendPdfToPlayer
+    sendPdfToPlayer,
+    getListForPlayerAttendence,
+    MarkAttendence
 
 
 
