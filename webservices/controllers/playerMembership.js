@@ -19,6 +19,8 @@ const media = require("../../global_functions/uploadMedia");
 const teamServices = require('../services/teamApis');
 const Membership = require("../../models/orgMembership");
 const TransactionSchema = require("../../models/transactions");
+var Twocheckout = require('2checkout-node');
+
 
 
 const getMembership=(req,res)=>{
@@ -422,7 +424,7 @@ const bookAservice = (req, res) => {
                                                     membershipName: req.body.membershipName,
                                                     playerId: req.body.playerId,
                                                     startDate: req.body.startDate,
-                                                    status: "pending",
+                                                    status: "confirmed",
                                                     endDate: req.body.endDate,
                                                     booking: true,
                                                     timeSlots: availableSlots,
