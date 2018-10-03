@@ -911,6 +911,8 @@ const createTeamInCompetition = (req, res) => {
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
             else if (!success)
                 return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
+            else{
+                req.body.email=req.body.email.toLowerCase();
             Team.findOne({ competitionId: req.body.competitionId, organizer: req.body.organizer, email: req.body.email }, (err, success1) => {
                 if (err)
                     return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
@@ -932,7 +934,7 @@ const createTeamInCompetition = (req, res) => {
                                 return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Team added successfully", success2);
                         })
                     })
-            })
+            })}
         })
 }
 

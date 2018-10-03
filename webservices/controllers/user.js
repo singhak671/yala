@@ -30,6 +30,7 @@ const signup = (req, res) => {
 	else if (!req.body)
 		return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.PROVIDE_DATA)
 	else {
+		req.body.email=req.body.email.toLowerCase();
 		var query = {
 			$or:[{email: req.body.email},
 			{mobileNumber:req.body.mobileNumber}]
@@ -183,6 +184,7 @@ const login = (req, res) => {
 	if (flag)
 		Response.sendResponse(res, flag[0], flag[1])
 	else {
+		req.body.email=req.body.email.toLowerCase();
 		let query = {
 			email: req.body.email
 		}
@@ -411,6 +413,8 @@ const forgetPassword = (req, res) => {
 		return Response.sendResponse(res, flag[0], flag[1])
 	}
 	else {
+		if(req.body.email)
+			req.body.email=req.body.email.toLowerCase();
 		query = {
 			email: req.body.email
 		}
@@ -1054,6 +1058,8 @@ const addEmployee = (req, res) => {
 			if (flag[0] !== 200)
 				return Response.sendResponse(res, flag[0], flag[1], flag[2]);
 			else {
+				if(req.body.email)
+					req.body.email=req.body.email.toLowerCase();
 				let query = {
 					_id: req.query.userId
 				}

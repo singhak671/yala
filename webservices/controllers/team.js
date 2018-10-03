@@ -79,7 +79,7 @@ const createTeam = (req, res) => {
             if (!req.query.userId) {
                 return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.ORGANIZER_IS_REQUIRED)
             }
-            else {
+            else {req.body.email=req.body.email.toLowerCase();
                 req.body.organizer = req.query.userId
                 userServices.findUser({ _id: req.query.userId }, (err, success) => {
                     if (err)
@@ -396,7 +396,9 @@ const addPlayer = (req, res) => {
                 else {
                     if (success.employeeRole == 'COORDINATOR' || success.employeeRole == "ADMINSTRATOR")
                         req.body.organizer = success.employeerId
-                    else
+                    else{
+                        if(req.body.email)
+                            req.body.email=req.body.email.toLowerCase();
                         req.body.organizer = req.query.userId
                     userServices.findUser({ $or: [{ email: req.body.email }, { mobileNumber: req.body.mobileNumber }] }, (err, success) => {
                         if (err)
@@ -516,7 +518,7 @@ const addPlayer = (req, res) => {
                                 }
                             })
                         }
-                    })
+                    })}
                 }
             })
         }

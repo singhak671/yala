@@ -234,7 +234,7 @@ const addProfessional = (req, res) => {
         return Response.sendResponse(res, flag[0], flag[1]);
         else if(!req.body.imageURL)
         return Response.sendResponse(res,responseCode.BAD_REQUEST,"Image URL field must be profile image")
-    else {
+    else {req.body.email=req.body.email.toLowerCase();
         Membership.professionalSchema.findOne({ organizerId: req.body.organizerId, email: req.body.email, showStatus: "ACTIVE" }, (err, success) => {
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
@@ -1091,7 +1091,7 @@ const sendPdfToPlayer=(req,res)=>{
                         </html>`
 
                         console.log(">>>>>>", html);
-                        pdf.create(html, options).toFile('../config/naveen.pdf', function (err, result) {
+                        pdf.create(html, options).toFile('../config/YALA.pdf', function (err, result) {
                             if (err) {
                                 console.log(err);
                                 return res.status(400).send({
@@ -1105,7 +1105,7 @@ const sendPdfToPlayer=(req,res)=>{
                         })
                         message.sendMail(data.playerId.email,"Invoice",html,(err,success)=>{
                             console.log("errrrrr and suuuuuccccc>>>>>>>>",err,success)
-                        })
+                        },"","attachemnt yes")
         })
     }
 }

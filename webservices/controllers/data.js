@@ -818,7 +818,7 @@ const addReferee = (req, res) => {
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
             else if (!success)
                 return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.ORGANIZER_NOT_FOUND)
-            else {
+            else {req.body.email=req.body.email.toLowerCase();
                 if (success.employeeRole == 'COORDINATOR' || success.employeeRole == "ADMINSTRATOR")
                     req.body.userId = success.employeerId
                 else

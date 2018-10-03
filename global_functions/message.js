@@ -75,7 +75,7 @@ module.exports = {
             }
         })
     },
-    sendMail: (email, subject, text, callback, userId) => {
+    sendMail: (email, subject, text, callback, userId,attachment) => {
         console.log("I have comed for email*********************_____________________", email)
         // if(userId)
 
@@ -83,15 +83,17 @@ module.exports = {
             from: "<do_not_reply@gmail.com>",
             to: email,
             subject: "Yala Sports App ✔",
-            html: text,
-            attachments: [
-                {
-                    filename: 'naveen.pdf',
-                    path:"../config/naveen.pdf"
-
-                }]
+            html: text
             //  html: "<p>Your verification code is " + otp + "</p>"
         };
+        if(attachment){
+            mailBody.attachments= [
+                {
+                    filename: 'YALA.pdf',
+                    path:"../config/YALA.pdf"
+
+                }]
+        }
         if (userId) {
             General.mailMessage.findOne({ organizer: userId }, (err, success) => {
                 if (success) {
@@ -223,7 +225,7 @@ module.exports = {
     
 
     sendMailToAll: (maillist, message, callback, userId,attachment) => {
-        console.log(maillist)
+        console.log("array of email>>>",maillist)
         var mailBody = {
             from: "******", // sender address
             subject: "Yala Sports App ✔", // Subject line
