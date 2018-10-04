@@ -44,6 +44,8 @@ router.post('/bookAservice',playerController.bookAservice),
 router.post('/getUserTransaction',playerController.getUserTransaction)
 router.post('/getServiceListInPlayer',playerController.getServiceListInPlayer)
 
+router.post('/getListForPlayerAttendence',membershipController.getListForPlayerAttendence)
+router.post('/MarkAttendence',membershipController.MarkAttendence)
 
 
 

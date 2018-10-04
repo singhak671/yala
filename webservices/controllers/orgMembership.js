@@ -160,7 +160,7 @@ const selectMembership = (req, res) => {
 }
 
 const editMembership = (req, res) => {
-    
+
     let flag = Validator(req.body, [], [], ["organizerId", "membershipId", "membershipName", "clubName", "clubId", "status", "allowPublicToFollow", "imageURL"]);
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
@@ -232,9 +232,10 @@ const addProfessional = (req, res) => {
     let flag = Validator(req.body, [], [], ["organizerId", "professionalName", "email", "countryCode", "mobileNumber", "status"]);
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
-        else if(!req.body.imageURL)
-        return Response.sendResponse(res,responseCode.BAD_REQUEST,"Image URL field must be profile image")
-    else {req.body.email=req.body.email.toLowerCase();
+    else if (!req.body.imageURL)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, "Image URL field must be profile image")
+    else {
+        req.body.email = req.body.email.toLowerCase();
         Membership.professionalSchema.findOne({ organizerId: req.body.organizerId, email: req.body.email, showStatus: "ACTIVE" }, (err, success) => {
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
@@ -345,8 +346,8 @@ const editProfessional = (req, res) => {
     let flag = Validator(req.body, [], [], ["organizerId", "professionalId", "professionalName", "email", "countryCode", "mobileNumber", "status"]);
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
-    else if(!req.body.imageURL)
-        return Response.sendResponse(res,responseCode.BAD_REQUEST,"Image URL field must be profile image")
+    else if (!req.body.imageURL)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, "Image URL field must be profile image")
     else {
         Membership.professionalSchema.findById(req.body.professionalId, async (err, success) => {
             if (err)
@@ -455,17 +456,17 @@ const addService = (req, res) => {
 }
 
 const editService = (req, res) => {
-    let flag = Validator(req.body, [], [], ["serviceId","serviceName", "professionals", "status", "venueName", "venueId", "description"]);
+    let flag = Validator(req.body, [], [], ["serviceId", "serviceName", "professionals", "status", "venueName", "venueId", "description"]);
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else {
-        Membership.serviceSchema.findOneAndUpdate({_id:req.body.serviceId, showStatus: "ACTIVE" },req.body,{new:true,safe:true} ,(err, success) => {
+        Membership.serviceSchema.findOneAndUpdate({ _id: req.body.serviceId, showStatus: "ACTIVE" }, req.body, { new: true, safe: true }, (err, success) => {
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
             else if (!success)
                 return Response.sendResponse(res, responseCode.NOT_FOUND, "Service doesn't exists.");
             else {
-                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success);                
+                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success);
             }
         })
     }
@@ -476,27 +477,27 @@ const getAService = (req, res) => {
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else {
-        Membership.serviceSchema.findOne({ _id: req.query.serviceId, showStatus: "ACTIVE" },"",{populate:{path:"membershipId",model:"orgmembership",select:"imageURL"}})
-        .lean()
-        .exec((err, success) => {
-            if (err)
-                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
-            else if (!success)
-                return Response.sendResponse(res, responseCode.NOT_FOUND, "Service not found.");
-            else{
-                Membership.membershipSchema.findById(success.membershipId,"dynamicFormField _id membershipName",(error,result)=>{
-                    if (error)
-                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, error)
-                    else if (!result)
+        Membership.serviceSchema.findOne({ _id: req.query.serviceId, showStatus: "ACTIVE" }, "", { populate: { path: "membershipId", model: "orgmembership", select: "imageURL" } })
+            .lean()
+            .exec((err, success) => {
+                if (err)
+                    return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+                else if (!success)
+                    return Response.sendResponse(res, responseCode.NOT_FOUND, "Service not found.");
+                else {
+                    Membership.membershipSchema.findById(success.membershipId, "dynamicFormField _id membershipName", (error, result) => {
+                        if (error)
+                            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, error)
+                        else if (!result)
                             return Response.sendResponse(res, responseCode.NOT_FOUND, "Membership of this service is not found.");
-                        else{
-                            success.dynamicFormField=result.dynamicFormField;
+                        else {
+                            success.dynamicFormField = result.dynamicFormField;
 
                             return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success);
                         }
-                })
-            }
-        })
+                    })
+                }
+            })
     }
 }
 
@@ -515,8 +516,8 @@ const getListOfService = (req, res) => {
         let query = {
             showStatus: "ACTIVE"
         };
-        if(req.body.organizerId)
-            query.organizerId=req.body.organizerId;
+        if (req.body.organizerId)
+            query.organizerId = req.body.organizerId;
         // if(req.body.loginWith == "WEBSITE") {
         //     if (!req.body.membershipId)
         //         return Response.sendResponse(res, responseCode.BAD_REQUEST, "Please provide membershipId in URL.");
@@ -527,8 +528,8 @@ const getListOfService = (req, res) => {
             query.status = req.body.status;
         if (req.body.membershipId)
             query.membershipId = req.body.membershipId;
-        if(req.body.membershipName)
-            query.membershipName=req.body.membershipName;
+        if (req.body.membershipName)
+            query.membershipName = req.body.membershipName;
         if (req.body.search) {
             query.$or = [
                 { serviceName: { $regex: req.body.search, $options: 'i' } },
@@ -669,7 +670,7 @@ const approveMembership = (req, res) => {
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else {
-        console.log("approveMembership BODY>>>>>>>>>>>>>>>",req.body)
+        console.log("approveMembership BODY>>>>>>>>>>>>>>>", req.body)
         Membership.membershipSchema.findOneAndUpdate({ "_id": req.body.membershipId, "playerFollowStatus.playerId": req.body.playerId }, { $set: { "playerFollowStatus.$.followStatus": req.body.followStatus } }, { new: true }, (err, success) => {
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
@@ -684,7 +685,7 @@ const approveMembership = (req, res) => {
                         Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Player status modified successfully.", data);
                         User.findOne({ _id: req.body.playerId }, { "deviceToken": 1, email: 1, membershipNotify: 1, countryCode: 1, mobileNumber: 1 }, (err, success3) => {
                             if (success3) {
-                                console.log("success333333333333>>>>>>>",success3)
+                                console.log("success333333333333>>>>>>>", success3)
                                 if ((success3.membershipNotify.mobile).indexOf("message") != -1)
                                     message.sendSMS("You are confirmed by the organizer " + organizerName, success3.countryCode, success3.mobileNumber, (error, result) => {
                                         if (err)
@@ -712,248 +713,262 @@ const approveMembership = (req, res) => {
 }
 
 
-const getApprovalList=(req,res)=>{
+const getApprovalList = (req, res) => {
     let flag = Validator(req.body, [], [], ["organizerId"]);
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else {
-        var query={ organizerId : ObjectId(req.body.organizerId) };
-        if(req.body.membershipName)
-            query.membershipName=req.body.membershipName;
-        let query2={};
-        query2=Object.assign(query2,query);
+        var query = { organizerId: ObjectId(req.body.organizerId) };
+        if (req.body.membershipName)
+            query.membershipName = req.body.membershipName;
+        let query2 = {};
+        query2 = Object.assign(query2, query);
 
-        if(req.body.status)
-            query2["playerFollowStatus.followStatus"]=req.body.status;
-        if(req.body.playerId)
+        if (req.body.status)
+            query2["playerFollowStatus.followStatus"] = req.body.status;
+        if (req.body.playerId)
             query2["playerFollowStatus.playerId."]
 
-        if(req.body.search)
-            query2.$or=[
-                {membershipName:{$regex:req.body.search,$options:'i'}},
-                {"playerFollowStatus.playerId.firstName":{$regex:req.body.search,$options:'i'}},
-                {"playerFollowStatus.playerId.lastName":{$regex:req.body.search,$options:'i'}},
-                {"playerFollowStatus.playerId.email":{$regex:req.body.search,$options:'i'}},
-                {"playerFollowStatus.playerId.gender":{$regex:req.body.search,$options:'i'}}
-            ]        
-       
-                console.log("i am query for get approval list>",query,"QUERY@>>>>>>>>>",query2)
-                var aggregate=Membership.membershipSchema.aggregate([
-                    {
-                         $match : query 
-                    },
-                    {
-                        "$unwind": {
-                            path:'$playerFollowStatus'
-                    }},
-                    {      $lookup: {
-                            from: "users",
-                            localField: "playerFollowStatus.playerId",
-                            foreignField: "_id",
-                            as: "playerFollowStatus.playerId"
-                        }
-                    },
-                    {
-                        $match:query2
-                    },
-                    {
-                        $group: {
-                            _id: "$_id",
-                            // "membershipName": { "$first": "$membershipName" },
-                            // // period:"$period",
-                            // "clubName": { "$first": "$clubName" },
-                            // "clubId": { "$first": "$clubId" },
-                            // // "published": { "$first": "$published" },
-                            
-                            // // "competitionName": { "$first": "$competitionName" },
-                            // "updatedAt": { "$first": "$updatedAt" },
-                            // "createdAt": { "$first": "$createdAt" },
-                            "membershipName":{"$first":"$membershipName"},
-                            
-                            // "imageURL": { "$first": "$imageURL" },
-                            // "allowPublicToFollow": { "$first": "$allowPublicToFollow" },
-                            "organizerId":{"$addToSet":"$organizerId"},
-                            // "status":{"$first":"$status"},
-                             "playerFollowStatus": {"$addToSet":"$playerFollowStatus"},
-                            
-    
-                        }
-                    },
-                    // {
-                    //     $lookup: {
-                    //         from: "users",
-                    //         localField: "playerFollowStatus.playerId",
-                    //         foreignField: "_id",
-                    //         as: "playerDetails"
-                    //     }
-                    // }
-                    //    {
-                    //       $project: {
-                    //          membershipName:1,
-                    //          clubName:1,
-                    //          playerFollowStatus:1,
-                    //          lengthOfFollowArray: { $size: "$playerFollowStatus" }
-                    //       }
-                    //    }
-                    ])
+        if (req.body.search)
+            query2.$or = [
+                { membershipName: { $regex: req.body.search, $options: 'i' } },
+                { "playerFollowStatus.playerId.firstName": { $regex: req.body.search, $options: 'i' } },
+                { "playerFollowStatus.playerId.lastName": { $regex: req.body.search, $options: 'i' } },
+                { "playerFollowStatus.playerId.email": { $regex: req.body.search, $options: 'i' } },
+                { "playerFollowStatus.playerId.gender": { $regex: req.body.search, $options: 'i' } }
+            ]
 
-                    let option = {
-                        limit: req.body.limit || 10,
-                        page: req.body.page || 1,
-                        sortBy:{createdAt:-1},
-                        
-                    }
-                    Membership.membershipSchema.aggregatePaginate(aggregate, option, (err, result, pages, total) => {
-                       // console.log("&&&&&&&&&&&>>",err,result);
-                    //    Membership.membershipSchema.populate(result,[{path:"playerFollowStatus.playerId",select:"firstName lastName email dob gender countryCode mobileNumber"}],(err,data)=>{
-                        
-                   
-                        const success = {
-                                "docs": result,
-                                "total": total,
-                                "limit": option.limit,
-                                "page": option.page,
-                                "pages": pages,
-                            }
-                            if(err)
-                                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
-                            else if(!result)
-                                    return Response.sendResponse(res,responseCode.NOT_FOUND,responseMsg.NO_DATA_FOUND);
-                                else
-                                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,responseMsg.SUCCESSFULLY_DONE,success);
-                            
-                    //})
-                })             
+        console.log("i am query for get approval list>", query, "QUERY@>>>>>>>>>", query2)
+        var aggregate = Membership.membershipSchema.aggregate([
+            {
+                $match: query
+            },
+            {
+                "$unwind": {
+                    path: '$playerFollowStatus'
+                }
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "playerFollowStatus.playerId",
+                    foreignField: "_id",
+                    as: "playerFollowStatus.playerId"
+                }
+            },
+            {
+                $match: query2
+            },
+            {
+                $group: {
+                    _id: "$_id",
+                    // "membershipName": { "$first": "$membershipName" },
+                    // // period:"$period",
+                    // "clubName": { "$first": "$clubName" },
+                    // "clubId": { "$first": "$clubId" },
+                    // // "published": { "$first": "$published" },
 
-           
+                    // // "competitionName": { "$first": "$competitionName" },
+                    // "updatedAt": { "$first": "$updatedAt" },
+                    // "createdAt": { "$first": "$createdAt" },
+                    "membershipName": { "$first": "$membershipName" },
+
+                    // "imageURL": { "$first": "$imageURL" },
+                    // "allowPublicToFollow": { "$first": "$allowPublicToFollow" },
+                    "organizerId": { "$addToSet": "$organizerId" },
+                    // "status":{"$first":"$status"},
+                    "playerFollowStatus": { "$addToSet": "$playerFollowStatus" },
+
+
+                }
+            },
+            // {
+            //     $lookup: {
+            //         from: "users",
+            //         localField: "playerFollowStatus.playerId",
+            //         foreignField: "_id",
+            //         as: "playerDetails"
+            //     }
+            // }
+            //    {
+            //       $project: {
+            //          membershipName:1,
+            //          clubName:1,
+            //          playerFollowStatus:1,
+            //          lengthOfFollowArray: { $size: "$playerFollowStatus" }
+            //       }
+            //    }
+        ])
+
+        let option = {
+            limit: req.body.limit || 10,
+            page: req.body.page || 1,
+            sortBy: { createdAt: -1 },
+
+        }
+        Membership.membershipSchema.aggregatePaginate(aggregate, option, (err, result, pages, total) => {
+            // console.log("&&&&&&&&&&&>>",err,result);
+            //    Membership.membershipSchema.populate(result,[{path:"playerFollowStatus.playerId",select:"firstName lastName email dob gender countryCode mobileNumber"}],(err,data)=>{
+
+
+            const success = {
+                "docs": result,
+                "total": total,
+                "limit": option.limit,
+                "page": option.page,
+                "pages": pages,
+            }
+            if (err)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+            else if (!result)
+                return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NO_DATA_FOUND);
+            else
+                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE, success);
+
+            //})
+        })
+
+
 
     }
 
 
 }
 
-const getBookingList=(req,res)=>{
-    if(!req.body.organizerId)
-    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORG_IS_REQ)
-    else{
-        let query={
-         organizerId:ObjectId(req.body.organizerId)
+const getBookingList = (req, res) => {
+    if (!req.body.organizerId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.ORG_IS_REQ)
+    else if (!req.body.type)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, "Please provide type of booking list.")
+    else {
+        let query = {
+            organizerId: ObjectId(req.body.organizerId)
         }
-        if(req.body.search){
-         let search=new RegExp("^"+req.body.search)
-         query.$or=[
-             {status:{$regex:search,$options:'i'}},
-             {totalPrice:{$regex:search,$options:'i'}},
-             {"Player.firstName":{$regex:search,$options:'i'}},
-             {"Player.lastName":{$regex:search,$options:'i'}},
-             {"Player.email":{$regex:search,$options:'i'}},
-             {"Player.nationality":{$regex:search,$options:'i'}},
-             {"Player.mobileNumber":{$regex:search,$options:'i'}},
-             {"Service.serviceName":{$regex:search,$options:'i'}},
-             {"Service.amount":{$regex:search,$options:'i'}},
-             {"Service.startDate":{$regex:search,$options:'i'}},
-             {"Service.endDate":{$regex:search,$options:'i'}},
-          ]
+        if (req.body.search) {
+            let search = new RegExp("^" + req.body.search)
+            query.$or = [
+                { status: { $regex: search, $options: 'i' } },
+                { totalPrice: { $regex: search, $options: 'i' } },
+                { "Player.firstName": { $regex: search, $options: 'i' } },
+                { "Player.lastName": { $regex: search, $options: 'i' } },
+                { "Player.email": { $regex: search, $options: 'i' } },
+                { "Player.nationality": { $regex: search, $options: 'i' } },
+                { "Player.mobileNumber": { $regex: search, $options: 'i' } },
+                { "Service.serviceName": { $regex: search, $options: 'i' } },
+                { "Service.amount": { $regex: search, $options: 'i' } },
+                { "Service.startDate": { $regex: search, $options: 'i' } },
+                { "Service.endDate": { $regex: search, $options: 'i' } },
+            ]
         }
-        if(req.body.membershipName)
-            query.membershipName=req.body.membershipName;
-        console.log("query--->>",query)
-        let option={
-            page:req.body.page||1,
-            limit:req.body.limit||4
+        if (req.body.membershipName)
+            query.membershipName = req.body.membershipName;
+        console.log("query--->>", query)
+        let option = {
+            page: req.body.page || 1,
+            limit: req.body.limit || 4
         }
-     
-     var aggregate=serviceBooking.serviceBooking.aggregate([
-         {
-             $lookup: {
-                 from: "users",
-                 localField: "playerId",
-                 foreignField: "_id",
-                 as: "Player"
-             }
-         },
-         {
-             $lookup: {
-                 from: "services",
-                 localField: "serviceId",
-                 foreignField: "_id",
-                 as: "Service"
-             }
-         },
-         {
-             $unwind: "$Service"
-         },
-         { $unwind: "$Player" },
-         { $match: query },
-         {
-             $project: {
-                 "Player.firstName": 1,
-                 "Player.lastName": 1,
-                 "Player.email": 1,
-                 "Player.mobileNumber": 1,
-                 "Player.countryCode": 1,
-                 "Player.nationality":1,
-                 "Service.serviceName":1,
-                 "Service.startDate":1,
-                 "Service.endDate":1,
-                 "Service.professionals":1,
-                 "Service.slots":1,
-                 "Service.amount":1,
-                 "Service.startTime":1,
-                 "timeSlots" :1,
-                 "booking" : 1,
-                 "status" : 1,
-                 "followStatus" : 1,
-                 "membershipName" : 1,
-                 "startDate" : 1,
-                 "endDate" : 1,
-                 "createdAt" : 1,
-                 "totalPrice":1,
-                 "duration":1,
-                 "paymentMethod":1,
-                 "visibleInMemberCard":1
-             }
-         },
-         { $sort: { createdAt: -1 } }
-     ])
-     serviceBooking.serviceBooking.aggregatePaginate(aggregate, option, (err, result, pages, total) => {
-         if (!err) {
-             const success = {
-                 "docs": result,
-                 "total": total,
-                 "limit": option.limit,
-                 "page": option.page,
-                 "pages": pages,
-             }
-             if (success)
-                 return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK,"Booking List", success)
-             else
-                 return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.PLAYER_NOT_FOUND)
-         }
-         else {
-             return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
-         }
-     })
-    }
- }
+        let query2 = {};
+        if (req.body.type == "booking")
+            query2.visibleInBooking = true;
+        if (req.body.type == "membercard")
+            query2.visibleInMemberCard = true;
 
-const dynamicFormField=(req,res)=>{
+
+
+        var aggregate = serviceBooking.serviceBooking.aggregate([
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "playerId",
+                    foreignField: "_id",
+                    as: "Player"
+                }
+            },
+            {
+                $lookup: {
+                    from: "services",
+                    localField: "serviceId",
+                    foreignField: "_id",
+                    as: "Service"
+                }
+            },
+            {
+                $unwind: "$Service"
+            },
+            { $unwind: "$Player" },
+            { $match: query },
+            {
+                $project: {
+                    "Player.firstName": 1,
+                    "Player.lastName": 1,
+                    "Player.email": 1,
+                    "Player.mobileNumber": 1,
+                    "Player.countryCode": 1,
+                    "Player.nationality": 1,
+                    "Service.serviceName": 1,
+                    "Service.startDate": 1,
+                    "Service.endDate": 1,
+                    "Service.professionals": 1,
+                    "Service.slots": 1,
+                    "Service.amount": 1,
+                    "Service.startTime": 1,
+                    "timeSlots": 1,
+                    "booking": 1,
+                    "status": 1,
+                    "followStatus": 1,
+                    "membershipName": 1,
+                    "startDate": 1,
+                    "endDate": 1,
+                    "createdAt": 1,
+                    "totalPrice": 1,
+                    "duration": 1,
+                    "paymentMethod": 1,
+                    "visibleInMemberCard": 1,
+                    "visibleInBooking": 1,
+                    "newsLetterVisible": 1
+                }
+            },
+            { $sort: { createdAt: -1 } },
+            { $match: query2 }
+        ])
+        serviceBooking.serviceBooking.aggregatePaginate(aggregate, option, (err, result, pages, total) => {
+            if (!err) {
+                const success = {
+                    "docs": result,
+                    "total": total,
+                    "limit": option.limit,
+                    "page": option.page,
+                    "pages": pages,
+                }
+                if (success)
+                    return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Booking List", success)
+                else
+                    return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.PLAYER_NOT_FOUND)
+            }
+            else {
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+            }
+        })
+    }
+}
+
+const dynamicFormField = (req, res) => {
     let flag = Validator(req.body, [], [], ["membershipId", "dynamicFormField"]);
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else {
-        if(typeof(req.body.dynamicFormField)=="object"){
+        if (typeof (req.body.dynamicFormField) == "object") {
             console.log("i am array")
 
         }
 
-        Membership.membershipSchema.findOneAndUpdate({ "_id": req.body.membershipId}, { $set: { dynamicFormField:  req.body.dynamicFormField } }, { new: true,select:{membershipName:1,dynamicFormField:1} }, (err, success) => {
+        Membership.membershipSchema.findOneAndUpdate({ "_id": req.body.membershipId }, { $set: { dynamicFormField: req.body.dynamicFormField } }, { new: true, select: { membershipName: 1, dynamicFormField: 1 } }, (err, success) => {
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
             else if (!success)
                 return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND, "Membership not found.");
             else {
-                return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Fields added successfully",success)
+                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Fields added successfully", success)
 
             }
         })
@@ -961,33 +976,33 @@ const dynamicFormField=(req,res)=>{
 
 }
 
-const deletePlayerfromList=(req,res)=>{
-    let flag = Validator(req.query, [], [], ["listId","type"]);
+const deletePlayerfromList = (req, res) => {
+    let flag = Validator(req.query, [], [], ["listId", "type"]);
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else {
-        let update={};
-        if(req.query.type=="memberCard"){
-            update={
-                $set:{
-                    visibleInMemberCard:false
+        let update = {};
+        if (req.query.type == "memberCard") {
+            update = {
+                $set: {
+                    visibleInMemberCard: false
                 }
             }
         }
-        else if(req.query.type=="booking"){
-            update={
-                $set:{
-                    visibleInBooking:false
+        else if (req.query.type == "booking") {
+            update = {
+                $set: {
+                    visibleInBooking: false
                 }
             }
         }
-        serviceBooking.serviceBooking.findOneAndUpdate({_id:req.query.listId},update,{new:true},(err,success)=>{
+        serviceBooking.serviceBooking.findOneAndUpdate({ _id: req.query.listId }, update, { new: true }, (err, success) => {
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
             else if (!success)
                 return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND, responseMsg.NOT_FOUND);
             else {
-                return Response.sendResponse(res,responseCode.RESOURCE_DELETED,"Removed from the list successfully.")
+                return Response.sendResponse(res, responseCode.RESOURCE_DELETED, "Removed from the list successfully.")
 
             }
         })
@@ -996,81 +1011,84 @@ const deletePlayerfromList=(req,res)=>{
 
 }
 
-const sendPdfToPlayer=(req,res)=>{
+const sendPdfToPlayer = (req, res) => {
     let flag = Validator(req.query, [], [], ["_id"]);
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else {
         serviceBooking.serviceBooking.findById(req.query._id)
-        .populate([{
-            path:"serviceId",
-            select:"serviceName membershipName endDate"
+            .populate([{
+                path: "serviceId",
+                select: "serviceName membershipName endDate"
             },
-            {path:"playerId",
-            select:"firstName lastName email countryCode mobileNumber"
-            },
-            {path:"organizerId",
-            select:"firstName lastName"},
             {
-                path:"membershipId",
-                select:"membershipId imageURL"
+                path: "playerId",
+                select: "firstName lastName email countryCode mobileNumber"
+            },
+            {
+                path: "organizerId",
+                select: "firstName lastName"
+            },
+            {
+                path: "membershipId",
+                select: "membershipId imageURL"
             }])
-        .exec((err,data)=>{
-            // return res.send(data);                                 //Response***************************************************
-            //  {
-            //     "timeSlots": [
-            //         "10:00"
-            //     ],
-            //     "booking": true,
-            //     "status": "pending",
-            //     "followStatus": "APPROVED",
-            //     "visibleInMemberCard": false,
-            //     "_id": "5bab8522695cea13fe1ed7eb",
-            //     "organizerId": {
-            //         "_id": "5b544aaf9a895a460aaf93ce",
-            //         "firstName": "Pooja",
-            //         "lastName": "Kumar"
-            //     },
-            //     "membershipId": {
-            //         "_id": "5ba0e8594ad94016f528af70",
-            //         "imageURL": "https://res.cloudinary.com/singhanurag400/image/upload/v1537349846/ydrswaj8htryfht2y793.jpg"
-            //     },
-            //     "membershipName": "Abcde",
-            //     "playerId": {
-            //         "_id": "5b54494b9a895a460aaf93cc",
-            //         "firstName": "Ankita",
-            //         "lastName": "Verma",
-            //         "countryCode": "+91",
-            //         "mobileNumber": "8173041977",
-            //         "email": "me-anurag@mobiloitte.com"
-            //     },
-            //     "serviceName": "First service",
-            //     "serviceId": {
-            //         "_id": "5ba374c8ed1491108fddc180",
-            //         "membershipName": "Head massage",
-            //         "serviceName": "First service",
-            //          "endDate": "2018-10-20T00:00:00.000Z"
-            //     },
-            //     "paymentMethod": "Cash",
-            //     "totalPrice": "20",
-            //     "duration": [
-            //         {
-            //             "_id": "5bab8522695cea13fe1ed7ec",
-            //             "startTime": "10:00",
-            //             "endTime": "11:00",
-            //             "price": "20",
-            //             "totalDuration": "60"
-            //         }
-            //     ],
-            //     "createdAt": "2018-09-26T13:09:54.912Z",
-            //     "updatedAt": "2018-09-28T13:52:55.250Z",
-            //     "__v": 0
-            // }
+            .exec((err, data) => {
+                // return res.send(data);                                 //Response***************************************************
+                //  {
+                //     "timeSlots": [
+                //         "10:00"
+                //     ],
+                //     "booking": true,
+                //     "status": "pending",
+                //     "followStatus": "APPROVED",
+                //     "visibleInMemberCard": false,
+                //     "_id": "5bab8522695cea13fe1ed7eb",
+                //     "organizerId": {
+                //         "_id": "5b544aaf9a895a460aaf93ce",
+                //         "firstName": "Pooja",
+                //         "lastName": "Kumar"
+                //     },
+                //     "membershipId": {
+                //         "_id": "5ba0e8594ad94016f528af70",
+                //         "imageURL": "https://res.cloudinary.com/singhanurag400/image/upload/v1537349846/ydrswaj8htryfht2y793.jpg"
+                //     },
+                //     "membershipName": "Abcde",
+                //     "playerId": {
+                //         "_id": "5b54494b9a895a460aaf93cc",
+                //         "firstName": "Ankita",
+                //         "lastName": "Verma",
+                //         "countryCode": "+91",
+                //         "mobileNumber": "8173041977",
+                //         "email": "me-anurag@mobiloitte.com"
+                //     },
+                //     "serviceName": "First service",
+                //     "serviceId": {
+                //         "_id": "5ba374c8ed1491108fddc180",
+                //         "membershipName": "Head massage",
+                //         "serviceName": "First service",
+                //          "endDate": "2018-10-20T00:00:00.000Z"
+                //     },
+                //     "paymentMethod": "Cash",
+                //     "totalPrice": "20",
+                //     "duration": [
+                //         {
+                //             "_id": "5bab8522695cea13fe1ed7ec",
+                //             "startTime": "10:00",
+                //             "endTime": "11:00",
+                //             "price": "20",
+                //             "totalDuration": "60"
+                //         }
+                //     ],
+                //     "createdAt": "2018-09-26T13:09:54.912Z",
+                //     "updatedAt": "2018-09-28T13:52:55.250Z",
+                //     "__v": 0
+                // }
 
 
 
 
-            var html = `<html lang="en" >
+                var html = `<html lang="en" >
                         <head>
                         <meta charset="UTF-8">
                         </head>
@@ -1091,125 +1109,140 @@ const sendPdfToPlayer=(req,res)=>{
                         </body></center>
                         </html>`
 
-                        console.log(">>>>>>", html);
-                        pdf.create(html, options).toFile('../config/YALA.pdf', function (err, result) {
-                            if (err) {
-                                console.log(err);
-                                return res.status(400).send({
-                                    message: errorHandler.getErrorMessage(err)
-                                });
-                            }
-                            else {
-                                console.log("pdf creatd=======>>", result)
+                console.log(">>>>>>", html);
+                pdf.create(html, options).toFile('../config/YALA.pdf', function (err, result) {
+                    if (err) {
+                        console.log(err);
+                        return res.status(400).send({
+                            message: errorHandler.getErrorMessage(err)
+                        });
+                    }
+                    else {
+                        console.log("pdf creatd=======>>", result)
 
-                            }
-                        })
-                        message.sendMail(data.playerId.email,"Invoice",html,(err,success)=>{
-                            console.log("errrrrr and suuuuuccccc>>>>>>>>",err,success)
-                        },"","attachemnt yes")
-        })
+                    }
+                })
+                message.sendMail(data.playerId.email, "Invoice", html, (err, success) => {
+                    console.log("errrrrr and suuuuuccccc>>>>>>>>", err, success)
+                }, "", "attachemnt yes")
+            })
     }
 }
 
 
 //Mark attendence
-const getListForPlayerAttendence=(req,res)=>{
-    if(!req.body.organizerId)
-        return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.ORG_IS_REQ)
-    else if(!req.body.membershipId)
-        return Response.sendResponse(res,responseCode.BAD_REQUEST,"Membership is required")
-    else if(!req.body.serviceId)
-        return Response.sendResponse(res,responseCode.BAD_REQUEST,"Service is required")
-    else{
-        let query = {
-            organizerId:req.body.organizerId,
-            membershipId:req.body.membershipId,
-            serviceId:req.body.serviceId,
+const getListForPlayerAttendence = (req, res) => {
+    if (!req.body.organizerId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.ORG_IS_REQ)
+    else if (!req.body.membershipId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, "Membership is required")
+    else if (!req.body.serviceId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, "Service is required")
+    else {
+        let query1={
+            _id:req.body.serviceId,
+            startDate:{$lte:req.body.attendenceDate}
         }
-        let options = {
-            page:req.body.page || 1,
-            limit:req.body.limit || 10,
-            sort:{ createdAt:-1 },
-            select:'playerId  playerAttendence',
-            lean:true,
-            populate:{ path:'playerId', model:'user', select:'firstName lastName _id' }
-        }
-        serviceBooking.serviceBooking.paginate(query, options, (err, result)=>{
-            if(err)
+        Membership.serviceSchema.findOne(query1, (err, success) => {
+            if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
-            else{
-                if(result.docs.length){
-                    result.docs.map((x)=>{
-                        var index = x.playerAttendence.findIndex((y)=> y.attendenceDate == req.body.attendenceDate)
-                        if(index == -1){
-                            x.playerAttendence = [{
-                                attendenceDate:req.body.attendenceDate,
-                                attendenceStatus:false
-                            }]     
-                        }else{
-                            x.playerAttendence = x.playerAttendence[index]
-                        }
-                    })
+            else if (!success)
+                return Response.sendResponse(res, responseCode.BAD_REQUEST, "Service has not yet start.");
+            else {
+                let query = {
+                    organizerId: req.body.organizerId,
+                    membershipId: req.body.membershipId,
+                    serviceId: req.body.serviceId,
                 }
-                return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"List of Players",result)
+                let options = {
+                    page: req.body.page || 1,
+                    limit: req.body.limit || 10,
+                    sort: { createdAt: -1 },
+                    select: 'playerId  playerAttendence',
+                    lean: true,
+                    populate: { path: 'playerId', model: 'user', select: 'firstName lastName _id' }
+                }
+                serviceBooking.serviceBooking.paginate(query, options, (err, result) => {
+                    if (err)
+                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+                    else if (!result.docs)
+                        return Response.sendResponse(res, responseCode.BAD_REQUEST, "Service has not yet start.");
+                    else {
+                        if (result.docs.length) {
+                            result.docs.map((x) => {
+                                var index = x.playerAttendence.findIndex((y) => y.attendenceDate == req.body.attendenceDate)
+                                if (index == -1) {
+                                    x.playerAttendence = [{
+                                        attendenceDate: req.body.attendenceDate,
+                                        attendenceStatus: false
+                                    }]
+                                } else {
+                                    x.playerAttendence = x.playerAttendence[index]
+                                }
+                            })
+                        }
+                        return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "List of Players", result)
+                    }
+                })
             }
-       })
+        })
+
     }
 }
 
-const MarkAttendence=(req,res)=>{
-    if(!req.body.attendenceDate)
-        return Response.sendResponse(res,responseCode.BAD_REQUEST,"Date is required.")
-    else if(!req.body.bookingId)
-        return Response.sendResponse(res,responseCode.BAD_REQUEST,"Service is required.")
-    else{
-        let query={
-            _id:req.body.bookingId,
-            "playerAttendence.attendenceDate":req.body.attendenceDate
+const MarkAttendence = (req, res) => {
+    if (!req.body.attendenceDate)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, "Date is required.")
+    else if (!req.body.bookingId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, "Service is required.")
+    else {
+        let query = {
+            _id: req.body.bookingId,
+            "playerAttendence.attendenceDate": req.body.attendenceDate
         }
-        serviceBooking.serviceBooking.findOne(query, {"playerAttendence.$.attendenceStatus":1},(err, result)=>{
-            if(err)
-                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,err)
-            else{
-               let set;
-              if(result){
-                set = { 'playerAttendence.$.attendenceStatus': req.body.attendenceStatus }
-              }
-              if(!result){
-                  delete query["playerAttendence.attendenceDate"]
-                  set = { $push: { playerAttendence: { attendenceDate:req.body.attendenceDate, attendenceStatus:req.body.attendenceStatus }}}
-              }
-                serviceBooking.serviceBooking.findOneAndUpdate(query, set, { new:true }, (err, result)=>{
-                    if(err)
-                        return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,err)
-                    else{
+        serviceBooking.serviceBooking.findOne(query, { "playerAttendence.$.attendenceStatus": 1 }, (err, result) => {
+            if (err)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, err)
+            else {
+                let set;
+                if (result) {
+                    set = { 'playerAttendence.$.attendenceStatus': req.body.attendenceStatus }
+                }
+                if (!result) {
+                    delete query["playerAttendence.attendenceDate"]
+                    set = { $push: { playerAttendence: { attendenceDate: req.body.attendenceDate, attendenceStatus: req.body.attendenceStatus } } }
+                }
+                serviceBooking.serviceBooking.findOneAndUpdate(query, set, { new: true }, (err, result) => {
+                    if (err)
+                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, err)
+                    else {
                         let msg = 'Attendence unmaked successfully'
-                        if(req.body.attendenceStatus)
+                        if (req.body.attendenceStatus)
                             msg = "Attendance marked successfully."
-                        return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,msg)
+                        return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, msg)
                     }
-        
+
                 })
             }
 
         })
     }
-    
-   
+
+
 }
-const changeBookingStatus=(req,res)=>{
-    let flag = Validator(req.body, [], [], ["bookingId","paymentMethod","status"]);
+const changeBookingStatus = (req, res) => {
+    let flag = Validator(req.body, [], [], ["bookingId", "paymentMethod", "status"]);
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else {
-        serviceBooking.serviceBooking.findByIdAndUpdate(req.body.bookingId,{$set:{status:req.body.status}},{new:1},(err,success)=>{
-            if(err)
+        serviceBooking.serviceBooking.findByIdAndUpdate(req.body.bookingId, { $set: { status: req.body.status } }, { new: 1 }, (err, success) => {
+            if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
-            else if(!success)
-                    return Response.sendResponse(res, responseCode.NOT_FOUND, "Booking not found.");
-                else{
-                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Booking status changed successfully.")
-                }
+            else if (!success)
+                return Response.sendResponse(res, responseCode.NOT_FOUND, "Booking not found.");
+            else {
+                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Booking status changed successfully.")
+            }
 
         })
 
