@@ -669,7 +669,7 @@ const approveMembership = (req, res) => {
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else {
-
+        console.log("approveMembership BODY>>>>>>>>>>>>>>>",req.body)
         Membership.membershipSchema.findOneAndUpdate({ "_id": req.body.membershipId, "playerFollowStatus.playerId": req.body.playerId }, { $set: { "playerFollowStatus.$.followStatus": req.body.followStatus } }, { new: true }, (err, success) => {
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
@@ -684,6 +684,7 @@ const approveMembership = (req, res) => {
                         Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Player status modified successfully.", data);
                         User.findOne({ _id: req.body.playerId }, { "deviceToken": 1, email: 1, membershipNotify: 1, countryCode: 1, mobileNumber: 1 }, (err, success3) => {
                             if (success3) {
+                                console.log("success333333333333>>>>>>>",success3)
                                 if ((success3.membershipNotify.mobile).indexOf("message") != -1)
                                     message.sendSMS("You are confirmed by the organizer " + organizerName, success3.countryCode, success3.mobileNumber, (error, result) => {
                                         if (err)
@@ -1196,6 +1197,25 @@ const MarkAttendence=(req,res)=>{
     
    
 }
+const changeBookingStatus=(req,res)=>{
+    let flag = Validator(req.body, [], [], ["bookingId","paymentMethod","status"]);
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
+    else {
+        serviceBooking.serviceBooking.findByIdAndUpdate(req.body.bookingId,{$set:{status:req.body.status}},{new:1},(err,success)=>{
+            if(err)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+            else if(!success)
+                    return Response.sendResponse(res, responseCode.NOT_FOUND, "Booking not found.");
+                else{
+                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Booking status changed successfully.")
+                }
+
+        })
+
+    }
+
+}
 
 
 module.exports = {
@@ -1224,7 +1244,8 @@ module.exports = {
     deletePlayerfromList,
     sendPdfToPlayer,
     getListForPlayerAttendence,
-    MarkAttendence
+    MarkAttendence,
+    changeBookingStatus
 
 
 

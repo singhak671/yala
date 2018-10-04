@@ -28,12 +28,15 @@ const getMembership=(req,res)=>{
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else{
+        console.log("i am body to get membership",req.body)
         let query={
             status:"Confirmed",           
         };
         let query2={};
         if(req.body.followStatus)  
-            {query2.playerFollowStatus={ $type : 3 }}
+          query2={
+              "playerFollowStatus.followStatus":req.body.followStatus
+            }
         
         if(req.body.clubName)
             query.clubName=req.body.clubName;           
@@ -212,7 +215,8 @@ const followMembership = (req, res) => {
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
             else if (!success)
                 return Response.sendResponse(res, responseCode.NOT_FOUND, "User not found");
-            else {
+            else {        console.log("i am body to follow membership by player",req.body)
+
                 let firstName = success.firstName;
                 let lastName = success.lastName;
                 Membership.membershipSchema.findById(req.body.membershipId).lean().exec((err1, success1) => {
@@ -424,7 +428,7 @@ const bookAservice = (req, res) => {
                                                     membershipName: req.body.membershipName,
                                                     playerId: req.body.playerId,
                                                     startDate: req.body.startDate,
-                                                    status: "confirmed",
+                                                    status: "Confirmed",
                                                     endDate: req.body.endDate,
                                                     booking: true,
                                                     timeSlots: availableSlots,
@@ -544,7 +548,7 @@ const bookAservice = (req, res) => {
                                                                 membershipName: req.body.membershipName,
                                                                 playerId: req.body.playerId,
                                                                 startDate: req.body.startDate,
-                                                                status: "confirmed",
+                                                                status: "Confirmed",
                                                                 endDate: req.body.endDate,
                                                                 booking: true,
                                                                 paymentMethod: "Card",

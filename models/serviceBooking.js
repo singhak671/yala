@@ -39,7 +39,7 @@ let serviceBookingSchema = new Schema({
     transactionDetailId:{ type: Schema.Types.ObjectId, ref:'transaction'},
     status:{
         type:String,
-        default:"confirmed",
+        default:"Confirmed",
     },
     serviceId:{
         type:Schema.Types.ObjectId,ref:"service"
