@@ -37,4 +37,13 @@ router.get('/deleteNotification',AUTH.verifyToken,userController.deleteNotificat
 router.post('/orgNotification',AUTH.verifyToken,userController.orgNotification)
 
 router.get('/updateDeviceToken',userController.updateDeviceToken)
+
+
+////////////////////// ADMIN ROUTES   //////////////////////
+
+router.post('/sendLink',userController.sendLink)
+router.post('/resetPassword/:_id',userController.resetPassword)
+router.get('/authenticateUser/:_id',userController.authenticateUser)
+router.post('/userList',userController.userList)
+router.get('/countUser',userController.countUser)
 module.exports=router;

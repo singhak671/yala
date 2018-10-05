@@ -306,7 +306,7 @@ const getServiceListInPlayer = (req, res) => {
     if (!req.query.userId)
         return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.USER_IS_REQ)
     else if (!req.query.membershipId)
-        return Response.sendResponse(res, responseCode.BAD_REQUEST,"Membership required")
+        return Response.sendResponse(res, responseCode.BAD_REQUEST,"Membership is required.")
     else {
         let query1 = {_id:req.query.membershipId}
         Membership.membershipSchema.findOne(query1).exec((err, success) => {
@@ -320,10 +320,7 @@ const getServiceListInPlayer = (req, res) => {
                     showStatus: "ACTIVE"
                 }
                 if (req.body.search) {
-                    query = {
-                        $and: [
-                            {
-                                $or: [
+                    query.$or= [
                                     { serviceName: { $regex: req.body.search, $options: 'i' } },
                                     { amount: { $regex: req.body.search, $options: 'i' } },
                                     { "professionals.professionalName": { $regex: req.body.search, $options: 'i' } },
@@ -333,11 +330,6 @@ const getServiceListInPlayer = (req, res) => {
                                     { organizerName: { $regex: req.body.search, $options: 'i' } },
                                     { membershipName: { $regex: req.body.search, $options: 'i' } },
                                 ]
-                            },
-                            { $or: success }
-                        ],
-                        showStatus: "ACTIVE"
-                    };
                 }
                 if (req.body.status)
                     query.status = req.body.status;

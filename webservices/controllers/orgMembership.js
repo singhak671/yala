@@ -973,7 +973,6 @@ const dynamicFormField = (req, res) => {
             }
         })
     }
-
 }
 
 const deletePlayerfromList = (req, res) => {
@@ -1034,6 +1033,12 @@ const sendPdfToPlayer = (req, res) => {
                 select: "membershipId imageURL"
             }])
             .exec((err, data) => {
+                if (err || !data) {
+                    console.log(err);
+                    return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+                }
+                else {
+                
                 // return res.send(data);                                 //Response***************************************************
                 //  {
                 //     "timeSlots": [
@@ -1111,21 +1116,25 @@ const sendPdfToPlayer = (req, res) => {
 
                 console.log(">>>>>>", html);
                 pdf.create(html, options).toFile('../config/YALA.pdf', function (err, result) {
-                    if (err) {
+                    if (err || !result) {
                         console.log(err);
-                        return res.status(400).send({
-                            message: errorHandler.getErrorMessage(err)
-                        });
+                        return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
                     }
                     else {
-                        console.log("pdf creatd=======>>", result)
-
+                        console.log("pdf creatd=======>>", result);
+                        message.sendMail(data.playerId.email, "Invoice", html, (err, success) => {
+                            if(err || !success)
+                                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+                            else{
+                                return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"PDF File successfully sent to the player.");
+                            }
+                            
+                        }, "", "attachemnt yes");
                     }
                 })
-                message.sendMail(data.playerId.email, "Invoice", html, (err, success) => {
-                    console.log("errrrrr and suuuuuccccc>>>>>>>>", err, success)
-                }, "", "attachemnt yes")
+            }       
             })
+        
     }
 }
 
@@ -1216,12 +1225,11 @@ const MarkAttendence = (req, res) => {
                     if (err)
                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, err)
                     else {
-                        let msg = 'Attendence unmaked successfully'
+                        let msg = 'Attendence unmarked successfully'
                         if (req.body.attendenceStatus)
                             msg = "Attendance marked successfully."
                         return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, msg)
                     }
-
                 })
             }
 
@@ -1243,7 +1251,61 @@ const changeBookingStatus = (req, res) => {
             else {
                 return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Booking status changed successfully.")
             }
+        })
+    }
+}
 
+const getAttendanceHistory=(req,res)=>{
+    let flag = Validator(req.body, [], [], ["serviceId", "date"]);
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
+    else {
+        
+        offset = (new Date().getTimezoneOffset()) * 60000; //2018-10-10T00:00:00.000Z
+        // let data= new Date(req.body.date).getTime()-offset;
+        // var date = new Date(data);
+        var date = new Date(req.body.date )   //2018-10-10T00:00:00.000Z
+        var firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+        var fromDate=new Date(firstDay).getTime()-offset
+        var from=new Date(fromDate);
+        var lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+        var toDate=new Date(lastDay).getTime()-offset
+        var to=new Date(toDate);
+        console.log( from,to);
+
+        serviceBooking.serviceBooking.aggregate([
+            
+            {$unwind:"$playerAttendence"},
+            {$match:{serviceId:ObjectId(req.body.serviceId),"playerAttendence.attendenceDate":{$gte:from,$lte:to}}},
+            {
+                "$project": {
+                    playerId:1,
+                    "y": {
+                        "$year": "$playerAttendence.attendenceDate"
+                    },
+                    "m": {
+                        "$month": "$playerAttendence.attendenceDate"
+                    },
+                    "d": {
+                        "$dayOfMonth": "$playerAttendence.attendenceDate"
+                    }
+                }
+            },
+            // {
+            //     "$group": {
+            //         "_id": {
+            //             "year": "$y",
+            //             "month": "$m",
+            //             "day": "$d",
+            //             playerId:"$first"
+            //         },
+                   
+            //     }
+            // },
+        ])
+        .exec((err,success)=>{
+            console.log("^^^^^^^^^^^^^^^^",err)
+            res.send(success)
         })
 
     }
@@ -1278,7 +1340,8 @@ module.exports = {
     sendPdfToPlayer,
     getListForPlayerAttendence,
     MarkAttendence,
-    changeBookingStatus
+    changeBookingStatus,
+    getAttendanceHistory
 
 
 

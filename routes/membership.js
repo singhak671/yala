@@ -27,6 +27,7 @@ router.post('/dynamicFormField',membershipController.dynamicFormField);
 router.get('/deletePlayerfromList',membershipController.deletePlayerfromList);
 router.get('/sendPdfToPlayer',membershipController.sendPdfToPlayer);
 router.post('/changeBookingStatus',membershipController.changeBookingStatus);
+router.post('/getAttendanceHistory',membershipController.getAttendanceHistory);
 
 
 

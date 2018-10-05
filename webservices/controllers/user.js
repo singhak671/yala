@@ -1444,6 +1444,155 @@ const updateDeviceToken = (req, res) => {
 	}
 
 }
+
+
+
+//----------------------------------------------------------------ADMIN APIS----------------------------------------------------------------------------
+const sendLink = (req, res) => {
+	if(req.body.email)
+		req.body.email=req.body.email.toLowerCase();
+	User.findOne({
+		email: req.body.email
+	}, (error, result) => {
+		if (error)
+			return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+		else if (!result)
+		    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.USER_NOT_EXISTS)
+		else {
+			var token = jwt.sign({ _id: result._id, email: result.email, password: result.password }, config.secret_key);
+
+			message.sendMail(req.body.email, "Your reset password link", `Here is link to reset the password....Click here !!! :- ${req["headers"]["origin"]}/admin/reset-password/${token}`, (err1, res1) => {
+				if (err1)
+					return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.EMAIL_NOT_EXISTS)
+				else
+					{ Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Reset link sent successfully to registered emailId")
+				User.findByIdAndUpdate(result._id,{$set:{verifyToken:token}},{new:true},(error,success)=>{
+					if(error)
+						console.log("error in updating document");
+					else{
+						console.log("Document updated successfully.")
+					}
+
+				})
+			}
+			})
+		}
+	})
+}
+
+
+const authenticateUser=(req,res)=>{
+	if(!req.params._id){
+		return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.USER_IS_REQ)
+	}
+	else{
+		User.findOne({_id:req.params._id},(err,success)=>{
+			if (err) {
+				return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err)
+			}
+			else if (!success) {
+				return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.USER_NOT_EXISTS)
+			}
+			else {
+				return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK,"valid user");
+			}
+		})
+	}
+}
+const resetPassword=(req,res)=>{
+	if (!req.params._id) {
+		return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.USER_IS_REQ)
+	}
+	else {
+		var query = {
+			_id: req.params._id
+		}
+		userServices.findUser(query, (err, result) => {
+			if (err) {
+				return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR)
+			}
+			else if (!result) {
+				return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.USER_NOT_EXISTS)
+			}
+			else {
+				
+						let salt = bcrypt.genSaltSync(10);
+						req.body.newPassword = bcrypt.hashSync(req.body.newPassword, salt)
+						console.log("cdcfhfvf=----->", req.body.newPassword)
+						var options = {
+							new: true
+						}
+						let set = {
+							password: req.body.newPassword
+						}
+						userServices.updateUser(query, set, options, (err, success) => {
+							if (err) {
+								return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR)
+							}
+							else if (!success) {
+								return Response.sendResponse(res, responseCode.NOT_MODIFIED, responseMsg.NOT_MODIFIED)
+							}
+							else {
+								return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.PASSWORD_UPDATE);
+							}
+						})
+					
+				
+			}
+		})
+	}
+}
+
+
+const userList=(req,res)=>{
+    let query={
+		visibleStatus:"ACTIVE"
+	}
+	if(req.body.search){
+		let search = new RegExp("^" + req.body.search)
+		query.$or = [
+			{ firstName: { $regex: search, $options: 'i' } },
+			{ lastName: { $regex: search, $options: 'i' } },
+			{ email: { $regex: search, $options: 'i' } },
+			{ mobileNumber: { $regex: search, $options: 'i' } },
+			{ status: { $regex: search, $options: 'i' } },
+			{ gender: { $regex: search, $options: 'i' } },
+			{ role: { $regex: search, $options: 'i' } },
+			{ organizerType: { $regex: search, $options: 'i' } }
+		]
+	}
+	let option={
+		page:req.body.page||1,
+		limit:req.body.limit||10,
+		sort:{createdAt:-1},
+		select:{password:0}
+	}
+	User.paginate(query,option,(err,success)=>{
+		if (err) {
+			return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err)
+		}
+		else if (!success) {
+			return Response.sendResponse(res, responseCode.NO_DATA_FOUND, responseMsg.USER_NOT_EXISTS)
+		}
+		else {
+			return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK,"list of users",success);
+		}
+	})
+}
+
+const countUser=(req,res)=>{
+	User.count({visibleStatus:"ACTIVE"},(err,success)=>{
+		if (err) {
+			return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err)
+		}
+		else if (!success) {
+			return Response.sendResponse(res, responseCode.NO_DATA_FOUND, responseMsg.USER_NOT_EXISTS)
+		}
+		else {
+			return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK,"Number of users",success);
+		}
+	})
+}
 module.exports = {
 	signup,
 	verifyOtp,
@@ -1479,7 +1628,12 @@ module.exports = {
 
 
 
-	updateDeviceToken
+	updateDeviceToken,
+	sendLink,
+	resetPassword,
+	authenticateUser,
+	userList,
+	countUser
 }
 
 

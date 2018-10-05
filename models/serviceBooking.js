@@ -20,7 +20,10 @@ let serviceBookingSchema = new Schema({
     endDate:{
         type:Date
     },
-    playerAttendence:[],
+    playerAttendence:[{
+        attendenceDate:Date,
+attendenceStatus:Boolean
+    }],
     duration:[{
         startTime:String,
         endTime:String,
