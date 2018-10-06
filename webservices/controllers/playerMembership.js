@@ -368,10 +368,44 @@ const getServiceListInPlayer = (req, res) => {
 // Book A service
 const bookAservice = (req, res) => {
     console.log("req.body for player paymnet>>>>>", req.body)
-    let flag = Validator(req.body, [], [], ["playerId", "membershipId", "organizerId", "serviceId"])
+    let flag = Validator(req.body, [], [], ["playerId", "membershipId", "organizerId", "serviceId","endDate"])
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else {
+        var start      = req.body.startDate.split('-');
+        var end        = req.body.endDate.split('-');
+        var startYear  = parseInt(start[0]);
+        var endYear    = parseInt(end[0]);
+        var dates      = [];
+      
+        for(var i = startYear; i <= endYear; i++) {
+          var endMonth = i != endYear ? 11 : parseInt(end[1]) - 1;
+          var startMon = i === startYear ? parseInt(start[1])-1 : 0;
+          for(var j = startMon; j <= endMonth; j = j > 12 ? j % 12 || 11 : j+1) {
+            var month = j+1;
+            var displayMonth = month < 10 ? '0'+month : month;
+            dates.push([i, displayMonth, '01'].join('-'));
+          }
+        };
+        console.log("anurag",dates);
+        var myObj={}; 
+        for(var i in dates){
+            var arr = dates[i].split('-');
+        if(myObj.hasOwnProperty(arr[0]))
+                myObj[arr[0]][arr[1]] = 0
+            else
+                myObj[arr[0]] = {}
+                myObj[arr[0]][arr[1]] = 0
+        }
+
+
+
+
+
+
+
+
+
         User.findOne({ _id: req.body.playerId }, (err, success) => {
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
@@ -422,6 +456,8 @@ const bookAservice = (req, res) => {
                                                     startDate: req.body.startDate,
                                                     status: "Confirmed",
                                                     endDate: req.body.endDate,
+                                                    leaderBoard:myObj,
+                                                    evaluation:myObj,
                                                     booking: true,
                                                     timeSlots: availableSlots,
                                                     followStatus: "APPROVED",
@@ -543,6 +579,9 @@ const bookAservice = (req, res) => {
                                                                 status: "Confirmed",
                                                                 endDate: req.body.endDate,
                                                                 booking: true,
+                                                                leaderBoard:myObj,
+                                                                evaluation:myObj,
+
                                                                 paymentMethod: "Card",
                                                                 timeSlots: availableSlots,
                                                                 followStatus: "APPROVED",

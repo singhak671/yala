@@ -161,7 +161,7 @@ const selectMembership = (req, res) => {
 
 const editMembership = (req, res) => {
 
-    let flag = Validator(req.body, [], [], ["organizerId", "membershipId", "membershipName", "clubName", "clubId", "status", "allowPublicToFollow", "imageURL"]);
+    let flag = Validator(req.body, [], [], []);
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else {
@@ -171,6 +171,7 @@ const editMembership = (req, res) => {
             else if (!success)
                 return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NOT_FOUND);
             else {
+                if (req.body.imageURL);
                 let image = await checkImageURL(success.imageURL, success.imagePublicId);
                 function checkImageURL(x, public_id) {
                     return new Promise((resolve, reject) => {
@@ -194,18 +195,20 @@ const editMembership = (req, res) => {
 
                     });
                 }
-                if (image == "err")
+                if (req.body.imageURL && image == "err")
                     return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, "Error in uploading the file");
-                else
-                    req.body.imageURL = image;
-                Membership.membershipSchema.findByIdAndUpdate(req.body.membershipId, req.body, { new: true, safe: true }, (err2, success2) => {
-                    if (err2 || !success2)
-                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_2err2OR, responseMsg.INTERNAL_SERVER_ERROR, err2);
-                    else {
-                        return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Membership edited successfully", success2);
-                    }
+                else {
+                    if (req.body.imageURL)
+                        req.body.imageURL = image;
+                    Membership.membershipSchema.findByIdAndUpdate(req.body.membershipId, req.body, { new: true, safe: true }, (err2, success2) => {
+                        if (err2 || !success2)
+                            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_2err2OR, responseMsg.INTERNAL_SERVER_ERROR, err2);
+                        else {
+                            return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Membership edited successfully.", success2);
+                        }
 
-                })
+                    })
+                }
             }
         })
     }
@@ -1035,65 +1038,65 @@ const sendPdfToPlayer = (req, res) => {
             .exec((err, data) => {
                 if (err || !data) {
                     console.log(err);
-                    return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+                    return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
                 }
                 else {
-                
-                // return res.send(data);                                 //Response***************************************************
-                //  {
-                //     "timeSlots": [
-                //         "10:00"
-                //     ],
-                //     "booking": true,
-                //     "status": "pending",
-                //     "followStatus": "APPROVED",
-                //     "visibleInMemberCard": false,
-                //     "_id": "5bab8522695cea13fe1ed7eb",
-                //     "organizerId": {
-                //         "_id": "5b544aaf9a895a460aaf93ce",
-                //         "firstName": "Pooja",
-                //         "lastName": "Kumar"
-                //     },
-                //     "membershipId": {
-                //         "_id": "5ba0e8594ad94016f528af70",
-                //         "imageURL": "https://res.cloudinary.com/singhanurag400/image/upload/v1537349846/ydrswaj8htryfht2y793.jpg"
-                //     },
-                //     "membershipName": "Abcde",
-                //     "playerId": {
-                //         "_id": "5b54494b9a895a460aaf93cc",
-                //         "firstName": "Ankita",
-                //         "lastName": "Verma",
-                //         "countryCode": "+91",
-                //         "mobileNumber": "8173041977",
-                //         "email": "me-anurag@mobiloitte.com"
-                //     },
-                //     "serviceName": "First service",
-                //     "serviceId": {
-                //         "_id": "5ba374c8ed1491108fddc180",
-                //         "membershipName": "Head massage",
-                //         "serviceName": "First service",
-                //          "endDate": "2018-10-20T00:00:00.000Z"
-                //     },
-                //     "paymentMethod": "Cash",
-                //     "totalPrice": "20",
-                //     "duration": [
-                //         {
-                //             "_id": "5bab8522695cea13fe1ed7ec",
-                //             "startTime": "10:00",
-                //             "endTime": "11:00",
-                //             "price": "20",
-                //             "totalDuration": "60"
-                //         }
-                //     ],
-                //     "createdAt": "2018-09-26T13:09:54.912Z",
-                //     "updatedAt": "2018-09-28T13:52:55.250Z",
-                //     "__v": 0
-                // }
+
+                    // return res.send(data);                                 //Response***************************************************
+                    //  {
+                    //     "timeSlots": [
+                    //         "10:00"
+                    //     ],
+                    //     "booking": true,
+                    //     "status": "pending",
+                    //     "followStatus": "APPROVED",
+                    //     "visibleInMemberCard": false,
+                    //     "_id": "5bab8522695cea13fe1ed7eb",
+                    //     "organizerId": {
+                    //         "_id": "5b544aaf9a895a460aaf93ce",
+                    //         "firstName": "Pooja",
+                    //         "lastName": "Kumar"
+                    //     },
+                    //     "membershipId": {
+                    //         "_id": "5ba0e8594ad94016f528af70",
+                    //         "imageURL": "https://res.cloudinary.com/singhanurag400/image/upload/v1537349846/ydrswaj8htryfht2y793.jpg"
+                    //     },
+                    //     "membershipName": "Abcde",
+                    //     "playerId": {
+                    //         "_id": "5b54494b9a895a460aaf93cc",
+                    //         "firstName": "Ankita",
+                    //         "lastName": "Verma",
+                    //         "countryCode": "+91",
+                    //         "mobileNumber": "8173041977",
+                    //         "email": "me-anurag@mobiloitte.com"
+                    //     },
+                    //     "serviceName": "First service",
+                    //     "serviceId": {
+                    //         "_id": "5ba374c8ed1491108fddc180",
+                    //         "membershipName": "Head massage",
+                    //         "serviceName": "First service",
+                    //          "endDate": "2018-10-20T00:00:00.000Z"
+                    //     },
+                    //     "paymentMethod": "Cash",
+                    //     "totalPrice": "20",
+                    //     "duration": [
+                    //         {
+                    //             "_id": "5bab8522695cea13fe1ed7ec",
+                    //             "startTime": "10:00",
+                    //             "endTime": "11:00",
+                    //             "price": "20",
+                    //             "totalDuration": "60"
+                    //         }
+                    //     ],
+                    //     "createdAt": "2018-09-26T13:09:54.912Z",
+                    //     "updatedAt": "2018-09-28T13:52:55.250Z",
+                    //     "__v": 0
+                    // }
 
 
 
 
-                var html = `<html lang="en" >
+                    var html = `<html lang="en" >
                         <head>
                         <meta charset="UTF-8">
                         </head>
@@ -1114,27 +1117,27 @@ const sendPdfToPlayer = (req, res) => {
                         </body></center>
                         </html>`
 
-                console.log(">>>>>>", html);
-                pdf.create(html, options).toFile('../config/YALA.pdf', function (err, result) {
-                    if (err || !result) {
-                        console.log(err);
-                        return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
-                    }
-                    else {
-                        console.log("pdf creatd=======>>", result);
-                        message.sendMail(data.playerId.email, "Invoice", html, (err, success) => {
-                            if(err || !success)
-                                return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
-                            else{
-                                return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"PDF File successfully sent to the player.");
-                            }
-                            
-                        }, "", "attachemnt yes");
-                    }
-                })
-            }       
+                    console.log(">>>>>>", html);
+                    pdf.create(html, options).toFile('../config/YALA.pdf', function (err, result) {
+                        if (err || !result) {
+                            console.log(err);
+                            return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+                        }
+                        else {
+                            console.log("pdf creatd=======>>", result);
+                            message.sendMail(data.playerId.email, "Invoice", html, (err, success) => {
+                                if (err || !success)
+                                    return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+                                else {
+                                    return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "PDF File successfully sent to the player.");
+                                }
+
+                            }, "", "attachemnt yes");
+                        }
+                    })
+                }
             })
-        
+
     }
 }
 
@@ -1148,54 +1151,57 @@ const getListForPlayerAttendence = (req, res) => {
     else if (!req.body.serviceId)
         return Response.sendResponse(res, responseCode.BAD_REQUEST, "Service is required")
     else {
-        let query1={
-            _id:req.body.serviceId,
-            startDate:{$lte:req.body.attendenceDate}
+        let query = {
+            organizerId: req.body.organizerId,
+            membershipId: req.body.membershipId,
+            serviceId: req.body.serviceId,
         }
-        Membership.serviceSchema.findOne(query1, (err, success) => {
+        let options = {
+            page: req.body.page || 1,
+            limit: req.body.limit || 10,
+            sort: { createdAt: -1 },
+            select: 'playerId  playerAttendence',
+            lean: true,
+            populate: { path: 'playerId', model: 'user', select: 'firstName lastName _id' }
+        }
+        // offset = (new Date().getTimezoneOffset()) * 60000;
+        // req.body.attendenceDate= new Date(req.body.attendenceDate).getTime()-offset;
+        // req.body.attendenceDate= new Date(req.body.attendenceDate).toISOString();
+        console.log("absssg",req.body.attendenceDate)
+
+        serviceBooking.serviceBooking.paginate(query, options, (err, result) => {
+            console.log("pankaj>>>>>",JSON.stringify((result)))
             if (err)
                 return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
-            else if (!success)
-                return Response.sendResponse(res, responseCode.BAD_REQUEST, "Service has not yet start.");
             else {
-                let query = {
-                    organizerId: req.body.organizerId,
-                    membershipId: req.body.membershipId,
-                    serviceId: req.body.serviceId,
-                }
-                let options = {
-                    page: req.body.page || 1,
-                    limit: req.body.limit || 10,
-                    sort: { createdAt: -1 },
-                    select: 'playerId  playerAttendence',
-                    lean: true,
-                    populate: { path: 'playerId', model: 'user', select: 'firstName lastName _id' }
-                }
-                serviceBooking.serviceBooking.paginate(query, options, (err, result) => {
-                    if (err)
-                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
-                    else if (!result.docs)
-                        return Response.sendResponse(res, responseCode.BAD_REQUEST, "Service has not yet start.");
-                    else {
-                        if (result.docs.length) {
-                            result.docs.map((x) => {
-                                var index = x.playerAttendence.findIndex((y) => y.attendenceDate == req.body.attendenceDate)
-                                if (index == -1) {
-                                    x.playerAttendence = [{
-                                        attendenceDate: req.body.attendenceDate,
-                                        attendenceStatus: false
-                                    }]
-                                } else {
-                                    x.playerAttendence = x.playerAttendence[index]
-                                }
-                            })
+                if (result.docs.length) {
+                    result.docs.map((x) => {
+                        //x.playerAttendence[0].attendenceDate=x.playerAttendence[0].attendenceDate.toString();
+                        // x.playerAttendence[0].attendenceDate=x.playerAttendence[0].attendenceDate.split(0,10);
+                        // console.log(typeof(x.playerAttendence[0].attendenceDate))
+                        // for(let i=0;i<x.playerAttendence.length;i++){
+                        //     x.playerAttendence[i].attendenceDate=x.playerAttendence[i].attendenceDate.toISOString().slice(0,10);
+                        //     console.log((x.playerAttendence[i].attendenceDate),req.body.attendenceDate)
+                        //     if(x.playerAttendence[i].attendenceDate == req.body.attendenceDate)
+                        //         var index = i;
+                            
+                                
+                        // }
+                         var index = x.playerAttendence.findIndex((y) => (y.attendenceDate.toISOString().slice(0,10)) == req.body.attendenceDate);
+                        
+                        if (index == -1) {
+                            x.playerAttendence = [{
+                                attendenceDate: req.body.attendenceDate,
+                                attendenceStatus: false
+                            }]
+                        } else {
+                            x.playerAttendence = x.playerAttendence[index]
                         }
-                        return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "List of Players", result)
-                    }
-                })
+                    })
+                }
+                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "List of Players", result)
             }
         })
-
     }
 }
 
@@ -1225,19 +1231,19 @@ const MarkAttendence = (req, res) => {
                     if (err)
                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, err)
                     else {
-                        let msg = 'Attendence unmarked successfully'
+                        let msg = 'Attendence unmaked successfully'
                         if (req.body.attendenceStatus)
                             msg = "Attendance marked successfully."
                         return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, msg)
                     }
+
                 })
             }
 
         })
     }
-
-
 }
+
 const changeBookingStatus = (req, res) => {
     let flag = Validator(req.body, [], [], ["bookingId", "paymentMethod", "status"]);
     if (flag)
@@ -1255,62 +1261,296 @@ const changeBookingStatus = (req, res) => {
     }
 }
 
-const getAttendanceHistory=(req,res)=>{
+const getAttendanceHistory = (req, res) => {
     let flag = Validator(req.body, [], [], ["serviceId", "date"]);
     if (flag)
         return Response.sendResponse(res, flag[0], flag[1]);
     else {
-        
+        // T00:00:00.000Z
         offset = (new Date().getTimezoneOffset()) * 60000; //2018-10-10T00:00:00.000Z
         // let data= new Date(req.body.date).getTime()-offset;
         // var date = new Date(data);
-        var date = new Date(req.body.date )   //2018-10-10T00:00:00.000Z
+        var date = new Date(req.body.date)   //2018-10-10T00:00:00.000Z
         var firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
-        var fromDate=new Date(firstDay).getTime()-offset
-        var from=new Date(fromDate);
+        var fromDate = new Date(firstDay).getTime() - offset
+        var from = new Date(fromDate)
+
         var lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-        var toDate=new Date(lastDay).getTime()-offset
-        var to=new Date(toDate);
-        console.log( from,to);
+        var toDate = new Date(lastDay).getTime() - offset
+        var to = new Date(toDate)
+        console.log(from, to);
 
         serviceBooking.serviceBooking.aggregate([
-            
-            {$unwind:"$playerAttendence"},
-            {$match:{serviceId:ObjectId(req.body.serviceId),"playerAttendence.attendenceDate":{$gte:from,$lte:to}}},
+
+            { $unwind: "$playerAttendence" },
+            { $match: { serviceId: ObjectId(req.body.serviceId) } },
             {
                 "$project": {
-                    playerId:1,
+                    playerId: 1,
+                    playerAttendence: 1,
+                    // "playerAttendence.attendenceDate":1,
                     "y": {
-                        "$year": "$playerAttendence.attendenceDate"
+                        "$year": ("$playerAttendence.attendenceDate")
                     },
                     "m": {
-                        "$month": "$playerAttendence.attendenceDate"
+                        "$month": ("$playerAttendence.attendenceDate")
                     },
                     "d": {
-                        "$dayOfMonth": "$playerAttendence.attendenceDate"
+                        "$dayOfMonth": ("$playerAttendence.attendenceDate")
                     }
                 }
             },
-            // {
-            //     "$group": {
-            //         "_id": {
-            //             "year": "$y",
-            //             "month": "$m",
-            //             "day": "$d",
-            //             playerId:"$first"
-            //         },
-                   
-            //     }
-            // },
+            { $match: { "playerAttendence.attendenceDate": { $gte: from, $lte: to } } },
+            {
+                "$group": {
+                    "_id": {
+                        "year": "$y",
+                        "month": "$m",
+                        "day": "$d",
+
+                    },
+                    "playerId": { "$push": "$playerId" },
+                    "playerAttendence": { "$push": "$playerAttendence" }
+
+
+                }
+            },
         ])
-        .exec((err,success)=>{
-            console.log("^^^^^^^^^^^^^^^^",err)
-            res.send(success)
-        })
+            .exec((err, success) => {
+                console.log("^^^^^^^^^^^^^^^^", err)
+                res.send(success)
+            })
 
     }
 
 }
+
+const leaderboardPoints = (req, res) => {
+    if (!req.body.pointDetail)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, "Point Detail is required")
+    else {
+        async.forEach(req.body.pointDetail, (key, callback) => {
+            console.log("key-->>", key)
+            serviceBooking.serviceBooking.findOne({ _id: key.bookingId, "leaderBoard.pointDate": req.body.pointDate }, { "leaderBoard.$._id": 1 }, (err, success) => {
+                let set;
+                console.log("success---------------->>>>>>>>>>>>", success)
+                if (success) {
+                    set = { 'leaderBoard.$.points': key.points }
+                }
+                if (!success) {
+                    set = { $push: { leaderBoard: { pointDate: req.body.pointDate, points: key.points } } }
+                }
+                console.log("success", set, key)
+                serviceBooking.serviceBooking.findOneAndUpdate({ _id: key.bookingId }, set, { new: true }, (err, result) => {
+                    if (result)
+                        console.log("hhhhhhh")
+                    else
+                        console.log("noooooo", err)
+                })
+            })
+        })
+    }
+}
+
+
+const leaderboardPlayers = (req, res) => {
+    if (!req.body.organizerId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.ORG_IS_REQ)
+    else if (!req.body.membershipId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, "Membership is required")
+    else if (!req.body.serviceId)
+        return Response.sendResponse(res, responseCode.BAD_REQUEST, "Service is required")
+    else {
+        let query1 = {
+            _id: req.body.serviceId,
+            startDate: { $lte: req.body.Date },
+            endDate:{$gte:req.body.Date}
+        }
+        Membership.serviceSchema.findOne(query1, (err, success) => {
+            if (err)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+            else if (!success)
+                return Response.sendResponse(res, responseCode.BAD_REQUEST, "1.Service has not yet start.");
+            else {
+                let query = {
+                    organizerId: req.body.organizerId,
+                    membershipId: req.body.membershipId,
+                    serviceId: req.body.serviceId,
+                }
+                let options = {
+                    page: req.body.page || 1,
+                    limit: req.body.limit || 10,
+                    sort: { createdAt: -1 },
+                    select: 'playerId player',
+                    lean: true,
+                    populate: { path: 'playerId', model: 'user', select: 'firstName lastName _id' }
+                }
+                serviceBooking.serviceBooking.paginate(query, options, (err, result) => {
+                    if (err)
+                        return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
+                    else if (!result.docs)
+                        return Response.sendResponse(res, responseCode.BAD_REQUEST, "Service has not yet start.");
+                    else {
+                        // if (result.docs.length) {
+                        //     result.docs.map((x) => {
+                        //         var index = x.player.findIndex((y) => y.Date == req.body.Date)
+                        //         if (index == -1) {
+                        //             x.player = [{
+                        //                 Date: req.body.Date,
+                        //                 Status: false
+                        //             }]
+                        //         } else {
+                        //             x.player = x.player[index]
+                        //         }
+                        //     })
+                        // }
+                        return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "List of Players", result)
+                    }
+                })
+            }
+        })
+
+    }
+}
+
+
+
+
+
+const getListOfPlayersLeaderboard=(req,res)=>{  
+    let flag = Validator(req.body, [], [], ["serviceId", "membershipId","date"]);
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
+    else {
+    offset = (new Date().getTimezoneOffset()) * 60000; //2018-10-10T00:00:00.000Z
+    var date = new Date(req.body.date)   //2018-10-10T00:00:00.000Z
+    var firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+    var fromDate = new Date(firstDay).getTime() - offset
+    var from = new Date(fromDate)
+
+    var lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+    var toDate = new Date(lastDay).getTime() - offset
+    var to = new Date(toDate)
+    console.log(from, to);
+        var date = req.body.date;
+        let query={$or:[{ startDate: { $lte: date }, endDate: { $gte: date } },{endDate:{$lte:to}, startDate:{$gte:from}},{startDate:{$lte:to}, endDate:{$gte:from}}]};
+        query.membershipId=req.body.membershipId;
+        query.serviceId=req.body.serviceId;
+        serviceBooking.serviceBooking.find(query).populate({ path: "playerId", model: "user", select: { firstName: 1, lastName: 1 } }).exec((error, result) => {
+            console.log(">>>>>>>>>>", result)
+            if (error) {
+                res.send({ responseCode: 500, responseMessage: "Internal server>>> error." })
+            }
+            else if (!result) {
+                res.send({
+                    responseCode: 404,
+                    responseMessage: "empty player list at this date",
+                    
+                })
+            }
+            else {
+                res.send({
+                    responseCode: 200,
+                    responseMessage: "player list ",
+                    result: result
+                })
+            }
+        })
+
+    }
+}
+
+   const getDetailOfPlayerEvaluation= (req, res) => {
+    let flag = Validator(req.query, [], [], ["bookingId"]);
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
+    else {
+
+        serviceBooking.serviceBooking.findById(req.query.bookingId,"evaluation")
+        .populate({path:"playerId",select:"firstName lastName"})
+        .exec((error, result) => {
+            console.log(">>>>>>>>>>", result)
+            if (error)
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,error)
+            else if(!result)
+                return Response.sendResponse(res, responseCode.NOT_FOUND, "Details not found");            
+            else {
+                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE,result);   
+
+            }
+        })
+
+    }
+   }
+
+    const evaluation=(req, res) => {
+        var sum = (req.body.Bad + req.body.Pass + req.body.Shooting + req.body.Strenght + req.body.Speed + req.body.Flexibility + req.body.Decision + req.body.Offensive + req.body.Concentration + req.body.Competitivenedd + req.body.Self_Confidence)
+        var avg = sum / 11
+        console.log(avg)
+        serviceBooking.find({ $and: [{ playerId: req.body.playerId }, { serviceId: req.body.serviceId }] }, (error, result) => {
+            if (error) {
+                res.send({ response_code: 500, response_message: "Internal server error." })
+            }
+            else {
+                let value = {
+                    Bad: req.body.Bad,
+                    Pass: req.body.Pass,
+                    Shooting: req.body.Shooting,
+                    Strenght: req.body.Strenght,
+                    Speed: req.body.Speed,
+                    Flexibility: req.body.Flexibility,
+                    Decision: req.body.Decision,
+                    Offensive: req.body.Offensive,
+                    Concentration: req.body.Concentration,
+                    Competitivenedd: req.body.Competitivenedd,
+                    Self_Confidence: req.body.Self_Confidence,
+                    Avg: avg
+                }
+                serviceBooking.findOneAndUpdate({ $and: [{ playerId: req.body.playerId }, { serviceId: req.body.serviceId }] }, { $set: { evaluation: value } }, (error, result) => {
+                    console.log(">>>>", error)
+                    if (error)
+                        res.send({ response_code: 500, response_message: "Internal server error. in update" })
+                    else {
+                        res.send({
+                            response_code: 200,
+
+                            response_message: "  update successfully. "
+                        })
+                    }
+
+                })
+            }
+
+        })
+
+    }
+
+
+   const updateLeaderBoardPoint=(req,res)=>{
+        if (!req.body.result)
+            return Response.sendResponse(res, responseCode.BAD_REQUEST, "Point Detail is required")
+        else {
+            async.forEach(req.body.result, (key, callback) => {
+                console.log("key-->>", key)
+                serviceBooking.serviceBooking.findByIdAndUpdate({ _id: key._id}, key, (err, success) => {
+                
+                        if (success)
+                            console.log("hhhhhhh")
+                        else
+                            console.log("noooooo", err)
+                    })
+                    callback("","success")
+            },(err,success)=>{
+                if(err)
+                    return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err);
+                else
+                    return Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Points updated successfully");
+            })
+        }
+    }
+
+
+
 
 
 module.exports = {
@@ -1341,7 +1581,18 @@ module.exports = {
     getListForPlayerAttendence,
     MarkAttendence,
     changeBookingStatus,
-    getAttendanceHistory
+    getAttendanceHistory,
+    leaderboardPoints,
+    leaderboardPlayers,
+
+
+
+    getListOfPlayersLeaderboard,
+    evaluation  ,
+    
+    
+    updateLeaderBoardPoint,
+    getDetailOfPlayerEvaluation
 
 
 

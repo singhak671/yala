@@ -28,6 +28,14 @@ router.get('/deletePlayerfromList',membershipController.deletePlayerfromList);
 router.get('/sendPdfToPlayer',membershipController.sendPdfToPlayer);
 router.post('/changeBookingStatus',membershipController.changeBookingStatus);
 router.post('/getAttendanceHistory',membershipController.getAttendanceHistory);
+router.get('/leaderboardPoints',membershipController.leaderboardPoints);
+router.post('/leaderboardPlayers',membershipController.leaderboardPlayers);
+
+
+router.post('/getListOfPlayersLeaderboard',membershipController.getListOfPlayersLeaderboard);
+router.post('/evaluation',membershipController.evaluation);
+router.post('/updateLeaderBoardPoint',membershipController.updateLeaderBoardPoint);
+router.get('/getDetailOfPlayerEvaluation',membershipController.getDetailOfPlayerEvaluation);
 
 
 
