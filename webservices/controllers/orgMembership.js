@@ -709,7 +709,6 @@ const approveMembership = (req, res) => {
                     }
                 })
             }
-
         })
     }
 
@@ -1231,7 +1230,7 @@ const MarkAttendence = (req, res) => {
                     if (err)
                         return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, err)
                     else {
-                        let msg = 'Attendence unmaked successfully'
+                        let msg = 'Attendence unmarked successfully'
                         if (req.body.attendenceStatus)
                             msg = "Attendance marked successfully."
                         return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, msg)
@@ -1309,7 +1308,7 @@ const getAttendanceHistory = (req, res) => {
                         "day": "$d",
 
                     },
-                    "playerId": { "$push": "$playerId" },
+                    "playerId": { "$addToSet": "$playerId" },
                     "playerAttendence": { "$push": "$playerAttendence" }
 
 
@@ -1436,7 +1435,7 @@ const getListOfPlayersLeaderboard=(req,res)=>{
         let query={$or:[{ startDate: { $lte: date }, endDate: { $gte: date } },{endDate:{$lte:to}, startDate:{$gte:from}},{startDate:{$lte:to}, endDate:{$gte:from}}]};
         query.membershipId=req.body.membershipId;
         query.serviceId=req.body.serviceId;
-        serviceBooking.serviceBooking.find(query).populate({ path: "playerId", model: "user", select: { firstName: 1, lastName: 1 } }).exec((error, result) => {
+        serviceBooking.serviceBooking.find(query).populate([{ path: "playerId", model: "user", select: { firstName: 1, lastName: 1 } },{path:"serviceId",select:"serviceName venueName"}]).exec((error, result) => {
             console.log(">>>>>>>>>>", result)
             if (error) {
                 res.send({ responseCode: 500, responseMessage: "Internal server>>> error." })
@@ -1483,47 +1482,43 @@ const getListOfPlayersLeaderboard=(req,res)=>{
     }
    }
 
-    const evaluation=(req, res) => {
-        var sum = (req.body.Bad + req.body.Pass + req.body.Shooting + req.body.Strenght + req.body.Speed + req.body.Flexibility + req.body.Decision + req.body.Offensive + req.body.Concentration + req.body.Competitivenedd + req.body.Self_Confidence)
-        var avg = sum / 11
-        console.log(avg)
-        serviceBooking.find({ $and: [{ playerId: req.body.playerId }, { serviceId: req.body.serviceId }] }, (error, result) => {
+    const setEvaluation=(req, res) => {
+        let flag = Validator(req.body, [], [], ["bookingId","year","month","bad","pass","shooting","strenght","speed","flexibility","decision","offensive","concentration","competitivenedd","selfConfidence"]);
+    if (flag)
+        return Response.sendResponse(res, flag[0], flag[1]);
+    else {
+        var sum = (Number(req.body.bad) + Number(req.body.pass) + Number(req.body.shooting) + Number(req.body.strenght) + Number(req.body.speed) + Number(req.body.flexibility) + Number(req.body.decision) + Number(req.body.offensive) + Number(req.body.concentration) + Number(req.body.competitivenedd) + Number(req.body.selfConfidence))
+        var avg = sum / 11;
+        console.log("average>>>>>",avg,sum);
+        let value = {
+            bad: req.body.bad,
+            pass: req.body.pass,
+            shooting: req.body.shooting,
+            strenght: req.body.strenght,
+            speed: req.body.speed,
+            flexibility: req.body.flexibility,
+            decision: req.body.decision,
+            offensive: req.body.offensive,
+            concentration: req.body.concentration,
+            competitivenedd: req.body.competitivenedd,
+            selfConfidence: req.body.selfConfidence,
+            avg: avg
+        }
+        let eval=`evaluation.${req.body.year}.${req.body.month}`;
+        let query={_id:req.body.bookingId};
+        let set={};
+        set[eval]=value;
+        serviceBooking.serviceBooking.findByIdAndUpdate(query,{$set:set},{new:true},(error, result) => {
             if (error) {
-                res.send({ response_code: 500, response_message: "Internal server error." })
+                return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,error)
             }
-            else {
-                let value = {
-                    Bad: req.body.Bad,
-                    Pass: req.body.Pass,
-                    Shooting: req.body.Shooting,
-                    Strenght: req.body.Strenght,
-                    Speed: req.body.Speed,
-                    Flexibility: req.body.Flexibility,
-                    Decision: req.body.Decision,
-                    Offensive: req.body.Offensive,
-                    Concentration: req.body.Concentration,
-                    Competitivenedd: req.body.Competitivenedd,
-                    Self_Confidence: req.body.Self_Confidence,
-                    Avg: avg
-                }
-                serviceBooking.findOneAndUpdate({ $and: [{ playerId: req.body.playerId }, { serviceId: req.body.serviceId }] }, { $set: { evaluation: value } }, (error, result) => {
-                    console.log(">>>>", error)
-                    if (error)
-                        res.send({ response_code: 500, response_message: "Internal server error. in update" })
-                    else {
-                        res.send({
-                            response_code: 200,
-
-                            response_message: "  update successfully. "
-                        })
-                    }
-
-                })
-            }
-
+            else if(!result)
+                return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.NO_DATA_FOUND);   
+            else
+                return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.SUCCESSFULLY_DONE,result);                      
         })
-
     }
+}
 
 
    const updateLeaderBoardPoint=(req,res)=>{
@@ -1588,11 +1583,12 @@ module.exports = {
 
 
     getListOfPlayersLeaderboard,
-    evaluation  ,
+    
     
     
     updateLeaderBoardPoint,
-    getDetailOfPlayerEvaluation
+    getDetailOfPlayerEvaluation,
+    setEvaluation
 
 
 

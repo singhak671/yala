@@ -398,6 +398,43 @@ const bookAservice = (req, res) => {
                 myObj[arr[0]][arr[1]] = 0
         }
 
+        var myObj1={}; 
+        for(var i in dates){
+            var arr = dates[i].split('-');
+        if(myObj1.hasOwnProperty(arr[0]))
+                myObj1[arr[0]][arr[1]] = {
+                    bad: 0,
+                    pass: 0,
+                    shooting: 0,
+                    strenght: 0,
+                    speed: 0,
+                    flexibility: 0,
+                    decision: 0,
+                    offensive: 0,
+                    concentration: 0,
+                    competitivenedd: 0,
+                    selfConfidence: 0,
+                    avg: 0
+                }
+            else
+                myObj1[arr[0]] = {}
+                myObj1[arr[0]][arr[1]] = {
+                    bad: 0,
+                    pass: 0,
+                    shooting: 0,
+                    strenght: 0,
+                    speed: 0,
+                    flexibility: 0,
+                    decision: 0,
+                    offensive: 0,
+                    concentration: 0,
+                    competitivenedd: 0,
+                    selfConfidence: 0,
+                    avg: 0
+                }
+        }
+
+
 
 
 
@@ -457,7 +494,7 @@ const bookAservice = (req, res) => {
                                                     status: "Confirmed",
                                                     endDate: req.body.endDate,
                                                     leaderBoard:myObj,
-                                                    evaluation:myObj,
+                                                    evaluation:myObj1,
                                                     booking: true,
                                                     timeSlots: availableSlots,
                                                     followStatus: "APPROVED",
@@ -510,7 +547,7 @@ const bookAservice = (req, res) => {
                                                                         console.log("success")
                                                                     }
                                                                 })
-                                                                Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Booking Confirmed for Slots" + availableSlots, success);
+                                                                Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Booking Confirmed for Slots : " + availableSlots, success);
                                                                 User.findOneAndUpdate({ _id: req.body.playerId }, { $push: { playerDynamicDetails: req.body.regData.playerDynamicDetails } }, { new: true }, (err, success) => {
                                                                     if (err)
                                                                         console.log("noooooo")
@@ -580,7 +617,7 @@ const bookAservice = (req, res) => {
                                                                 endDate: req.body.endDate,
                                                                 booking: true,
                                                                 leaderBoard:myObj,
-                                                                evaluation:myObj,
+                                                                evaluation:myObj1,
 
                                                                 paymentMethod: "Card",
                                                                 timeSlots: availableSlots,
@@ -628,7 +665,7 @@ const bookAservice = (req, res) => {
                                                                                     console.log("success")
                                                                                 }
                                                                             })
-                                                                            Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Payment successfully done .Booking confirmed for slots " + availableSlots, success);
+                                                                            Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Payment successfully done .Booking confirmed for Slots : " + availableSlots, success);
                                                                             User.findOneAndUpdate({ _id: req.body.playerId }, { $push: { playerDynamicDetails: req.body.regData.playerDynamicDetails } }, { new: true }, (err, success) => {
                                                                                 if (err)
                                                                                     console.log("noooooo")

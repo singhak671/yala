@@ -33,9 +33,10 @@ router.post('/leaderboardPlayers',membershipController.leaderboardPlayers);
 
 
 router.post('/getListOfPlayersLeaderboard',membershipController.getListOfPlayersLeaderboard);
-router.post('/evaluation',membershipController.evaluation);
+router.post('/setEvaluation',membershipController.setEvaluation);
 router.post('/updateLeaderBoardPoint',membershipController.updateLeaderBoardPoint);
 router.get('/getDetailOfPlayerEvaluation',membershipController.getDetailOfPlayerEvaluation);
+
 
 
 
