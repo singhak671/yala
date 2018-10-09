@@ -1308,7 +1308,7 @@ const getAttendanceHistory = (req, res) => {
                         "day": "$d",
 
                     },
-                    "playerId": { "$addToSet": "$playerId" },
+                    "playerId": { "$push": "$playerId" },
                     "playerAttendence": { "$push": "$playerAttendence" }
 
 

@@ -30,10 +30,10 @@ const signup = (req, res) => {
 	else if (!req.body)
 		return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.PROVIDE_DATA)
 	else {
-		req.body.email=req.body.email.toLowerCase();
+		req.body.email = req.body.email.toLowerCase();
 		var query = {
-			$or:[{email: req.body.email},
-			{mobileNumber:req.body.mobileNumber}]
+			$or: [{ email: req.body.email },
+			{ mobileNumber: req.body.mobileNumber }]
 		}
 		userServices.findUser(query, (err, success) => {
 			if (err)
@@ -45,18 +45,18 @@ const signup = (req, res) => {
 				req.body.password = bcrypt.hashSync(req.body.password, salt)
 
 				message.sendSMS("Your verification code is " + otp, req.body.countryCode, req.body.mobileNumber, (error, sent) => {
-					if (error||!sent) {
+					if (error || !sent) {
 						console.log(error);
 						console.log("invaliddddd")
 						return Response.sendResponse(res, responseCode.UNAUTHORIZED, responseMsg.WRONG_PHONE)
 					}
 
 					else {
-						message.sendMail(req.body.email,"Yala Sports App ✔", "Your verification code is " + otp, (err, result)=>{
-							if(err||!result){
-								return Response.sendResponse(res, responseCode.UNAUTHORIZED,"Enter valid email")
+						message.sendMail(req.body.email, "Yala Sports App ✔", "Your verification code is " + otp, (err, result) => {
+							if (err || !result) {
+								return Response.sendResponse(res, responseCode.UNAUTHORIZED, "Enter valid email")
 							}
-							else{
+							else {
 								if (req.body.role == "ORGANIZER") {
 
 									let obj = {
@@ -68,9 +68,9 @@ const signup = (req, res) => {
 									req.body.optionalSubsPrices = {
 										"web&hosting": "50",
 										"event&membershipManagement": "50"
-		
+
 									};
-		
+
 								}
 								if (req.body.role == "PLAYER") //changes done by sammer sir
 									req.body.paymentStatus = true;
@@ -83,14 +83,14 @@ const signup = (req, res) => {
 										return Response.sendResponse(res.responseCode.BAD_REQUEST, responseMsg.CORRECT_EMAIL_ID);
 									else {
 										console.log("successfully sent")
-										
+
 										return Response.sendResponse(res, responseCode.NEW_RESOURCE_CREATED, "Signed up successfully", success)
 									}
-		
+
 								})
 							}
 						})
-						
+
 					}
 				})
 			}
@@ -118,7 +118,7 @@ const verifyOtp = (req, res) => {
 				}
 				let set = {
 					phoneVerified: true,
-					emailVerified:true
+					emailVerified: true
 				}
 				let options = {
 					new: true,
@@ -159,13 +159,13 @@ const resendOtp = (req, res) => {
 			else {
 				console.log(success)
 				message.sendSMS("Your verification code is " + otp, success.countryCode, success.mobileNumber, (err, sent) => {
-					if (err||!sent)
+					if (err || !sent)
 						Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
 					else {
-						message.sendMail(success.email,"Yala Sports App ✔", "Your verification code is " + otp, (err, result)=>{
-							if(err||!result)
-							Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err)
-							else{
+						message.sendMail(success.email, "Yala Sports App ✔", "Your verification code is " + otp, (err, result) => {
+							if (err || !result)
+								Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+							else {
 								Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "OTP sent successfully")
 							}
 						})
@@ -184,7 +184,7 @@ const login = (req, res) => {
 	if (flag)
 		Response.sendResponse(res, flag[0], flag[1])
 	else {
-		req.body.email=req.body.email.toLowerCase();
+		req.body.email = req.body.email.toLowerCase();
 		let query = {
 			email: req.body.email
 		}
@@ -221,20 +221,19 @@ const login = (req, res) => {
 								console.log("token----->>", token)
 								return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.LOG_SUCCESS, result, "", token)
 							}
-							else
-								{
-									User.findOneAndUpdate({ email: req.body.email }, { $set: { paymentStatus: false } }, (error, result) => {
-										if (error || !result)
-											return Response.sendResponse(res, responseCode.UNAUTHORIZED, responseMsg.EMAIL_NOT_EXISTS)
-										else if (result) {
-											var token = jwt.sign({ _id: result._id, email: result.email, password: result.password }, config.secret_key);
-											console.log("token----->>", token)
-											return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Your subscription plan has expired! Please renew to continue.", result, "", token)
-										}
-	
-									})
-								
-								}
+							else {
+								User.findOneAndUpdate({ email: req.body.email }, { $set: { paymentStatus: false } }, (error, result) => {
+									if (error || !result)
+										return Response.sendResponse(res, responseCode.UNAUTHORIZED, responseMsg.EMAIL_NOT_EXISTS)
+									else if (result) {
+										var token = jwt.sign({ _id: result._id, email: result.email, password: result.password }, config.secret_key);
+										console.log("token----->>", token)
+										return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Your subscription plan has expired! Please renew to continue.", result, "", token)
+									}
+
+								})
+
+							}
 						}
 						else {
 							if (req.body.deviceToken && req.body.deviceType)
@@ -413,8 +412,8 @@ const forgetPassword = (req, res) => {
 		return Response.sendResponse(res, flag[0], flag[1])
 	}
 	else {
-		if(req.body.email)
-			req.body.email=req.body.email.toLowerCase();
+		if (req.body.email)
+			req.body.email = req.body.email.toLowerCase();
 		query = {
 			email: req.body.email
 		}
@@ -505,7 +504,7 @@ const logOut = (req, res) => {
 		query = {
 			_id: req.query._id
 		}
-		
+
 		options = {
 			new: true
 		}
@@ -760,7 +759,7 @@ const getCard = (req, res) => {
 			$and: [{ _id: req.body._id }, { "cardDetails._id": req.body.cardDetails._id }]
 		}
 		console.log("gehwdgdggg", query)
-		User.findOne(query,{ 'cardDetails.$._id': 1 }, (err, success) => {
+		User.findOne(query, { 'cardDetails.$._id': 1 }, (err, success) => {
 			if (err)
 				return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
 			else if (!success)
@@ -872,7 +871,7 @@ const paymentOrder = (req, res) => {
 								// else
 								// 	req.body.autoRenewPlan=true;
 
-								var access = ["Competition","Membership","Create Team & Player", "Media", "Online Registration", "Standing & Fixture", "Product", "WebsiteManagement", "Social Media", "employeeUserManagement", "financialManagement", "userNotification"];
+								var access = ["Competition", "Membership", "Create Team & Player", "Media", "Online Registration", "Standing & Fixture", "Product", "WebsiteManagement", "Social Media", "employeeUserManagement", "financialManagement", "userNotification"];
 								access.push.apply(access, req.body.optionalSubsPrices);
 								User.findByIdAndUpdate(req.headers.userid, { $set: { subscription: req.body.subscription, paymentStatus: true, payment: data, subscriptionStartDate: req.body.response.token.dateCreated, subscriptionEndDate: subscriptionOverDate, autoRenewPlan: req.body.autoRenewPlan }, $push: { subscriptionAccess: access } }, { new: true }, (err, result) => {
 									if (err)
@@ -1058,8 +1057,8 @@ const addEmployee = (req, res) => {
 			if (flag[0] !== 200)
 				return Response.sendResponse(res, flag[0], flag[1], flag[2]);
 			else {
-				if(req.body.email)
-					req.body.email=req.body.email.toLowerCase();
+				if (req.body.email)
+					req.body.email = req.body.email.toLowerCase();
 				let query = {
 					_id: req.query.userId
 				}
@@ -1448,58 +1447,265 @@ const updateDeviceToken = (req, res) => {
 
 
 //----------------------------------------------------------------ADMIN APIS----------------------------------------------------------------------------
+
+
+
+//Add users
+
+const addUser = (req, res) => {
+
+	var email = req.body.email;
+	var password = req.body.password;
+	var hash = bcrypt.hashSync(password);
+	var name = req.body.name;
+	var mobileNumber = req.body.mobileNumber;
+	var sportsName = req.body.sportsName;
+	var state = req.body.state;
+	var city = req.body.city;
+	var addressLine1 = req.body.addressLine1;
+	var addressLine2 = req.body.addressLine2;
+	var zipcode = req.body.zipcode;
+	var package = req.body.package;
+	var status = req.body.status;
+
+	var userData = new User({
+		email: email,
+		password: hash,
+		name: name,
+		mobileNumber: mobileNumber,
+		sportsName: sportsName,
+		address: req.body.address,
+		package: package,
+		status: status
+
+	})
+	User.findOne({ 'email': email } && { 'mobileNumber': mobileNumber }, (err, result1) => {
+		if (err) {
+			return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+		}
+		else if (result1) {
+			return Response.sendResponse(res, responseCode.BAD_REQUEST, "Email or mobile number already exists.");
+		}
+		else {
+			userData.save((err, result) => {
+				if (err) {
+					return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+				}
+				else if (!result) {
+					return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.USER_NOT_EXISTS)
+				}
+				else {
+					//console.log('@@@@@@@@@@@@@@@',result);
+					var obj = {
+						_id: result._id,
+						email: result.email,
+						name: result.name,
+						mobileNumber: result.mobileNumber,
+						sportsName: result.sportsName,
+						address: result.address,
+						zipcode: result.zipcode,
+						package: result.package,
+						status: result.status
+					}
+					return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "User added successfully !!!", obj);
+				}
+			})
+		}
+
+	})
+}
+
+//block user
+
+const createBlockUser = (req, res) => {
+	var status = req.body.status;
+	var _id = req.body._id;
+
+	User.findByIdAndUpdate({ _id: _id }, { $set: { status: status } }, (err, result) => {
+		if (err) {
+			return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+		}
+		else if (!result) {
+			return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.USER_NOT_EXISTS)
+		}
+		else {
+			return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "User Blocked !!!!");
+		}
+	})
+
+}
+
+//View User Details by Admin
+const viewUser = (req, res) => {
+	var _id = req.body._id;
+
+	User.findById({ _id: _id }, (err, result) => {
+		if (err) {
+			return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+		}
+		else if (!result) {
+			return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.USER_NOT_EXISTS)
+		}
+		else {
+			return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "User Details !!!!", result);
+		}
+	})
+}
+
+//Edit user details by admin
+
+const editUser = (req, res) => {
+
+	var name = req.body.name;
+	var sportsName = req.body.sportsName;
+	//var mobileNumber=req.body.mobileNumber;
+	// var state = req.body.state;
+	// var city = req.body.city;
+	var address = req.body.address;
+	// var addressLine1 = req.body.addressLine1;
+	// var addressLine2 = req.body.addressLine2;
+	// var zipcode = req.body.zipcode;
+	var package = req.body.package;
+	var status = req.body.status;
+	var _id = req.body._id;
+	User.findById({ _id: _id }, (err, result) => {
+		if (err) {
+			return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+		}
+		else if (!result) {
+			return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.USER_NOT_EXISTS)
+		}
+		else {
+			User.findByIdAndUpdate({ _id: _id }, {
+				$set: {
+					name: name,
+					sportsName: sportsName,
+					address:address ,
+					package: package,
+					status: status
+
+				}
+			}, (err, result) => {
+				if (err) {
+					return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+				}
+				else if (!result) {
+					return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.USER_NOT_EXISTS)
+				}
+				else {
+					return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, " Users profile Updated successfully !!!!")
+				}
+			})
+		}
+	})
+}
+
+//search users
+
+const userSearch = (req, res) => {
+	let query = {
+		$or:[{email:{$regex: new RegExp(req.body.search, "ig")}},{mobileNumber:{$regex: new RegExp(req.body.search, "ig")}}]
+	}
+	
+	var options = {
+		page: req.body.page || 1,
+		limit: req.body.limit || 10,
+		sort: { createdAt: -1 }
+	}
+	User.paginate(query, options, (err, success) => {
+		//console.log('@@@@@@@@@',success)
+		if (err)
+			return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR);
+		else if (!success.docs.length)
+			return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.EMPLOYEE_NOT_FOUND);
+		else
+			return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.LIST_OF_EMPLOYEE, success)
+	})
+}
+
+
+//delete User by admin
+
+const deleteUser = (req, res)=>{
+	var _id = req.body._id;
+
+	User.findByIdAndRemove({_id:_id},(err, result)=>{
+		if(err){
+			return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err) 
+		}
+		else if(!result){
+			return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.USER_NOT_EXISTS)
+		}
+		else{
+			return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, " User deleted parmanently !!!!!");
+		}
+		
+	})
+}
+
+//About us Page 
+
+const aboutUs = (req, res)=>{
+ 
+var text = " Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum";
+
+res.send({text:text});
+
+}
+
+
 const sendLink = (req, res) => {
-	if(req.body.email)
-		req.body.email=req.body.email.toLowerCase();
+	if (req.body.email)
+		req.body.email = req.body.email.toLowerCase();
 	User.findOne({
 		email: req.body.email
 	}, (error, result) => {
 		if (error)
-			return Response.sendResponse(res,responseCode.INTERNAL_SERVER_ERROR,responseMsg.INTERNAL_SERVER_ERROR,err)
+			return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
 		else if (!result)
-		    return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.USER_NOT_EXISTS)
+			return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.USER_NOT_EXISTS)
 		else {
 			var token = jwt.sign({ _id: result._id, email: result.email, password: result.password }, config.secret_key);
 
 			message.sendMail(req.body.email, "Your reset password link", `Here is link to reset the password....Click here !!! :- ${req["headers"]["origin"]}/admin/reset-password/${token}`, (err1, res1) => {
 				if (err1)
-					return Response.sendResponse(res,responseCode.BAD_REQUEST,responseMsg.EMAIL_NOT_EXISTS)
-				else
-					{ Response.sendResponse(res,responseCode.EVERYTHING_IS_OK,"Reset link sent successfully to registered emailId")
-				User.findByIdAndUpdate(result._id,{$set:{verifyToken:token}},{new:true},(error,success)=>{
-					if(error)
-						console.log("error in updating document");
-					else{
-						console.log("Document updated successfully.")
-					}
+					return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.EMAIL_NOT_EXISTS)
+				else {
+					Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Reset link sent successfully to registered emailId")
+					User.findByIdAndUpdate(result._id, { $set: { verifyToken: token } }, { new: true }, (error, success) => {
+						if (error)
+							console.log("error in updating document");
+						else {
+							console.log("Document updated successfully.")
+						}
 
-				})
-			}
+					})
+				}
 			})
 		}
 	})
 }
 
 
-const authenticateUser=(req,res)=>{
-	if(!req.params._id){
+const authenticateUser = (req, res) => {
+	if (!req.params._id) {
 		return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.USER_IS_REQ)
 	}
-	else{
-		User.findOne({_id:req.params._id},(err,success)=>{
+	else {
+		User.findOne({ _id: req.params._id }, (err, success) => {
 			if (err) {
-				return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err)
+				return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
 			}
 			else if (!success) {
 				return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.USER_NOT_EXISTS)
 			}
 			else {
-				return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK,"valid user");
+				return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "valid user");
 			}
 		})
 	}
 }
-const resetPassword=(req,res)=>{
+const resetPassword = (req, res) => {
 	if (!req.params._id) {
 		return Response.sendResponse(res, responseCode.BAD_REQUEST, responseMsg.USER_IS_REQ)
 	}
@@ -1515,38 +1721,38 @@ const resetPassword=(req,res)=>{
 				return Response.sendResponse(res, responseCode.NOT_FOUND, responseMsg.USER_NOT_EXISTS)
 			}
 			else {
-				
-						let salt = bcrypt.genSaltSync(10);
-						req.body.newPassword = bcrypt.hashSync(req.body.newPassword, salt)
-						console.log("cdcfhfvf=----->", req.body.newPassword)
-						var options = {
-							new: true
-						}
-						let set = {
-							password: req.body.newPassword
-						}
-						userServices.updateUser(query, set, options, (err, success) => {
-							if (err) {
-								return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR)
-							}
-							else if (!success) {
-								return Response.sendResponse(res, responseCode.NOT_MODIFIED, responseMsg.NOT_MODIFIED)
-							}
-							else {
-								return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.PASSWORD_UPDATE);
-							}
-						})
-					
-				
+
+				let salt = bcrypt.genSaltSync(10);
+				req.body.newPassword = bcrypt.hashSync(req.body.newPassword, salt)
+				console.log("cdcfhfvf=----->", req.body.newPassword)
+				var options = {
+					new: true
+				}
+				let set = {
+					password: req.body.newPassword
+				}
+				userServices.updateUser(query, set, options, (err, success) => {
+					if (err) {
+						return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR)
+					}
+					else if (!success) {
+						return Response.sendResponse(res, responseCode.NOT_MODIFIED, responseMsg.NOT_MODIFIED)
+					}
+					else {
+						return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, responseMsg.PASSWORD_UPDATE);
+					}
+				})
+
+
 			}
 		})
 	}
 }
 
 
-const userList=(req,res)=>{
-    let query={
-		visibleStatus:"ACTIVE"
+const userList = (req, res) => {
+	let query={
+		status:"ACTIVE"
 	}
 	if(req.body.search){
 		let search = new RegExp("^" + req.body.search)
@@ -1580,16 +1786,81 @@ const userList=(req,res)=>{
 	})
 }
 
-const countUser=(req,res)=>{
-	User.count({visibleStatus:"ACTIVE"},(err,success)=>{
+const activeUser = (req, res) => {
+	let option = {
+		page: req.params.pageNumber || 1,
+		limit: 20,
+		sort: { createdAt: -1 },
+		select: { password: 0 },
+
+	}
+
+	User.paginate({ status: "ACTIVE" }, option, (err, result) => {
+
+		
 		if (err) {
-			return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR,err)
+			return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+		}
+		else if (!result) {
+			return Response.sendResponse(res, responseCode.NO_DATA_FOUND, responseMsg.USER_NOT_EXISTS)
+		}
+		else {
+			return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Active User Lists", result);
+		}
+	})
+
+}
+
+
+const blockUser = (req, res) => {
+	let option = {
+		page: req.params.pageNumber || 1,
+		limit: 20,
+		sort: { createdAt: -1 },
+		select: { password: 0 },
+
+	}
+
+	User.paginate({ status: "INACTIVE" }, option, (err, result) => {
+
+		
+		if (err) {
+			return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+		}
+		else if (!result) {
+			return Response.sendResponse(res, responseCode.NO_DATA_FOUND, responseMsg.USER_NOT_EXISTS)
+		}
+		else {
+			return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Block User Lists", result);
+		}
+	})
+
+}
+
+const countUserActive = (req, res) => {
+	User.count({ status: "ACTIVE" }, (err, success) => {
+		if (err) {
+			return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
 		}
 		else if (!success) {
 			return Response.sendResponse(res, responseCode.NO_DATA_FOUND, responseMsg.USER_NOT_EXISTS)
 		}
 		else {
-			return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK,"Number of users",success);
+			return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Number of Active Users", success);
+		}
+	})
+}
+
+const countUserInActive = (req, res) => {
+	User.count({ status: "INACTIVE" }, (err, success) => {
+		if (err) {
+			return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err)
+		}
+		else if (!success) {
+			return Response.sendResponse(res, responseCode.NO_DATA_FOUND, responseMsg.USER_NOT_EXISTS)
+		}
+		else {
+			return Response.sendResponse(res, responseCode.EVERYTHING_IS_OK, "Number of InActive Users", success);
 		}
 	})
 }
@@ -1633,7 +1904,17 @@ module.exports = {
 	resetPassword,
 	authenticateUser,
 	userList,
-	countUser
+	countUserActive,
+	countUserInActive,
+	blockUser,
+	activeUser,
+	addUser,
+	createBlockUser,
+	viewUser,
+	editUser,
+	deleteUser,
+	userSearch,
+	aboutUs
 }
 
 

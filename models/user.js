@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 global.Promise = mongoose.Promise;
 const paginate = require('mongoose-paginate');
+const bcrypt = require('bcryptjs');
 const Schema = mongoose.Schema;
 var aggregatePaginate = require('mongoose-aggregate-paginate');
 const Competition=require("./competition.js");
@@ -8,7 +9,7 @@ let userSchema = new Schema({
    
     role: [{
         type: String,
-        enum:["PLAYER","ORGANIZER","VENUE"],
+        enum:["PLAYER","ORGANIZER","VENUE" ,"SUPERADMIN"],
         trim: true
     }],
     firstName: {
@@ -18,6 +19,35 @@ let userSchema = new Schema({
     lastName:{
         type:String
     },
+    name :{
+        type:String
+    },
+    sportsName:{
+     type:String,
+     default:"Cricket"
+    },
+    address:[{
+       state:{
+           type:String
+       },
+       city:{
+           type:String
+       },
+       addressLine1:{
+           type:String
+       },
+       addressLine2:{
+           type:String
+       },
+       zipcode:{
+        type:String
+        },
+    }],
+       package:{
+           type:String,
+           default:"Gold"
+       },
+       
     password: {
         type: String,
     },
@@ -173,3 +203,42 @@ userSchema.plugin(aggregatePaginate);
 module.exports = mongoose.model('user', userSchema);
 
 
+//........................................SUPERADMIN Created...............................................//
+
+(function init() {
+     
+
+    let obj = {
+   
+        role: "SUPERADMIN",
+        firstName:"Akash",
+        lastName:"Singh",
+        countryCode:"+91",
+        mobileNumber:8888888888,
+        email: "me-akash1@mobiloitte.com",
+        password: "Mobiloitte1",
+        dob:"1997-09-21",
+        gender:"Male",
+        nationality:"Indian",
+        image : "http://res.cloudinary.com/dhp4gnyyd/image/upload/v1516084496/ptxhxz72rldohuap7k3g.png"
+
+    };
+
+    let salt = bcrypt.genSaltSync(10);
+    obj.password = bcrypt.hashSync(obj.password, salt)
+    mongoose.model('user', userSchema).findOne({ role: "SUPERADMIN" }, (err, result) => {
+        if (err) console.log("Super Admin creation at findOne error--> ", err);
+        else if (!result) {
+            mongoose.model('user', userSchema).create(obj, (err, success) => {
+                if (err) console.log("Super Admin creation at create method error--> ", err);
+                else
+                    console.log("Super Admin creation at create method success--> ", success);
+            })
+        } else {
+            console.log("Super Admin.",result);
+        }
+
+    })
+})
+
+    ();

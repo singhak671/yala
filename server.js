@@ -8,7 +8,8 @@ var FCM = require('fcm-push');
 const cors = require('cors');
 const TermsAndPolicy=("../model/termsAndPrivacyModel");
 var Twocheckout = require('2checkout-node'); 
-app.set('port',(process.env.PORT||1414));
+// app.set('port',(process.env.PORT||1414));
+var port = process.env.port || 9000 ;
 app.use(bodyParser.urlencoded({
 	extended:false
 }));
@@ -107,4 +108,4 @@ app.use('/api/v1/membership',require('./routes/membership'));
 
 
 
-app.listen(app.get('port'),()=>console.log('Server running on ' + app.get('port')));
+app.listen(port,()=>console.log(`Server running on http://127.0.0.1:${port}`));

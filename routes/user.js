@@ -45,5 +45,18 @@ router.post('/sendLink',userController.sendLink)
 router.post('/resetPassword/:_id',userController.resetPassword)
 router.get('/authenticateUser/:_id',userController.authenticateUser)
 router.post('/userList',userController.userList)
-router.get('/countUser',userController.countUser)
+router.get('/countUserActive',userController.countUserActive)
+router.get('/countUserInActive',userController.countUserInActive)
+router.get('/blockUser/:pageNumber',userController.blockUser);
+router.get('/activeUser/:pageNumber',userController.activeUser);
+router.post('/addUser',userController.addUser); //add user 09 oct
+router.post('/createBlockUser',userController.createBlockUser); //add user 09 oct
+router.post('/viewUser',userController.viewUser); //add user 09 oct
+router.post('/editUser',userController.editUser); //add user 09 oct
+router.post('/deleteUser',userController.deleteUser); //add user 09 oct
+router.post('/userSearch',userController.userSearch); //add user 09 oct
+router.get('/aboutUs',userController.aboutUs);
+
+
+
 module.exports=router;
