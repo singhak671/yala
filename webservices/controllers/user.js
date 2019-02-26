@@ -80,7 +80,7 @@ const signup = (req, res) => {
 										return Response.sendResponse(res, responseCode.INTERNAL_SERVER_ERROR, responseMsg.INTERNAL_SERVER_ERROR, err);
 									}
 									else if (!success)
-										return Response.sendResponse(res.responseCode.BAD_REQUEST, responseMsg.CORRECT_EMAIL_ID);
+										return Response.sendResponse(res,responseCode.BAD_REQUEST, responseMsg.CORRECT_EMAIL_ID);
 									else {
 										console.log("successfully sent")
 
@@ -319,7 +319,7 @@ const updateUser = (req, res) => {
 		})
 	}
 }
-//--------------------------Get Detail of User for update-----------------------------------------------------------
+//-------------------------- Get Detail of User for update -----------------------------------------------------------
 
 const getDetail = (req, res) => {
 	console.log("req---->", req.query._id)
@@ -1896,8 +1896,6 @@ module.exports = {
 	getnotificationList,
 	deleteNotification,
 	orgNotification,
-
-
 
 	updateDeviceToken,
 	sendLink,
